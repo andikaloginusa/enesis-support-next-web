@@ -1,0 +1,13 @@
+{
+  "sidebar": {
+    "menuGroup": {
+      "main": "样本"
+    },
+    "menu": {
+      "dashboards": "示例页面"
+    },
+    "menuItem": {
+      "crypto": "样品项目"
+    }
+  }
+}

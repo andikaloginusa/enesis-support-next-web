@@ -1,0 +1,15 @@
+{
+  "sidebar": {
+    "menuGroup": {
+      "main": "Sample",
+      "klaim": "Klaim Support",
+      "fkr": "FKR Support"
+    },
+    "menu": {
+      "dashboards": "Sample Page"
+    },
+    "menuItem": {
+      "crypto": "Sample Item"
+    }
+  }
+}
