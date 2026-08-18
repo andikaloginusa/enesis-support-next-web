@@ -2,17 +2,36 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { App, Row, Col } from "antd";
-import { ExclamationCircleFilled, CheckCircleOutlined } from "@ant-design/icons";
+import { App } from "antd";
 import moment from "moment";
 import { authService } from "@/services";
+import {
+  getUserId,
+  setUserCredentials,
+  clearUserCredentials,
+  setChangeCredentials,
+} from "@/utils/storage";
+import { USER_ROLES, ROUTES, SESSION_COOKIE_NAME, SESSION_COOKIE_MAX_AGE } from "@/utils/constants";
+import {
+  buildPasswordExpiredModal,
+  buildTokenMissingModal,
+  buildLockoutModal,
+  buildLoginErrorModal,
+  buildLogoutSuccessModal,
+  buildLogoutErrorModal,
+} from "@/utils/authModalConfigs";
+
+// Internal constant — not exported
+const HTTP_STATUS_PASSWORD_EXPIRED = 302;
 
 /**
- * Modern Custom Hook for Authentication
- * Encapsulates login, logout, role redirection, password expiration, 
- * local storage synchronization, and premium Antd dialog notification feedback.
- * 
- * Uses App.useApp() to safely consume the theme context for modals.
+ * useAuth — Authentication Hook
+ *
+ * Manages login, logout, role-based redirection, and session persistence.
+ * All JSX modal content is delegated to `authModalConfigs.js` keeping this
+ * hook free of presentation markup (Single Responsibility Principle).
+ *
+ * Uses App.useApp() to safely consume the Antd theme context for modals.
  */
 export function useAuth() {
   const router = useRouter();
@@ -20,11 +39,15 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // ─────────────────────────────────────────────
+  // Login
+  // ─────────────────────────────────────────────
+
   /**
-   * Logs in a user using credentials.
-   * Mirrors the signinUser logic but built with React state and Next.js router.
-   * 
-   * @param {Object} credentials - { username, password }
+   * Authenticate user with credentials, handle role-based routing,
+   * session persistence, and error feedback via modal dialogs.
+   *
+   * @param {{ username: string, password: string }} credentials
    */
   const login = async (credentials) => {
     setIsLoading(true);
@@ -33,231 +56,113 @@ export function useAuth() {
     try {
       const response = await authService.login(credentials);
 
-      if (response && response.ok) {
+      if (response?.ok) {
         const responseData = response.data || {};
 
-        // 1. Password Expired / Warning case (Status 302)
-        if (responseData.status === "302" || responseData.status === 302) {
+        // Case 1: Password Expired (Status 302) — prompt user before proceeding
+        if (
+          responseData.status === "302" ||
+          responseData.status === HTTP_STATUS_PASSWORD_EXPIRED
+        ) {
           modal.error({
-            centered: true,
-            icon: <ExclamationCircleFilled />,
-            okType: "danger",
-            title: (
-              <Row style={{ alignItems: "center" }}>
-                <Col>
-                  <span>Warning !</span>
-                </Col>
-              </Row>
-            ),
-            content: (
-              <div>
-                <p>
-                  {responseData.message ||
-                    "Your password has expired, you must change it."}
-                </p>
-              </div>
-            ),
+            ...buildPasswordExpiredModal(responseData.message),
             onOk() {
               const credent = {
                 ...responseData.result,
                 accessToken: response.headers?.["x-auth-token"] || "",
               };
-              const credentWithLoginTime = {
+              setChangeCredentials({
                 ...credent,
                 logintime: moment().format("YYYY-MM-DD HH:mm:ss"),
-              };
-              
-              localStorage.setItem("change_credent", JSON.stringify(credentWithLoginTime));
-              router.push("/reset-password");
+              });
+              router.push(ROUTES.RESET_PASSWORD);
             },
           });
           setIsLoading(false);
           return;
         }
 
-        // 2. Normal Success: Find token defensively
+        // Case 2: Normal Success — extract token
         const result = responseData.result || responseData || {};
         const accessToken = result.data?.access_token || "";
 
         if (!accessToken) {
-          modal.error({
-            centered: true,
-            icon: <ExclamationCircleFilled />,
-            okType: "danger",
-            title: (
-              <Row style={{ alignItems: "center" }}>
-                <Col>
-                  <span>Warning !</span>
-                </Col>
-              </Row>
-            ),
-            content: (
-              <div>
-                <p>Login Failed, token not found !</p>
-              </div>
-            ),
-          });
+          modal.error(buildTokenMissingModal());
           setIsLoading(false);
           return;
         }
 
-        // 3. Save user info to localStorage and set a secure cookie for server-side Middleware guarding
-        const credentWithLoginTime = {
+        // Case 3: Persist session — localStorage + secure cookie
+        setUserCredentials({
           ...result.data,
           logintime: moment().format("YYYY-MM-DD HH:mm:ss"),
-        };
-        
-        localStorage.setItem("user_credent", JSON.stringify(credentWithLoginTime));
-        document.cookie = `user_token=${accessToken}; path=/; max-age=86400; SameSite=Lax`;
+        });
+        document.cookie = `${SESSION_COOKIE_NAME}=${accessToken}; path=/; max-age=${SESSION_COOKIE_MAX_AGE}; SameSite=Lax`;
 
-        // 4. Role-based Redirection
+        // Case 4: Role-based redirection
         const roleName = result.roles?.[0]?.nama || result.roles?.[0]?.name || "";
-        
-        if (roleName === "DISTRIBUTOR") {
-          router.push("/distributor/home");
-        } else if (roleName === "TRANSPORTER") {
-          router.push("/transporter/home");
-        } else if (result.is_vendor || roleName === "VENDOR") {
-          router.push("/vendor/home");
+        if (roleName === USER_ROLES.DISTRIBUTOR) {
+          router.push(ROUTES.DISTRIBUTOR_HOME);
+        } else if (roleName === USER_ROLES.TRANSPORTER) {
+          router.push(ROUTES.TRANSPORTER_HOME);
+        } else if (result.is_vendor || roleName === USER_ROLES.VENDOR) {
+          router.push(ROUTES.VENDOR_HOME);
         } else {
-          router.push("/");
+          router.push(ROUTES.HOME);
         }
-
       } else {
-        // 5. Handling failures: Locked Out / Attempts remaining
+        // Case 5: API-level failure — lockout or credential error
         const resData = response?.data || {};
         const remainingAttempt = resData.result?.remaining_attempt;
         const lockoutSeconds = resData.result?.lockout_seconds;
 
         if (lockoutSeconds) {
-          modal.error({
-            centered: true,
-            icon: <ExclamationCircleFilled />,
-            okType: "danger",
-            title: (
-              <Row style={{ alignItems: "center" }}>
-                <Col>
-                  <span>Locked Out</span>
-                </Col>
-              </Row>
-            ),
-            content: (
-              <div>
-                <p>{`Too many attempts. Try again after ${lockoutSeconds} seconds.`}</p>
-              </div>
-            ),
-          });
+          modal.error(buildLockoutModal(lockoutSeconds));
         } else {
           const errMsg = resData.message || response?.problem || "Login failed";
           setError(errMsg);
-          
-          modal.error({
-            centered: true,
-            icon: <ExclamationCircleFilled />,
-            okType: "danger",
-            title: (
-              <Row style={{ alignItems: "center" }}>
-                <Col>
-                  <span>Warning !</span>
-                </Col>
-              </Row>
-            ),
-            content: (
-              <div>
-                <p>{errMsg}</p>
-                {typeof remainingAttempt !== "undefined" && (
-                  <p className="mt-2 font-medium text-amber-600">
-                    Remaining attempts: {remainingAttempt}
-                  </p>
-                )}
-              </div>
-            ),
-          });
+          modal.error(buildLoginErrorModal(errMsg, remainingAttempt));
         }
       }
     } catch (err) {
-      console.error("Login error:", err);
+      console.error("[useAuth] Login error:", err);
       const errMsg = err.message || "An unexpected error occurred during login.";
       setError(errMsg);
-      
-      modal.error({
-        centered: true,
-        icon: <ExclamationCircleFilled />,
-        okType: "danger",
-        title: "Login Failed",
-        content: <p>{errMsg}</p>,
-      });
+      modal.error(buildLoginErrorModal(errMsg));
     } finally {
       setIsLoading(false);
     }
   };
 
+  // ─────────────────────────────────────────────
+  // Logout
+  // ─────────────────────────────────────────────
+
   /**
-   * Logs out a user, deletes session credentials, and hits signout endpoint.
+   * Sign out the current user, clear session data, and redirect to login.
    */
   const logout = async () => {
     setIsLoading(true);
-    
-    try {
-      let m_user_id = "";
-      const credsStr = localStorage.getItem("user_credent");
-      if (credsStr) {
-        const creds = JSON.parse(credsStr);
-        m_user_id = creds.m_user_id || creds.id || "";
-      }
 
+    try {
+      const m_user_id = getUserId();
       const response = await authService.logout({ m_user_id });
 
-      if (response && response.ok && !response.data?.error) {
+      if (response?.ok && !response.data?.error) {
         modal.success({
-          centered: true,
-          icon: <CheckCircleOutlined />,
-          okType: "primary",
-          title: (
-            <Row style={{ alignItems: "center" }} gutter={[5, 0]}>
-              <Col>
-                <span>Logout Berhasil</span>
-              </Col>
-            </Row>
-          ),
-          content: (
-            <div>
-              <p>Selamat Anda Sudah Berhasil Logout</p>
-            </div>
-          ),
+          ...buildLogoutSuccessModal(),
+          onOk() {
+            clearUserCredentials();
+            document.cookie = `${SESSION_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            router.push(ROUTES.LOGIN);
+          },
         });
-
-        localStorage.removeItem("user_credent");
-        document.cookie = "user_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-        router.push("/auth/login-1");
       } else {
-        modal.error({
-          centered: true,
-          icon: <ExclamationCircleFilled />,
-          okType: "danger",
-          title: (
-            <Row style={{ alignItems: "center" }} gutter={[5, 0]}>
-              <Col>
-                <span>Logout Gagal</span>
-              </Col>
-            </Row>
-          ),
-          content: (
-            <div>
-              <p>Maaf Anda Gagal Logout</p>
-            </div>
-          ),
-        });
+        modal.error(buildLogoutErrorModal());
       }
     } catch (err) {
-      console.error("Logout error:", err);
-      modal.error({
-        centered: true,
-        icon: <ExclamationCircleFilled />,
-        okType: "danger",
-        title: "Logout Error",
-        content: <p>{err.message || "An unexpected error occurred during logout."}</p>,
-      });
+      console.error("[useAuth] Logout error:", err);
+      modal.error(buildLogoutErrorModal(err.message));
     } finally {
       setIsLoading(false);
     }
@@ -270,3 +175,4 @@ export function useAuth() {
     error,
   };
 }
+
