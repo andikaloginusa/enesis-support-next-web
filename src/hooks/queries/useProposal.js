@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { proposalService } from "@services/proposal.service";
+import { useState } from "react";
 import { App } from "antd";
 import { getUserCredentials } from "@/utils/storage";
 import { queryKeys } from "@/lib/queryKeys";
@@ -9,7 +10,8 @@ import { useListParams } from "@/hooks/useListParams";
 /**
  * useProposal — Custom React Query Hook for the Proposal Module
  *
- * Manages paginated list, single detail, and update mutation for Proposals.
+ * Manages paginated list, single detail, update data mutation,
+ * and delegation (reassign approver) mutation.
  *
  * Composed with:
  * - `useListParams` for shared pagination/search/filter state (DRY)
@@ -31,7 +33,42 @@ export const useProposal = (proposalId = null) => {
     handleFilterChange,
   } = useListParams({ division: "", fcstatus: "" });
 
-  // 2. Query: Paginated Proposal List
+  // 2. Flag to enable/disable the candidates query (controlled by delegasi modal lifecycle)
+  //    Using a boolean instead of jabatan because the API returns all candidates
+  //    regardless of position — no jabatan parameter needed.
+  const [isCandidatesEnabled, setIsCandidatesEnabled] = useState(false);
+
+  // 3. Candidates Query — fires only when the delegasi modal is open
+  const {
+    data: candidatesList = [],
+    isLoading: isCandidatesLoading,
+  } = useQuery({
+    queryKey: queryKeys.proposal.candidates(),
+    enabled: isCandidatesEnabled,
+    // staleTime: 0 — always fetch fresh when modal opens so options are never stale/empty
+    staleTime: 0,
+    queryFn: async () => {
+      const response = await proposalService.getListUserApprovalProposal();
+      if (response.ok && response.data) {
+        const result =
+          response.data.results || response.data.result || response.data;
+        if (Array.isArray(result)) return result;
+      }
+      return [];
+    },
+  });
+
+  /** Enable candidates query when delegasi modal opens */
+  const fetchCandidatesForJabatan = () => {
+    setIsCandidatesEnabled(true);
+  };
+
+  /** Disable candidates query when delegasi modal closes */
+  const clearActiveCandidates = () => {
+    setIsCandidatesEnabled(false);
+  };
+
+  // 4. Query: Paginated Proposal List
   const {
     data: listData,
     isLoading: isListLoading,
@@ -45,11 +82,11 @@ export const useProposal = (proposalId = null) => {
         const response = await proposalService.getListProposal({
           currentPage: params.currentPage,
           pageSize: params.pageSize,
-          nik: creds?.employee_id || creds?.employeeId || "",
+          nik: creds?.nik || "",
+          employee_id: creds?.employee_id || creds?.employeeId || "",
           searchText: params.searchText,
           division: params.division,
           fcstatus: params.fcstatus,
-          nik: creds?.nik || "",
         });
 
         if (response.ok && response.data) {
@@ -67,7 +104,7 @@ export const useProposal = (proposalId = null) => {
     placeholderData: (prev) => prev,
   });
 
-  // 3. Query: Single Proposal Detail
+  // 5. Query: Single Proposal Detail
   const {
     data: detailData,
     isLoading: isDetailLoading,
@@ -97,7 +134,7 @@ export const useProposal = (proposalId = null) => {
     },
   });
 
-  // 4. Mutation: Update Proposal Data
+  // 6. Mutation: Update Proposal Data
   const updateProposalMutation = useMutation({
     mutationFn: async (payload) => {
       const response = await proposalService.updateProposalData(payload);
@@ -122,6 +159,40 @@ export const useProposal = (proposalId = null) => {
     },
   });
 
+  // 7. Mutation: Delegasi — Reassign Proposal Approval Step to New Employee
+  const delegasiMutation = useMutation({
+    mutationFn: async (payload) => {
+      // payload: { nip, proposal_approval_id }
+      const response = await proposalService.updateApprovalProposal(payload);
+      assertApiSuccess(response, "Gagal mendelegasikan approval proposal");
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notification.success({
+        message: "Delegasi Berhasil",
+        description: res?.message || "Approval proposal berhasil didelegasikan",
+        duration: 3,
+      });
+      // Refresh detail to show updated approver info
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.proposal.detail(proposalId),
+      });
+      // Clear ALL candidates caches so next modal open always fetches fresh.
+      // Without this, reopening the same jabatan served stale empty cache.
+      queryClient.removeQueries({
+        queryKey: ["proposal", "candidates"],
+        exact: false,
+      });
+    },
+    onError: (err) => {
+      notification.error({
+        message: "Delegasi Gagal",
+        description: err.message || "Gagal mendelegasikan approval proposal",
+        duration: 3,
+      });
+    },
+  });
+
   return {
     // List Query
     proposalList: listData?.results || [],
@@ -134,6 +205,12 @@ export const useProposal = (proposalId = null) => {
     isDetailLoading,
     refetchDetail,
 
+    // Candidates for Delegasi Modal (React Query managed — no stale/empty bugs)
+    candidatesList,
+    isCandidatesLoading,
+    fetchCandidatesForJabatan,
+    clearActiveCandidates,
+
     // Pagination, Search & Filter
     params,
     handlePaginationChange,
@@ -143,5 +220,8 @@ export const useProposal = (proposalId = null) => {
     // Mutations
     updateProposalData: updateProposalMutation.mutateAsync,
     isUpdatingProposal: updateProposalMutation.isPending,
+
+    delegasiApproval: delegasiMutation.mutateAsync,
+    isDelegating: delegasiMutation.isPending,
   };
 };

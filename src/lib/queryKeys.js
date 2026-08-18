@@ -49,6 +49,8 @@ export const queryKeys = {
     list: (params) => ["proposal", "list", params],
     /** Matches a single proposal detail by ID */
     detail: (id) => ["proposal", "detail", id],
+    /** Fixed key for approval candidates list (API returns all without jabatan filter) */
+    candidates: () => ["proposal", "candidates"],
   },
 
   // ─────────────────────────────────────────────
