@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { use, useState } from "react";
 import {
@@ -229,7 +229,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     setDelegasiApprovalId(step.proposal_approval_id);
     setSelectedEmployeeId(null);
     formDelegasi.resetFields();
-    // Enable candidates query Ã¢â‚¬â€ API returns all candidates, no jabatan needed
+    // Enable candidates query — API returns all candidates, no jabatan needed
     fetchCandidatesForJabatan();
     setIsDelegasiModalOpen(true);
   };
@@ -239,7 +239,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     setActiveStepRow(null);
     setDelegasiApprovalId(null);
     setSelectedEmployeeId(null);
-    clearActiveCandidates(); // Resets activeJabatan Ã¢â€ â€™ disables candidates query
+    clearActiveCandidates(); // Resets activeJabatan — disables candidates query
     formDelegasi.resetFields();
   };
 
@@ -272,7 +272,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     });
   };
 
-  // Options builder for Select Ã¢â‚¬â€ uses candidatesList from React Query
+  // Options builder for Select — uses candidatesList from React Query
   // key: index ensures uniqueness even if API returns duplicate employee_id/nip
   const delegasiOptions = Array.isArray(candidatesList)
     ? candidatesList.map((data, index) => {
@@ -291,7 +291,9 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   // Update filter untuk mencocokkan input dengan label, NIK, atau Nama
   const filterDelegasiOption = (input, option) => {
     const searchInput = (input || "").toLowerCase();
-    const matchLabel = (option?.label ?? "").toLowerCase().includes(searchInput);
+    const matchLabel = (option?.label ?? "")
+      .toLowerCase()
+      .includes(searchInput);
     const matchNik = (option?.searchNik ?? "").includes(searchInput);
     const matchName = (option?.searchName ?? "").includes(searchInput);
     return matchLabel || matchNik || matchName;
@@ -346,7 +348,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
 
     // Ensure at least one field is not null (changed)
     const hasChanges = Object.keys(payload).some(
-      (key) => key !== "proposal_id" && payload[key] !== null
+      (key) => key !== "proposal_id" && payload[key] !== null,
     );
 
     if (!hasChanges) {
@@ -368,7 +370,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     const progressList =
       proposalDetail.approvalprogress || proposalDetail.progress || [];
     return [...progressList].sort(
-      (a, b) => (a.no_appr || a.urutan || 0) - (b.no_appr || b.urutan || 0)
+      (a, b) => (a.no_appr || a.urutan || 0) - (b.no_appr || b.urutan || 0),
     );
   }, [proposalDetail]);
 
@@ -459,10 +461,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   const statusConfig = getStatusConfig(docStatus);
   const budgetLines = proposalDetail.budget || proposalDetail.lines || [];
   const attachmentFiles = proposalDetail.file || [];
-  const totalBudget =
-    proposalDetail.total_budget ??
-    proposalDetail.amount ??
-    0;
+  const totalBudget = proposalDetail.total_budget ?? proposalDetail.amount ?? 0;
 
   // ==========================================
   // 4. Render
@@ -471,7 +470,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     <div className="space-y-5 pb-10">
       {contextHolder}
 
-      {/* â”€â”€ Top Navigation Row â”€â”€ */}
+      {/* -- Top Navigation Row -- */}
       <div className="flex items-center justify-between">
         <Button
           type="text"
@@ -503,7 +502,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         </div>
       </div>
 
-      {/* â”€â”€ Hero Header Card (clean / neutral) â”€â”€ */}
+      {/* -- Hero Header Card (clean / neutral) -- */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
           <div className="flex items-start gap-4 min-w-0 flex-1">
@@ -512,17 +511,19 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
             </div>
             <div className="min-w-0">
               <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">
-                Proposal Support Â· {docNo}
+                Proposal Support &middot; {docNo}
               </p>
               <h1 className="text-slate-900 font-bold text-lg leading-snug line-clamp-2">
-                {proposalDetail.title || proposalDetail.name || "Detail Proposal"}
+                {proposalDetail.title ||
+                  proposalDetail.name ||
+                  "Detail Proposal"}
               </h1>
               <p className="text-slate-500 text-sm mt-1 font-medium">
                 <CalendarOutlined className="mr-1 text-slate-400" />
                 {formatDate(
                   proposalDetail.proposal_date ||
                     proposalDetail.documentdate ||
-                    proposalDetail.created
+                    proposalDetail.created,
                 )}
               </p>
             </div>
@@ -547,7 +548,11 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
               Menunggu persetujuan:{" "}
               <strong>{currentApprover.name || currentApprover.nama}</strong>{" "}
               <span className="text-amber-600">
-                ({currentApprover.position_appr || currentApprover.jabatan || "Executor"})
+                (
+                {currentApprover.position_appr ||
+                  currentApprover.jabatan ||
+                  "Executor"}
+                )
               </span>
             </span>
           </div>
@@ -564,8 +569,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         ) : null}
       </div>
 
-
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Approval Timeline (Full Width) Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* -- Approval Timeline (Full Width) -- */}
       <Card className="border-slate-200/70 shadow-sm">
         <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
           <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
@@ -573,7 +577,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
             Alur Persetujuan
           </CardTitle>
           <CardDescription className="text-[11px] text-slate-400 mt-0.5">
-            Tahapan otorisasi berjenjang Ã‚Â· Klik &quot;Delegasi&quot; untuk
+            Tahapan otorisasi berjenjang. Klik &quot;Delegasi&quot; untuk
             mendelegasikan approval
           </CardDescription>
         </CardHeader>
@@ -609,7 +613,8 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                   const cfg = getStatusConfig(rawStatus);
 
                   let cardCls = "border-slate-100 bg-white";
-                  if (isApproved) cardCls = "border-emerald-100/80 bg-emerald-50/30";
+                  if (isApproved)
+                    cardCls = "border-emerald-100/80 bg-emerald-50/30";
                   if (isRejected) cardCls = "border-rose-100/80 bg-rose-50/30";
                   if (isCurrent)
                     cardCls =
@@ -636,16 +641,14 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                               {step.name || step.nama || "-"}
                             </span>
                             <Tag className="font-semibold text-[10px] uppercase text-blue-600 bg-blue-50 border-blue-100 rounded-md m-0 px-2 py-0">
-                              {step.position_appr ||
-                                step.jabatan ||
-                                "Executor"}
+                              {step.position_appr || step.jabatan || "Executor"}
                             </Tag>
                           </div>
                           <div className="flex items-center gap-3 mt-0.5">
                             <span className="text-[11px] text-slate-400 font-mono">
                               NIK: {step.employee_id || step.nik || "-"}
                             </span>
-                            <span className="text-slate-200">Ã‚Â·</span>
+                            <span className="text-slate-200">|</span>
                             <span className="text-[10px] text-slate-400 font-bold uppercase">
                               Tahap {step.no_appr || idx + 1}
                             </span>
@@ -655,15 +658,15 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                             step.created_date) && (
                             <span className="text-[10px] text-slate-400 mt-1 block">
                               {isApproved
-                                ? "Ã¢Å“â€¦ Disetujui"
+                                ? "Disetujui"
                                 : isRejected
-                                  ? "Ã¢ÂÅ’ Ditolak"
-                                  : "Ã¢ÂÂ³ Diverifikasi"}
+                                  ? "Ditolak"
+                                  : "Diverifikasi"}
                               :{" "}
                               {moment(
                                 step.updated_date ||
                                   step.dateaction ||
-                                  step.created_date
+                                  step.created_date,
                               ).format("DD MMM YYYY, HH:mm")}
                             </span>
                           )}
@@ -699,8 +702,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         </CardContent>
       </Card>
 
-
-      {/* â”€â”€ Main Two-Column Grid â”€â”€ */}
+      {/* -- Main Two-Column Grid -- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* LEFT: Main Details (2/3 width) */}
         <div className="lg:col-span-2 space-y-5">
@@ -725,7 +727,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                   value={formatDate(
                     proposalDetail.proposal_date ||
                       proposalDetail.documentdate ||
-                      proposalDetail.created
+                      proposalDetail.created,
                   )}
                   icon={<CalendarOutlined />}
                 />
@@ -735,7 +737,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                     proposalDetail.division_code ||
                     proposalDetail.division ||
                     "-"
-                  } Ã‚Â· ${proposalDetail.region || "-"}`}
+                  } - ${proposalDetail.region || "-"}`}
                   icon={<GlobalOutlined />}
                 />
                 <InfoField
@@ -762,7 +764,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                     proposalDetail.budget_year || proposalDetail.period || "-"
                   }${
                     proposalDetail.period_start
-                      ? ` Ã‚Â· ${proposalDetail.period_start} s/d ${proposalDetail.period_end}`
+                      ? ` - ${proposalDetail.period_start} s/d ${proposalDetail.period_end}`
                       : ""
                   }`}
                   icon={<CalendarOutlined />}
@@ -827,7 +829,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                     </span>
                   </div>
                   <span className="text-slate-700 font-semibold text-sm">
-                    PO: {proposalDetail.biaya_po || "-"} Ã‚Â· Reversal:{" "}
+                    PO: {proposalDetail.biaya_po || "-"} | Reversal:{" "}
                     {proposalDetail.is_reversal || "-"}
                   </span>
                 </div>
@@ -939,25 +941,22 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                             </span>
                           )}
                           {/* Nested Product Variants */}
-                          {Array.isArray(r.variant) &&
-                            r.variant.length > 0 && (
-                              <div className="mt-1.5 pl-3 border-l-2 border-blue-300 flex flex-col gap-0.5">
-                                <span className="text-[9px] uppercase font-bold text-blue-500 tracking-wider">
-                                  Varian SKU:
+                          {Array.isArray(r.variant) && r.variant.length > 0 && (
+                            <div className="mt-1.5 pl-3 border-l-2 border-blue-300 flex flex-col gap-0.5">
+                              <span className="text-[9px] uppercase font-bold text-blue-500 tracking-wider">
+                                Varian SKU:
+                              </span>
+                              {r.variant.map((v, i) => (
+                                <span
+                                  key={i}
+                                  className="text-xs text-slate-600"
+                                >
+                                  - {v.variant_desc || v.variant_id}{" "}
+                                  {v.package_type ? `(${v.package_type})` : ""}
                                 </span>
-                                {r.variant.map((v, i) => (
-                                  <span
-                                    key={i}
-                                    className="text-xs text-slate-600"
-                                  >
-                                    Ã‚Â· {v.variant_desc || v.variant_id}{" "}
-                                    {v.package_type
-                                      ? `(${v.package_type})`
-                                      : ""}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ),
                     },
@@ -1036,36 +1035,35 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                   {attachmentFiles.map((fileItem, fileIdx) => {
                     const fileUrl = `https://apiesales.enesis.com/apigateway/apiesales/proposal/file/${proposalId}/${encodeURIComponent(fileItem.name)}/`;
                     return (
-                    <a
-                      key={fileItem.uid || fileIdx}
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 border border-slate-200/60 rounded-xl bg-white hover:bg-slate-50 hover:border-slate-300 transition-all group no-underline"
-                    >
-                      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex-shrink-0 group-hover:bg-slate-200 transition-colors">
-                        <PaperClipOutlined className="text-base" />
-                      </div>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span
-                          className="font-semibold text-slate-700 text-xs truncate group-hover:text-slate-900 transition-colors"
-                          title={fileItem.name}
-                        >
-                          {fileItem.name}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-medium mt-0.5">
-                          Dokumen #{fileItem.no || fileIdx + 1}
-                        </span>
-                      </div>
-                      <div className="flex-shrink-0">
-                        <span className="text-[11px] font-semibold text-white bg-emerald-500 group-hover:bg-emerald-600 transition-colors px-3 py-1.5 rounded-lg">
-                          Lihat Dokumen
-                        </span>
-                      </div>
-                    </a>
+                      <a
+                        key={fileItem.uid || fileIdx}
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 border border-slate-200/60 rounded-xl bg-white hover:bg-slate-50 hover:border-slate-300 transition-all group no-underline"
+                      >
+                        <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex-shrink-0 group-hover:bg-slate-200 transition-colors">
+                          <PaperClipOutlined className="text-base" />
+                        </div>
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span
+                            className="font-semibold text-slate-700 text-xs truncate group-hover:text-slate-900 transition-colors"
+                            title={fileItem.name}
+                          >
+                            {fileItem.name}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium mt-0.5">
+                            Dokumen #{fileItem.no || fileIdx + 1}
+                          </span>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <span className="text-[11px] font-semibold text-white bg-emerald-500 group-hover:bg-emerald-600 transition-colors px-3 py-1.5 rounded-lg">
+                            Lihat Dokumen
+                          </span>
+                        </div>
+                      </a>
                     );
                   })}
-
                 </div>
               </CardContent>
             </Card>
@@ -1093,9 +1091,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                     value: sortedProgress.filter((s) => {
                       const r = (s.status || "").toLowerCase();
                       return (
-                        r.includes("approve") ||
-                        r === "y" ||
-                        r === "success"
+                        r.includes("approve") || r === "y" || r === "success"
                       );
                     }).length,
                     color: "text-emerald-700",
@@ -1143,7 +1139,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
           </Card>
         </div>
       </div>
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Delegasi Approval Modal Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* -- Delegasi Approval Modal -- */}
       <Modal
         title={null}
         open={isDelegasiModalOpen}
@@ -1178,7 +1174,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
               </p>
               <p className="text-xs text-slate-500 font-mono mt-0.5">
                 NIK: {activeStepRow.employee_id || activeStepRow.nik || "-"}
-                &nbsp;Ã‚Â·&nbsp;{" "}
+                &nbsp;|&nbsp;{" "}
                 {activeStepRow.position_appr || activeStepRow.jabatan || "-"}
               </p>
             </div>
@@ -1198,9 +1194,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                 </span>
               }
               name="nip"
-              rules={[
-                { required: true, message: "Pilih karyawan pengganti!" },
-              ]}
+              rules={[{ required: true, message: "Pilih karyawan pengganti!" }]}
             >
               <Select
                 style={{ width: "100%" }}
@@ -1239,7 +1233,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         </div>
       </Modal>
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Edit Proposal Modal Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* -- Edit Proposal Modal -- */}
       <Modal
         title={null}
         open={isEditModalOpen}
