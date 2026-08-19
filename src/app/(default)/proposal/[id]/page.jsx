@@ -1033,27 +1033,39 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
               </CardHeader>
               <CardContent className="p-4">
                 <div className="flex flex-col gap-2">
-                  {attachmentFiles.map((fileItem, fileIdx) => (
-                    <div
+                  {attachmentFiles.map((fileItem, fileIdx) => {
+                    const fileUrl = `https://apiesales.enesis.com/apigateway/apiesales/proposal/file/${proposalId}/${encodeURIComponent(fileItem.name)}/`;
+                    return (
+                    <a
                       key={fileItem.uid || fileIdx}
-                      className="flex items-center gap-3 p-3 border border-slate-200/60 rounded-xl bg-white hover:bg-blue-50/50 hover:border-blue-200 transition-all cursor-pointer group"
+                      href={fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-3 border border-slate-200/60 rounded-xl bg-white hover:bg-slate-50 hover:border-slate-300 transition-all group no-underline"
                     >
-                      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex-shrink-0 group-hover:bg-orange-100 transition-colors">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex-shrink-0 group-hover:bg-slate-200 transition-colors">
                         <PaperClipOutlined className="text-base" />
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
                         <span
-                          className="font-semibold text-slate-700 text-xs truncate group-hover:text-blue-700 transition-colors"
+                          className="font-semibold text-slate-700 text-xs truncate group-hover:text-slate-900 transition-colors"
                           title={fileItem.name}
                         >
                           {fileItem.name}
                         </span>
                         <span className="text-[10px] text-slate-400 font-medium mt-0.5">
-                          Lampiran #{fileItem.no || fileIdx + 1}
+                          Dokumen #{fileItem.no || fileIdx + 1}
                         </span>
                       </div>
-                    </div>
-                  ))}
+                      <div className="flex-shrink-0">
+                        <span className="text-[11px] font-semibold text-white bg-emerald-500 group-hover:bg-emerald-600 transition-colors px-3 py-1.5 rounded-lg">
+                          Lihat Dokumen
+                        </span>
+                      </div>
+                    </a>
+                    );
+                  })}
+
                 </div>
               </CardContent>
             </Card>

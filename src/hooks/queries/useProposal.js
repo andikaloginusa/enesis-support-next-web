@@ -191,6 +191,54 @@ export const useProposal = (proposalId = null) => {
     },
   });
 
+  // 8. Mutation: Upload Send Email Ulang (Excel batch)
+  const uploadSendEmailMutation = useMutation({
+    mutationFn: async (file) => {
+      const response = await proposalService.uploadSendEmailUlang(file);
+      assertApiSuccess(response, "Gagal mengirim ulang email");
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notification.success({
+        message: "Kirim Ulang Email Berhasil",
+        description:
+          res?.message ||
+          `Berhasil mengirim ulang email untuk ${res?.detail?.length ?? 0} proposal`,
+        duration: 4,
+      });
+    },
+    onError: (err) => {
+      notification.error({
+        message: "Upload Gagal",
+        description: err.message || "Gagal mengirim ulang email proposal",
+        duration: 4,
+      });
+    },
+  });
+
+  // 9. Mutation: Upload Reversal Internasional (Excel batch)
+  const uploadReversalMutation = useMutation({
+    mutationFn: async (file) => {
+      const response = await proposalService.uploadReversalInternasional(file);
+      assertApiSuccess(response, "Gagal memproses reversal internasional");
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notification.success({
+        message: "Reversal Internasional Berhasil",
+        description: res?.message || "File reversal internasional berhasil diproses",
+        duration: 4,
+      });
+    },
+    onError: (err) => {
+      notification.error({
+        message: "Upload Gagal",
+        description: err.message || "Gagal memproses reversal internasional",
+        duration: 4,
+      });
+    },
+  });
+
   return {
     // List Query
     proposalList: listData?.results || [],
@@ -221,5 +269,13 @@ export const useProposal = (proposalId = null) => {
 
     delegasiApproval: delegasiMutation.mutateAsync,
     isDelegating: delegasiMutation.isPending,
+
+    uploadSendEmailUlang: uploadSendEmailMutation.mutateAsync,
+    isUploadingEmail: uploadSendEmailMutation.isPending,
+    uploadEmailResult: uploadSendEmailMutation.data,
+
+    uploadReversalInternasional: uploadReversalMutation.mutateAsync,
+    isUploadingReversal: uploadReversalMutation.isPending,
+    uploadReversalResult: uploadReversalMutation.data,
   };
 };

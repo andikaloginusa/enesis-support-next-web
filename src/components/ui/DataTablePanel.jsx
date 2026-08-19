@@ -29,15 +29,17 @@ export const DataTablePanel = ({
       {/* Main Declarative Content Panel */}
       <Card variant={"borderless"} className="shadow-sm bg-white">
         {/* Table & Header Controls Slot */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="mb-6 space-y-4">
+          {/* Row 1: Title + description */}
           <div>
             <Title level={4} className="m-0 text-slate-800 font-bold">
               {title}
             </Title>
             {description && <Text className="text-slate-400 text-xs">{description}</Text>}
           </div>
-          
-          <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+
+          {/* Row 2: Search + extra actions — always full-width, wraps naturally */}
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Search Input Controller */}
             {searchProps && searchProps.onChange && (
               <Input
@@ -46,15 +48,16 @@ export const DataTablePanel = ({
                 allowClear
                 value={searchProps.value}
                 onChange={(e) => searchProps.onChange(e.target.value)}
-                className="w-full md:w-80 rounded-lg hover:border-[#1aac32] focus:border-[#1aac32]"
-                size="large"
+                className="w-72 rounded-lg hover:border-[#1aac32] focus:border-[#1aac32]"
+                size="middle"
               />
             )}
-            
+
             {/* Custom Extra Header Controls (e.g. Refresh, Export buttons) */}
             {extraHeaderActions}
           </div>
         </div>
+
 
         {/* Ant Design Dynamic Table */}
         <Table

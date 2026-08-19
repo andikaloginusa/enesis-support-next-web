@@ -46,12 +46,77 @@ export const ProposalSupportServices = (apiInstance) => {
   const getListUserApprovalProposal = (params) =>
     apiInstance.get("support/proposal/get/approval-list", params);
 
+  /**
+   * Upload Excel file to trigger send-ulang-email for batch proposals.
+   * Uses raw fetch (not api client) because multipart/form-data cannot use JSON body.
+   * @param {File} file - Excel file selected by the user
+   */
+  const uploadSendEmailUlang = async (file) => {
+    const formData = new FormData();
+    formData.append("excel", file);
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "https://apiesales.enesis.com/apigateway/apiesales/";
+
+    let authHeader = {};
+    try {
+      const credsStr =
+        typeof window !== "undefined" && localStorage.getItem("user_credent");
+      if (credsStr) {
+        const creds = JSON.parse(credsStr);
+        const token = creds.access_token || creds.token;
+        if (token) authHeader = { Authorization: `Bearer ${token}` };
+      }
+    } catch (_) {}
+
+    const response = await fetch(
+      `${baseUrl}support/proposal/send-ulang-email`,
+      { method: "POST", headers: authHeader, body: formData },
+    );
+    const data = await response.json().catch(() => null);
+    return { ok: response.ok, data, status: response.status };
+  };
+
+  /**
+   * Upload Excel file for Reversal Internasional batch processing.
+   * @param {File} file - Excel file selected by the user
+   */
+  const uploadReversalInternasional = async (file) => {
+    const formData = new FormData();
+    formData.append("excel", file);
+
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      "https://apiesales.enesis.com/apigateway/apiesales/";
+
+    let authHeader = {};
+    try {
+      const credsStr =
+        typeof window !== "undefined" && localStorage.getItem("user_credent");
+      if (credsStr) {
+        const creds = JSON.parse(credsStr);
+        const token = creds.access_token || creds.token;
+        if (token) authHeader = { Authorization: `Bearer ${token}` };
+      }
+    } catch (_) {}
+
+    const response = await fetch(
+      `${baseUrl}support/proposal/upload/reversal-internasional`,
+      { method: "POST", headers: authHeader, body: formData },
+    );
+    const data = await response.json().catch(() => null);
+    return { ok: response.ok, data, status: response.status };
+  };
+
   return {
     getListProposal,
     getDetailProposal,
     updateProposalData,
     updateApprovalProposal,
     getListUserApprovalProposal,
+    uploadSendEmailUlang,
+    uploadReversalInternasional,
   };
 };
 
