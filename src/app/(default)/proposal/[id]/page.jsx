@@ -14,6 +14,7 @@ import {
   Select,
   DatePicker,
   message,
+  Tooltip,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -24,6 +25,17 @@ import {
   EditOutlined,
   SwapOutlined,
   ExclamationCircleOutlined,
+  FileTextOutlined,
+  CalendarOutlined,
+  DollarOutlined,
+  TeamOutlined,
+  TagOutlined,
+  GlobalOutlined,
+  PaperClipOutlined,
+  BankOutlined,
+  BarChartOutlined,
+  InfoCircleOutlined,
+  CheckOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useProposal } from "@/hooks";
@@ -58,6 +70,122 @@ const formatDate = (dateStr) => {
   return moment(dateStr).format("DD MMM YYYY, HH:mm");
 };
 
+// ==========================================
+// Sub-components
+// ==========================================
+
+/** A single labeled field block with icon */
+const InfoField = ({
+  label,
+  value,
+  icon,
+  accent = false,
+  mono = false,
+  large = false,
+}) => (
+  <div className="flex flex-col gap-1">
+    <div className="flex items-center gap-1.5">
+      {icon && <span className="text-slate-400 text-[11px]">{icon}</span>}
+      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        {label}
+      </span>
+    </div>
+    <span
+      className={[
+        large ? "text-lg font-extrabold" : "text-sm font-semibold",
+        accent ? "text-blue-600" : "text-slate-800",
+        mono ? "font-mono" : "",
+      ].join(" ")}
+    >
+      {value || (
+        <span className="text-slate-300 italic text-xs">Tidak tersedia</span>
+      )}
+    </span>
+  </div>
+);
+
+/** Status config mapper */
+const getStatusConfig = (rawStatus) => {
+  const s = (rawStatus || "").toLowerCase();
+  if (
+    s.includes("approve") ||
+    s === "apr" ||
+    s === "y" ||
+    s === "success" ||
+    s === "on progress"
+  ) {
+    return {
+      color: "success",
+      bg: "bg-emerald-50",
+      border: "border-emerald-200",
+      text: "text-emerald-700",
+      dot: "bg-emerald-500",
+    };
+  }
+  if (s.includes("reject") || s === "failed" || s === "reject" || s === "n") {
+    return {
+      color: "error",
+      bg: "bg-rose-50",
+      border: "border-rose-200",
+      text: "text-rose-700",
+      dot: "bg-rose-500",
+    };
+  }
+  if (
+    s.includes("proses") ||
+    s.includes("wait") ||
+    s.includes("menunggu") ||
+    s.includes("pending") ||
+    s.includes("belum")
+  ) {
+    return {
+      color: "processing",
+      bg: "bg-amber-50",
+      border: "border-amber-200",
+      text: "text-amber-700",
+      dot: "bg-amber-400",
+    };
+  }
+  return {
+    color: "default",
+    bg: "bg-slate-50",
+    border: "border-slate-200",
+    text: "text-slate-600",
+    dot: "bg-slate-400",
+  };
+};
+
+/** Circular step dot indicator */
+const StepDot = ({ isApproved, isRejected, isCurrent, step }) => {
+  if (isApproved)
+    return (
+      <span className="flex items-center justify-center w-9 h-9 rounded-full bg-emerald-500 shadow-md shadow-emerald-200 flex-shrink-0 ring-4 ring-emerald-50">
+        <CheckOutlined className="text-white text-sm" />
+      </span>
+    );
+  if (isRejected)
+    return (
+      <span className="flex items-center justify-center w-9 h-9 rounded-full bg-rose-500 shadow-md shadow-rose-200 flex-shrink-0 ring-4 ring-rose-50">
+        <CloseCircleOutlined className="text-white text-sm" />
+      </span>
+    );
+  if (isCurrent)
+    return (
+      <span className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-600 shadow-md shadow-blue-200 flex-shrink-0 ring-4 ring-blue-50 animate-pulse">
+        <ClockCircleOutlined className="text-white text-sm" />
+      </span>
+    );
+  return (
+    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 border-2 border-slate-200 flex-shrink-0">
+      <span className="text-[10px] font-bold text-slate-400">{step}</span>
+    </span>
+  );
+};
+
+// ==========================================
+// Main Component
+// ==========================================
+
 export default function ProposalDetailPage({ params: paramsPromise }) {
   const resolvedParams = use(paramsPromise);
   const proposalId = resolvedParams.id;
@@ -65,7 +193,6 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   const router = useRouter();
   const screens = useBreakpoint();
 
-  // Ant Design dynamic confirmation modal instance
   const [modal, contextHolder] = Modal.useModal();
 
   // ==========================================
@@ -102,7 +229,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     setDelegasiApprovalId(step.proposal_approval_id);
     setSelectedEmployeeId(null);
     formDelegasi.resetFields();
-    // Enable candidates query — API returns all candidates, no jabatan needed
+    // Enable candidates query Ã¢â‚¬â€ API returns all candidates, no jabatan needed
     fetchCandidatesForJabatan();
     setIsDelegasiModalOpen(true);
   };
@@ -112,7 +239,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     setActiveStepRow(null);
     setDelegasiApprovalId(null);
     setSelectedEmployeeId(null);
-    clearActiveCandidates(); // Resets activeJabatan → disables candidates query
+    clearActiveCandidates(); // Resets activeJabatan Ã¢â€ â€™ disables candidates query
     formDelegasi.resetFields();
   };
 
@@ -145,18 +272,16 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     });
   };
 
-  // Options builder for Select — uses candidatesList from React Query
+  // Options builder for Select Ã¢â‚¬â€ uses candidatesList from React Query
   // key: index ensures uniqueness even if API returns duplicate employee_id/nip
   const delegasiOptions = Array.isArray(candidatesList)
     ? candidatesList.map((data, index) => {
         const nik = data.nip || data.employee_id || "";
         const name = data.name || data.nama_user || data.nama || "";
-
         return {
           key: index,
           value: nik,
           label: `${nik} - ${name}`,
-          // Tambahkan properti tambahan untuk mempermudah pencarian
           searchNik: String(nik).toLowerCase(),
           searchName: String(name).toLowerCase(),
         };
@@ -166,13 +291,9 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   // Update filter untuk mencocokkan input dengan label, NIK, atau Nama
   const filterDelegasiOption = (input, option) => {
     const searchInput = (input || "").toLowerCase();
-
-    const matchLabel = (option?.label ?? "")
-      .toLowerCase()
-      .includes(searchInput);
+    const matchLabel = (option?.label ?? "").toLowerCase().includes(searchInput);
     const matchNik = (option?.searchNik ?? "").includes(searchInput);
     const matchName = (option?.searchName ?? "").includes(searchInput);
-
     return matchLabel || matchNik || matchName;
   };
 
@@ -225,7 +346,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
 
     // Ensure at least one field is not null (changed)
     const hasChanges = Object.keys(payload).some(
-      (key) => key !== "proposal_id" && payload[key] !== null,
+      (key) => key !== "proposal_id" && payload[key] !== null
     );
 
     if (!hasChanges) {
@@ -247,7 +368,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     const progressList =
       proposalDetail.approvalprogress || proposalDetail.progress || [];
     return [...progressList].sort(
-      (a, b) => (a.no_appr || a.urutan || 0) - (b.no_appr || b.urutan || 0),
+      (a, b) => (a.no_appr || a.urutan || 0) - (b.no_appr || b.urutan || 0)
     );
   }, [proposalDetail]);
 
@@ -267,145 +388,62 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     );
   }, [sortedProgress]);
 
+  // ==========================================
+  // Loading State
+  // ==========================================
   if (isDetailLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        <Text className="text-slate-500 font-medium">
-          Memuat Detail Proposal...
-        </Text>
+      <div className="space-y-5 pb-10 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="h-9 w-32 bg-slate-100 rounded-xl" />
+          <div className="flex gap-2">
+            <div className="h-7 w-24 bg-slate-100 rounded-lg" />
+            <div className="h-9 w-36 bg-slate-100 rounded-xl" />
+          </div>
+        </div>
+        <div className="h-40 bg-slate-100 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 space-y-5">
+            <div className="h-64 bg-slate-100 rounded-2xl" />
+            <div className="h-48 bg-slate-100 rounded-2xl" />
+          </div>
+          <div className="space-y-5">
+            <div className="h-48 bg-slate-100 rounded-2xl" />
+            <div className="h-40 bg-slate-100 rounded-2xl" />
+          </div>
+        </div>
+        <div className="h-64 bg-slate-100 rounded-2xl" />
       </div>
     );
   }
 
   if (!proposalDetail) {
     return (
-      <Card className="max-w-2xl mx-auto mt-8 border-slate-200">
-        <CardContent className="text-center py-12">
-          <CloseCircleOutlined className="text-red-500 text-5xl mb-4" />
-          <Title level={4}>Data Proposal Tidak Ditemukan</Title>
-          <Text className="text-slate-400 block mb-6">
-            Dokumen Proposal yang Anda cari tidak tersedia atau tidak dapat
-            diakses.
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-rose-50 flex items-center justify-center">
+          <CloseCircleOutlined className="text-rose-400 text-3xl" />
+        </div>
+        <div>
+          <Title level={4} className="text-slate-800 mb-1">
+            Data Proposal Tidak Ditemukan
+          </Title>
+          <Text className="text-slate-400 block max-w-xs mx-auto">
+            Dokumen yang Anda cari tidak tersedia atau tidak dapat diakses.
           </Text>
-          <Button
-            type="primary"
-            onClick={() => router.push("/proposal")}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-600"
-          >
-            Kembali ke Daftar Proposal
-          </Button>
-        </CardContent>
-      </Card>
+        </div>
+        <Button
+          type="primary"
+          onClick={() => router.push("/proposal")}
+          className="bg-blue-600 hover:bg-blue-700 border-blue-600 rounded-xl font-semibold h-10 px-6"
+        >
+          Kembali ke Daftar Proposal
+        </Button>
+      </div>
     );
   }
 
   // ==========================================
-  // 3. Table Column Setup for Approval Steps
-  // ==========================================
-  const progressColumns = [
-    {
-      title: "No",
-      key: "no",
-      width: 60,
-      align: "center",
-      render: (_, row, index) => (
-        <Text className="font-semibold text-slate-500">
-          {row.no_appr || row.urutan || index + 1}
-        </Text>
-      ),
-    },
-    {
-      title: "Jabatan",
-      key: "jabatan",
-      width: 140,
-      render: (row) => (
-        <Text className="font-semibold text-slate-800">
-          {row.position_appr || row.jabatan || "Executor"}
-        </Text>
-      ),
-    },
-    {
-      title: "Nama / NIK",
-      key: "user",
-      width: 220,
-      render: (row) => (
-        <div className="flex flex-col">
-          <Text className="font-medium text-slate-700">
-            {row.name || row.nama || "-"}
-          </Text>
-          <Text className="text-xs text-slate-400 font-mono">
-            {row.employee_id || row.nik || "-"}
-          </Text>
-        </div>
-      ),
-    },
-    {
-      title: "Status",
-      key: "status",
-      width: 165,
-      render: (row) => {
-        const rawStatus = (
-          row.status ||
-          row.status_approval_desc ||
-          ""
-        ).toLowerCase();
-        let color = "default";
-        let icon = <ClockCircleOutlined />;
-
-        if (
-          rawStatus.includes("approve") ||
-          rawStatus === "approved" ||
-          rawStatus === "y"
-        ) {
-          color = "success";
-          icon = <CheckCircleOutlined />;
-        } else if (
-          rawStatus.includes("reject") ||
-          rawStatus === "rejected" ||
-          rawStatus === "failed"
-        ) {
-          color = "error";
-          icon = <CloseCircleOutlined />;
-        } else if (
-          rawStatus.includes("verif") ||
-          rawStatus.includes("proses") ||
-          rawStatus.includes("wait") ||
-          rawStatus.includes("menunggu") ||
-          rawStatus.includes("belum")
-        ) {
-          color = "processing";
-          icon = <ClockCircleOutlined className="animate-pulse" />;
-        }
-
-        return (
-          <Tag
-            icon={icon}
-            color={color}
-            className="font-medium uppercase px-2 py-0.5 rounded border-none"
-          >
-            {row.status || row.status_approval_desc || "Belum diproses"}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: "Tanggal Aksi",
-      key: "dateaction",
-      width: 140,
-      render: (row) => {
-        const val = row.updated_date || row.dateaction || row.created_date;
-        return (
-          <Text className="text-xs text-slate-500 font-medium">
-            {val ? moment(val).format("DD MMM YYYY") : "-"}
-          </Text>
-        );
-      },
-    },
-  ];
-
-  // ==========================================
-  // 4. Declarative Layout Render
+  // 3. Data Preparation
   // ==========================================
   const docNo =
     proposalDetail.proposal_no ||
@@ -418,745 +456,863 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     proposalDetail.fcstatus ||
     "PENDING"
   ).toLowerCase();
+  const statusConfig = getStatusConfig(docStatus);
   const budgetLines = proposalDetail.budget || proposalDetail.lines || [];
   const attachmentFiles = proposalDetail.file || [];
+  const totalBudget =
+    proposalDetail.total_budget ??
+    proposalDetail.amount ??
+    0;
 
+  // ==========================================
+  // 4. Render
+  // ==========================================
   return (
-    <div className="p-1 space-y-6">
+    <div className="space-y-5 pb-10">
       {contextHolder}
-      {/* Top Navigation Row */}
+
+      {/* â”€â”€ Top Navigation Row â”€â”€ */}
       <div className="flex items-center justify-between">
         <Button
-          type="link"
+          type="text"
           icon={<ArrowLeftOutlined />}
           onClick={() => router.push("/proposal")}
-          className="text-blue-600 hover:text-blue-700 font-bold p-0 flex items-center gap-1 transition-all hover:translate-x-[-2px]"
+          className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 font-semibold flex items-center gap-1.5 rounded-xl h-9 px-3 transition-all"
         >
-          Kembali ke Daftar Proposal
+          Kembali
         </Button>
-        {proposalDetail && (
-          <Button
-            type="primary"
-            icon={<EditOutlined />}
-            onClick={handleOpenEditModal}
-            className="bg-blue-600 hover:bg-blue-700 border-blue-600 font-bold px-5 h-9 rounded-xl flex items-center gap-1.5 shadow-sm"
+
+        <div className="flex items-center gap-2">
+          <Tag
+            className={`font-semibold uppercase text-xs px-3 py-1 rounded-lg border m-0 ${statusConfig.bg} ${statusConfig.border} ${statusConfig.text}`}
           >
-            Edit Detail Proposal
-          </Button>
-        )}
+            <span
+              className={`inline-block w-1.5 h-1.5 rounded-full mr-1.5 ${statusConfig.dot}`}
+            />
+            {proposalDetail.status || proposalDetail.fcstatus || "PENDING"}
+          </Tag>
+          {proposalDetail && (
+            <Button
+              icon={<EditOutlined />}
+              onClick={handleOpenEditModal}
+              className="bg-white border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-300 font-semibold rounded-xl h-9 px-4 flex items-center gap-1.5"
+            >
+              Edit Proposal
+            </Button>
+          )}
+        </div>
       </div>
 
-      {/* Dynamic current approval status header banner (Millennial/Gen Z airy card) */}
-      <div className="bg-gradient-to-r from-blue-50/50 via-indigo-50/30 to-white border border-blue-100 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 shadow-sm backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200">
-            <ClockCircleOutlined className="text-xl animate-spin-slow" />
+      {/* â”€â”€ Hero Header Card (clean / neutral) â”€â”€ */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+          <div className="flex items-start gap-4 min-w-0 flex-1">
+            <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-slate-100 flex-shrink-0">
+              <FileTextOutlined className="text-slate-600 text-lg" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">
+                Proposal Support Â· {docNo}
+              </p>
+              <h1 className="text-slate-900 font-bold text-lg leading-snug line-clamp-2">
+                {proposalDetail.title || proposalDetail.name || "Detail Proposal"}
+              </h1>
+              <p className="text-slate-500 text-sm mt-1 font-medium">
+                <CalendarOutlined className="mr-1 text-slate-400" />
+                {formatDate(
+                  proposalDetail.proposal_date ||
+                    proposalDetail.documentdate ||
+                    proposalDetail.created
+                )}
+              </p>
+            </div>
           </div>
-          <div>
-            <Text className="text-xs text-blue-500 font-bold uppercase tracking-widest block mb-1">
-              Status Approval Saat Ini
-            </Text>
-            {currentApprover ? (
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <Text className="text-slate-800 text-sm font-semibold">
-                  Sedang menunggu persetujuan dari:
-                </Text>
-                <Text className="text-blue-700 text-sm font-extrabold">
-                  {currentApprover.name || currentApprover.nama}
-                </Text>
-                <Tag
-                  color="blue"
-                  className="font-extrabold uppercase text-[10px] px-2 py-0.5 rounded-md border-none shadow-sm m-0"
-                >
-                  {currentApprover.position_appr ||
-                    currentApprover.jabatan ||
-                    "Executor"}
-                </Tag>
-              </div>
-            ) : docStatus === "approved" ||
-              docStatus === "apr" ||
-              docStatus === "y" ||
-              docStatus === "success" ? (
-              <Text className="text-emerald-700 text-sm font-extrabold flex items-center gap-1.5">
-                <CheckCircleOutlined /> Persetujuan Selesai! Seluruh tahapan
-                telah disetujui sepenuhnya.
-              </Text>
-            ) : (
-              <Text className="text-slate-800 text-sm font-semibold">
-                Proposal dalam status:{" "}
-                <span className="capitalize font-bold text-slate-700">
-                  {proposalDetail.status || "Draft"}
-                </span>
-              </Text>
-            )}
+
+          {/* Budget highlight */}
+          <div className="flex-shrink-0 bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-right">
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-0.5">
+              Total Anggaran
+            </p>
+            <p className="text-slate-800 font-black text-2xl tracking-tight leading-none">
+              {formatCurrency(totalBudget)}
+            </p>
           </div>
         </div>
-        {currentApprover && (
-          <div className="flex items-center gap-2 self-start sm:self-auto bg-blue-100/50 border border-blue-200/50 rounded-full px-3 py-1 font-bold text-[10px] text-blue-700 uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
-            Siklus Aktif
+
+        {/* Current Approver / Status Banner */}
+        {currentApprover ? (
+          <div className="mt-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping flex-shrink-0" />
+            <span className="text-amber-800 text-xs font-medium">
+              Menunggu persetujuan:{" "}
+              <strong>{currentApprover.name || currentApprover.nama}</strong>{" "}
+              <span className="text-amber-600">
+                ({currentApprover.position_appr || currentApprover.jabatan || "Executor"})
+              </span>
+            </span>
           </div>
-        )}
+        ) : docStatus === "approved" ||
+          docStatus === "apr" ||
+          docStatus === "y" ||
+          docStatus === "success" ? (
+          <div className="mt-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5">
+            <CheckCircleOutlined className="text-emerald-500 flex-shrink-0" />
+            <span className="text-emerald-700 text-xs font-semibold">
+              Semua tahapan persetujuan telah selesai & disetujui sepenuhnya.
+            </span>
+          </div>
+        ) : null}
       </div>
 
-      {/* Main Container Stack */}
-      <div className="space-y-8">
-        {/* Main Details Card */}
-        <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-6 px-7">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <ShoppingOutlined className="text-blue-600 text-2xl" />
-                  Detail Proposal Support
-                </CardTitle>
-                <CardDescription className="text-slate-400 mt-1">
-                  Dokumen Number:{" "}
-                  <span className="font-semibold text-slate-700">{docNo}</span>
-                </CardDescription>
-              </div>
-              <div>
-                <Tag
-                  color={
-                    docStatus === "approved" ||
-                    docStatus === "apr" ||
-                    docStatus === "y" ||
-                    docStatus === "success" ||
-                    docStatus === "on progress"
-                      ? "success"
-                      : docStatus === "rejected" ||
-                          docStatus === "failed" ||
-                          docStatus === "reject" ||
-                          docStatus === "n"
-                        ? "error"
-                        : "warning"
-                  }
-                  className="font-bold uppercase px-3 py-1 rounded-md text-xs border-none shadow-sm"
-                >
-                  {proposalDetail.status ||
-                    proposalDetail.fcstatus ||
-                    "PENDING"}
-                </Tag>
+
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Approval Timeline (Full Width) Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      <Card className="border-slate-200/70 shadow-sm">
+        <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
+          <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+            <CheckCircleOutlined className="text-slate-500" />
+            Alur Persetujuan
+          </CardTitle>
+          <CardDescription className="text-[11px] text-slate-400 mt-0.5">
+            Tahapan otorisasi berjenjang Ã‚Â· Klik &quot;Delegasi&quot; untuk
+            mendelegasikan approval
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-6">
+          {sortedProgress.length === 0 ? (
+            <div className="text-center py-10 text-slate-400">
+              <TeamOutlined className="text-3xl mb-2 opacity-40" />
+              <p className="text-sm">Tidak ada data alur persetujuan.</p>
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Vertical connector line */}
+              <div className="absolute left-[17px] top-9 bottom-9 w-px bg-gradient-to-b from-blue-200 via-slate-200 to-slate-100 pointer-events-none" />
+
+              <div className="flex flex-col gap-3">
+                {sortedProgress.map((step, idx) => {
+                  const rawStatus = (
+                    step.status ||
+                    step.status_approval_desc ||
+                    ""
+                  ).toLowerCase();
+                  const isApproved =
+                    rawStatus.includes("approve") ||
+                    rawStatus === "y" ||
+                    rawStatus === "success";
+                  const isCurrent =
+                    rawStatus.includes("proses") ||
+                    rawStatus.includes("wait") ||
+                    rawStatus.includes("menunggu") ||
+                    rawStatus.includes("belum");
+                  const isRejected =
+                    rawStatus.includes("reject") || rawStatus === "failed";
+                  const cfg = getStatusConfig(rawStatus);
+
+                  let cardCls = "border-slate-100 bg-white";
+                  if (isApproved) cardCls = "border-emerald-100/80 bg-emerald-50/30";
+                  if (isRejected) cardCls = "border-rose-100/80 bg-rose-50/30";
+                  if (isCurrent)
+                    cardCls =
+                      "border-blue-200/80 bg-blue-50/40 shadow-sm shadow-blue-100";
+
+                  return (
+                    <div
+                      key={step.proposal_approval_id || idx}
+                      className={`relative flex items-start gap-4 p-4 rounded-2xl border transition-all ${cardCls}`}
+                    >
+                      {/* Step dot */}
+                      <StepDot
+                        isApproved={isApproved}
+                        isRejected={isRejected}
+                        isCurrent={isCurrent}
+                        step={step.no_appr || idx + 1}
+                      />
+
+                      {/* Step content */}
+                      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-extrabold text-slate-800 text-sm">
+                              {step.name || step.nama || "-"}
+                            </span>
+                            <Tag className="font-semibold text-[10px] uppercase text-blue-600 bg-blue-50 border-blue-100 rounded-md m-0 px-2 py-0">
+                              {step.position_appr ||
+                                step.jabatan ||
+                                "Executor"}
+                            </Tag>
+                          </div>
+                          <div className="flex items-center gap-3 mt-0.5">
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              NIK: {step.employee_id || step.nik || "-"}
+                            </span>
+                            <span className="text-slate-200">Ã‚Â·</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase">
+                              Tahap {step.no_appr || idx + 1}
+                            </span>
+                          </div>
+                          {(step.updated_date ||
+                            step.dateaction ||
+                            step.created_date) && (
+                            <span className="text-[10px] text-slate-400 mt-1 block">
+                              {isApproved
+                                ? "Ã¢Å“â€¦ Disetujui"
+                                : isRejected
+                                  ? "Ã¢ÂÅ’ Ditolak"
+                                  : "Ã¢ÂÂ³ Diverifikasi"}
+                              :{" "}
+                              {moment(
+                                step.updated_date ||
+                                  step.dateaction ||
+                                  step.created_date
+                              ).format("DD MMM YYYY, HH:mm")}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Tag
+                            color={cfg.color}
+                            className="font-semibold uppercase text-[10px] px-2.5 py-0.5 rounded-lg border-none m-0"
+                          >
+                            {step.status ||
+                              step.status_approval_desc ||
+                              "Menunggu"}
+                          </Tag>
+                          <Tooltip title="Delegasikan approval ke karyawan lain">
+                            <Button
+                              size="small"
+                              icon={<SwapOutlined />}
+                              onClick={() => openDelegasiModal(step)}
+                              className="border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
+                            >
+                              Delegasi
+                            </Button>
+                          </Tooltip>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </CardHeader>
+          )}
+        </CardContent>
+      </Card>
 
-          <CardContent className="p-7">
-            {/* Core Information Grid (Spacious Airy Layout) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Nomor Proposal
-                </Text>
-                <Text className="text-slate-900 font-extrabold text-base">
-                  {docNo}
-                </Text>
-              </div>
 
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Tanggal Proposal
-                </Text>
-                <Text className="text-slate-800 font-semibold">
-                  {formatDate(
+      {/* â”€â”€ Main Two-Column Grid â”€â”€ */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* LEFT: Main Details (2/3 width) */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Core Information */}
+          <Card className="border-slate-200/70 shadow-sm">
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
+              <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <InfoCircleOutlined className="text-slate-500" />
+                Informasi Utama
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <InfoField
+                  label="Nomor Dokumen"
+                  value={docNo}
+                  icon={<FileTextOutlined />}
+                  mono
+                />
+                <InfoField
+                  label="Tanggal Proposal"
+                  value={formatDate(
                     proposalDetail.proposal_date ||
                       proposalDetail.documentdate ||
-                      proposalDetail.created,
+                      proposalDetail.created
                   )}
-                </Text>
-              </div>
-
-              <div className="flex flex-col md:col-span-2">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Nama Proposal / Project
-                </Text>
-                <Text className="text-slate-900 font-extrabold text-lg leading-snug">
-                  {proposalDetail.title || proposalDetail.name || "-"}
-                </Text>
-              </div>
-
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Divisi & Region
-                </Text>
-                <Text className="text-slate-800 font-semibold">
-                  {proposalDetail.division_code ||
+                  icon={<CalendarOutlined />}
+                />
+                <InfoField
+                  label="Divisi & Region"
+                  value={`${
+                    proposalDetail.division_code ||
                     proposalDetail.division ||
-                    "-"}{" "}
-                  | {proposalDetail.region || "-"}
-                </Text>
+                    "-"
+                  } Ã‚Â· ${proposalDetail.region || "-"}`}
+                  icon={<GlobalOutlined />}
+                />
+                <InfoField
+                  label="Brand"
+                  value={proposalDetail.brand || "-"}
+                  icon={<TagOutlined />}
+                />
+                <InfoField
+                  label="Vendor / Agency"
+                  value={
+                    proposalDetail.nama_vendor
+                      ? `${proposalDetail.nama_vendor}${
+                          proposalDetail.kode_vendor
+                            ? ` (${proposalDetail.kode_vendor})`
+                            : ""
+                        }`
+                      : "-"
+                  }
+                  icon={<BankOutlined />}
+                />
+                <InfoField
+                  label="Periode / Tahun"
+                  value={`${
+                    proposalDetail.budget_year || proposalDetail.period || "-"
+                  }${
+                    proposalDetail.period_start
+                      ? ` Ã‚Â· ${proposalDetail.period_start} s/d ${proposalDetail.period_end}`
+                      : ""
+                  }`}
+                  icon={<CalendarOutlined />}
+                />
               </div>
 
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Brand
-                </Text>
-                <Text className="text-slate-800 font-semibold">
-                  {proposalDetail.brand || "-"}
-                </Text>
-              </div>
+              <Divider className="my-5 border-slate-100" />
 
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Vendor / Agency
-                </Text>
-                <Text className="text-slate-800 font-semibold">
-                  {proposalDetail.nama_vendor || "-"}
-                  {proposalDetail.kode_vendor
-                    ? ` (${proposalDetail.kode_vendor})`
-                    : ""}
-                </Text>
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Budget highlight */}
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-blue-400">
+                    <DollarOutlined className="text-xs" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Nominal Anggaran
+                    </span>
+                  </div>
+                  <span className="text-blue-700 font-black text-lg tracking-tight leading-tight">
+                    {formatCurrency(totalBudget)}
+                  </span>
+                </div>
 
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Periode / Tahun
-                </Text>
-                <Text className="text-slate-800 font-semibold">
-                  {proposalDetail.budget_year || proposalDetail.period || "-"}
-                  {proposalDetail.period_start
-                    ? ` [${proposalDetail.period_start} s/d ${proposalDetail.period_end}]`
-                    : ""}
-                </Text>
-              </div>
+                {/* Expired date */}
+                <div
+                  className={`rounded-xl p-4 flex flex-col gap-1 border ${
+                    proposalDetail.expired_date
+                      ? "bg-amber-50 border-amber-100"
+                      : "bg-slate-50 border-slate-100"
+                  }`}
+                >
+                  <div
+                    className={`flex items-center gap-1.5 ${
+                      proposalDetail.expired_date
+                        ? "text-amber-400"
+                        : "text-slate-400"
+                    }`}
+                  >
+                    <CalendarOutlined className="text-xs" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Expired Date
+                    </span>
+                  </div>
+                  <span
+                    className={`font-bold text-sm ${
+                      proposalDetail.expired_date
+                        ? "text-amber-700"
+                        : "text-slate-400 italic text-xs"
+                    }`}
+                  >
+                    {proposalDetail.expired_date
+                      ? formatDate(proposalDetail.expired_date)
+                      : "Tidak ada expired date"}
+                  </span>
+                </div>
 
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Tanggal Kadaluarsa (Expired Date)
-                </Text>
-                <Text className="text-amber-600 font-extrabold">
-                  {proposalDetail.expired_date
-                    ? formatDate(proposalDetail.expired_date)
-                    : "TIDAK ADA EXPIRED DATE"}
-                </Text>
-              </div>
-
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Nominal Anggaran (Budget)
-                </Text>
-                <Text className="text-blue-600 font-black text-xl tracking-tight">
-                  {formatCurrency(
-                    proposalDetail.total_budget ??
-                      proposalDetail.budget ??
-                      proposalDetail.amount ??
-                      0,
-                  )}
-                </Text>
-              </div>
-
-              <div className="flex flex-col">
-                <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-                  Biaya PO & Reversal
-                </Text>
-                <Text className="text-slate-800 font-semibold">
-                  Biaya PO:{" "}
-                  <span className="font-bold">
-                    {proposalDetail.biaya_po || "-"}
-                  </span>{" "}
-                  | Reversal:{" "}
-                  <span className="font-bold">
+                {/* PO & Reversal */}
+                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5 text-slate-400">
+                    <BarChartOutlined className="text-xs" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Biaya PO & Reversal
+                    </span>
+                  </div>
+                  <span className="text-slate-700 font-semibold text-sm">
+                    PO: {proposalDetail.biaya_po || "-"} Ã‚Â· Reversal:{" "}
                     {proposalDetail.is_reversal || "-"}
                   </span>
-                </Text>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Strategic Context Cards (Background, Objectives, Mech, KPI) */}
-        {(proposalDetail.background ||
-          proposalDetail.objective ||
-          proposalDetail.mechanism ||
-          proposalDetail.kpi) && (
-          <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5 px-7">
-              <CardTitle className="text-base font-bold text-slate-800">
-                Konteks Strategis & Target Proposal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-7 space-y-6">
-              {proposalDetail.title && (
-                <div>
-                  <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1.5">
-                    Title
-                  </Text>
-                  <Text className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
-                    {proposalDetail.title}
-                  </Text>
-                </div>
-              )}
-
-              {proposalDetail.background && (
-                <div>
-                  <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1.5">
-                    Latar Belakang (Background)
-                  </Text>
-                  <Text className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
-                    {proposalDetail.background}
-                  </Text>
-                </div>
-              )}
-
-              {proposalDetail.objective && (
-                <div>
-                  <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1.5">
-                    Tujuan (Objective)
-                  </Text>
-                  <Text className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
-                    {proposalDetail.objective}
-                  </Text>
-                </div>
-              )}
-
-              {proposalDetail.mechanism && (
-                <div>
-                  <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1.5">
-                    Mekanisme Pelaksanaan (Mechanism)
-                  </Text>
-                  <Text className="text-slate-700 whitespace-pre-line text-sm leading-relaxed">
-                    {proposalDetail.mechanism}
-                  </Text>
-                </div>
-              )}
-
-              {proposalDetail.kpi && (
-                <div>
-                  <Text className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-1.5">
-                    Indikator Kinerja (KPI)
-                  </Text>
-                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mt-2 text-slate-700 whitespace-pre-line text-xs font-semibold font-mono leading-relaxed">
-                    {proposalDetail.kpi}
+          {/* Strategic Context */}
+          {(proposalDetail.background ||
+            proposalDetail.objective ||
+            proposalDetail.mechanism ||
+            proposalDetail.kpi) && (
+            <Card className="border-slate-200/70 shadow-sm">
+              <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
+                <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <BarChartOutlined className="text-purple-500" />
+                  Konteks Strategis & Target
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-5">
+                {proposalDetail.background && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                      Latar Belakang (Background)
+                    </p>
+                    <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line border-l-2 border-slate-200 pl-3">
+                      {proposalDetail.background}
+                    </p>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                )}
+                {proposalDetail.objective && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                      Tujuan (Objective)
+                    </p>
+                    <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line border-l-2 border-blue-200 pl-3">
+                      {proposalDetail.objective}
+                    </p>
+                  </div>
+                )}
+                {proposalDetail.mechanism && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                      Mekanisme Pelaksanaan
+                    </p>
+                    <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line border-l-2 border-indigo-200 pl-3">
+                      {proposalDetail.mechanism}
+                    </p>
+                  </div>
+                )}
+                {proposalDetail.kpi && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                      Indikator Kinerja (KPI)
+                    </p>
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 leading-relaxed whitespace-pre-line">
+                      {proposalDetail.kpi}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
-        {/* Budget Lines and Product Variants */}
-        {budgetLines.length > 0 && (
-          <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5 px-7">
-              <CardTitle className="text-base font-bold text-slate-800">
-                Rincian Anggaran & Varian Produk
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-7">
-              <Table
-                dataSource={budgetLines}
-                rowKey={(row) =>
-                  row.proposal_budget_id ||
-                  row.budget_id ||
-                  row.id ||
-                  Math.random().toString()
-                }
-                pagination={false}
-                bordered
-                size="small"
-                columns={[
-                  {
-                    title: "No",
-                    key: "index",
-                    width: 50,
-                    align: "center",
-                    render: (_, __, idx) => idx + 1,
-                  },
-                  {
-                    title: "Aktivitas & Kode Anggaran",
-                    dataIndex: "activity",
-                    key: "activity",
-                    render: (t, r) => (
-                      <div className="flex flex-col gap-1">
-                        <Text className="font-semibold text-slate-800">
-                          {t || "-"}
-                        </Text>
-                        {r.activity_code && (
-                          <Text className="text-[11px] text-slate-400 font-mono">
-                            Kode: {r.activity_code}
-                          </Text>
-                        )}
-                        {/* Nested Product Variants */}
-                        {Array.isArray(r.variant) && r.variant.length > 0 && (
-                          <div className="mt-1.5 pl-3 border-l-2 border-blue-400 flex flex-col gap-0.5">
-                            <span className="text-[9px] uppercase font-bold text-blue-500 tracking-wider">
-                              Varian SKU Produk:
+          {/* Budget Lines */}
+          {budgetLines.length > 0 && (
+            <Card className="border-slate-200/70 shadow-sm">
+              <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
+                <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <DollarOutlined className="text-emerald-500" />
+                  Rincian Anggaran & Varian Produk
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table
+                  dataSource={budgetLines}
+                  rowKey={(row) =>
+                    row.proposal_budget_id ||
+                    row.budget_id ||
+                    row.id ||
+                    Math.random().toString()
+                  }
+                  pagination={false}
+                  size="small"
+                  columns={[
+                    {
+                      title: "#",
+                      key: "index",
+                      width: 44,
+                      align: "center",
+                      render: (_, __, idx) => (
+                        <span className="text-slate-400 font-bold text-xs">
+                          {idx + 1}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: "Aktivitas & Kode Anggaran",
+                      dataIndex: "activity",
+                      key: "activity",
+                      render: (t, r) => (
+                        <div className="flex flex-col gap-1 py-1">
+                          <span className="font-semibold text-slate-800 text-sm">
+                            {t || "-"}
+                          </span>
+                          {r.activity_code && (
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              Kode: {r.activity_code}
                             </span>
-                            {r.variant.map((v, i) => (
-                              <Text
-                                key={i}
-                                className="text-xs text-slate-600 font-medium"
-                              >
-                                • {v.variant_desc || v.variant_id}{" "}
-                                {v.package_type ? `(${v.package_type})` : ""}
-                              </Text>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ),
-                  },
-                  {
-                    title: "Brand",
-                    dataIndex: "brand",
-                    key: "brand",
-                    width: 80,
-                    align: "center",
-                    render: (t) => (
-                      <Tag color="blue" className="font-semibold">
-                        {t || "-"}
-                      </Tag>
-                    ),
-                  },
-                  {
-                    title: "Bulan",
-                    dataIndex: "bulan",
-                    key: "bulan",
-                    width: 90,
-                    align: "center",
-                  },
-                  {
-                    title: "Outstanding Klaim",
-                    dataIndex: "outstanding_klaim",
-                    key: "outstanding_klaim",
-                    width: 140,
-                    align: "right",
-                    render: (val) => (
-                      <Text className="font-mono text-slate-600">
-                        {formatCurrency(val)}
-                      </Text>
-                    ),
-                  },
-                  {
-                    title: "Budget to Approve",
-                    dataIndex: "budgettoapprove",
-                    key: "budgettoapprove",
-                    width: 140,
-                    align: "right",
-                    render: (val) => (
-                      <Text className="font-bold text-emerald-600">
-                        {formatCurrency(val)}
-                      </Text>
-                    ),
-                  },
-                ]}
-                className="border border-slate-100 rounded-lg overflow-hidden"
-              />
-            </CardContent>
-          </Card>
-        )}
+                          )}
+                          {/* Nested Product Variants */}
+                          {Array.isArray(r.variant) &&
+                            r.variant.length > 0 && (
+                              <div className="mt-1.5 pl-3 border-l-2 border-blue-300 flex flex-col gap-0.5">
+                                <span className="text-[9px] uppercase font-bold text-blue-500 tracking-wider">
+                                  Varian SKU:
+                                </span>
+                                {r.variant.map((v, i) => (
+                                  <span
+                                    key={i}
+                                    className="text-xs text-slate-600"
+                                  >
+                                    Ã‚Â· {v.variant_desc || v.variant_id}{" "}
+                                    {v.package_type
+                                      ? `(${v.package_type})`
+                                      : ""}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                        </div>
+                      ),
+                    },
+                    {
+                      title: "Brand",
+                      dataIndex: "brand",
+                      key: "brand",
+                      width: 80,
+                      align: "center",
+                      render: (t) => (
+                        <Tag
+                          color="blue"
+                          className="font-semibold text-xs rounded-md border-none"
+                        >
+                          {t || "-"}
+                        </Tag>
+                      ),
+                    },
+                    {
+                      title: "Bulan",
+                      dataIndex: "bulan",
+                      key: "bulan",
+                      width: 80,
+                      align: "center",
+                      render: (t) => (
+                        <span className="text-slate-600 text-xs">
+                          {t || "-"}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: "Outstanding Klaim",
+                      dataIndex: "outstanding_klaim",
+                      key: "outstanding_klaim",
+                      width: 150,
+                      align: "right",
+                      render: (val) => (
+                        <span className="font-mono text-slate-600 text-xs">
+                          {formatCurrency(val)}
+                        </span>
+                      ),
+                    },
+                    {
+                      title: "Budget to Approve",
+                      dataIndex: "budgettoapprove",
+                      key: "budgettoapprove",
+                      width: 150,
+                      align: "right",
+                      render: (val) => (
+                        <span className="font-bold text-emerald-600 font-mono text-sm">
+                          {formatCurrency(val)}
+                        </span>
+                      ),
+                    },
+                  ]}
+                  className="rounded-b-2xl overflow-hidden"
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-        {/* Attached Files List */}
-        {attachmentFiles.length > 0 && (
-          <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5 px-7">
-              <CardTitle className="text-base font-bold text-slate-800">
-                Dokumen Lampiran (Attachments)
+        {/* RIGHT: Sidebar (1/3 width) */}
+        <div className="space-y-5">
+          {/* Attachments */}
+          {attachmentFiles.length > 0 && (
+            <Card className="border-slate-200/70 shadow-sm">
+              <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-5">
+                <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <PaperClipOutlined className="text-orange-400" />
+                  Lampiran ({attachmentFiles.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="flex flex-col gap-2">
+                  {attachmentFiles.map((fileItem, fileIdx) => (
+                    <div
+                      key={fileItem.uid || fileIdx}
+                      className="flex items-center gap-3 p-3 border border-slate-200/60 rounded-xl bg-white hover:bg-blue-50/50 hover:border-blue-200 transition-all cursor-pointer group"
+                    >
+                      <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-orange-50 text-orange-500 flex-shrink-0 group-hover:bg-orange-100 transition-colors">
+                        <PaperClipOutlined className="text-base" />
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span
+                          className="font-semibold text-slate-700 text-xs truncate group-hover:text-blue-700 transition-colors"
+                          title={fileItem.name}
+                        >
+                          {fileItem.name}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium mt-0.5">
+                          Lampiran #{fileItem.no || fileIdx + 1}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quick Stats */}
+          <Card className="border-slate-200/70 shadow-sm">
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-5">
+              <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <TeamOutlined className="text-blue-500" />
+                Ringkasan Approval
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-7">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {attachmentFiles.map((fileItem, fileIdx) => (
+            <CardContent className="p-4">
+              <div className="space-y-3">
+                {[
+                  {
+                    label: "Total Tahapan",
+                    value: sortedProgress.length,
+                    color: "text-slate-700",
+                    bg: "bg-slate-100",
+                  },
+                  {
+                    label: "Disetujui",
+                    value: sortedProgress.filter((s) => {
+                      const r = (s.status || "").toLowerCase();
+                      return (
+                        r.includes("approve") ||
+                        r === "y" ||
+                        r === "success"
+                      );
+                    }).length,
+                    color: "text-emerald-700",
+                    bg: "bg-emerald-50",
+                  },
+                  {
+                    label: "Menunggu",
+                    value: sortedProgress.filter((s) => {
+                      const r = (s.status || "").toLowerCase();
+                      return (
+                        r.includes("proses") ||
+                        r.includes("wait") ||
+                        r.includes("menunggu") ||
+                        r.includes("belum") ||
+                        r.includes("pending")
+                      );
+                    }).length,
+                    color: "text-amber-700",
+                    bg: "bg-amber-50",
+                  },
+                  {
+                    label: "Ditolak",
+                    value: sortedProgress.filter((s) => {
+                      const r = (s.status || "").toLowerCase();
+                      return r.includes("reject") || r === "failed";
+                    }).length,
+                    color: "text-rose-700",
+                    bg: "bg-rose-50",
+                  },
+                ].map((stat) => (
                   <div
-                    key={fileItem.uid || fileIdx}
-                    className="flex items-center gap-3.5 p-4 border border-slate-200/60 rounded-xl bg-slate-50/50 hover:bg-slate-100/50 transition-colors cursor-pointer"
+                    key={stat.label}
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 ${stat.bg}`}
                   >
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 text-blue-600">
-                      <ShoppingOutlined className="text-lg" />
-                    </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <Text
-                        className="font-bold text-slate-700 text-xs truncate"
-                        title={fileItem.name}
-                      >
-                        {fileItem.name}
-                      </Text>
-                      <Text className="text-[9px] text-slate-400 uppercase font-black mt-0.5 tracking-wider">
-                        File Attachment #{fileItem.no || fileIdx + 1}
-                      </Text>
-                    </div>
+                    <span className="text-xs font-medium text-slate-600">
+                      {stat.label}
+                    </span>
+                    <span className={`font-bold text-base ${stat.color}`}>
+                      {stat.value}
+                    </span>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
-        )}
-        {/* Attached Files Card closes */}
+        </div>
       </div>
-
-      {/* 3. Stepper Workflow Timeline (Full Width / col-12 - Spacious Vertical List of Rows) */}
-      <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden mt-6">
-        <CardHeader className="bg-white border-b border-slate-100 py-6 px-7">
-          <CardTitle className="text-lg font-extrabold text-slate-800">
-            Alur Persetujuan
-          </CardTitle>
-          <CardDescription className="text-slate-400 mt-1">
-            Tahapan otorisasi berjenjang yang transparan beserta re-delegasi
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-7">
-          <div className="flex flex-col gap-4 relative">
-            {sortedProgress.map((step, idx) => {
-              const rawStatus = (
-                step.status ||
-                step.status_approval_desc ||
-                ""
-              ).toLowerCase();
-              let isApproved =
-                rawStatus.includes("approve") ||
-                rawStatus === "approved" ||
-                rawStatus === "y" ||
-                rawStatus === "success";
-              let isCurrent =
-                rawStatus.includes("proses") ||
-                rawStatus.includes("wait") ||
-                rawStatus.includes("menunggu") ||
-                rawStatus.includes("belum");
-              let isRejected =
-                rawStatus.includes("reject") ||
-                rawStatus === "rejected" ||
-                rawStatus === "failed";
-
-              // Style configurations
-              let dotColor = "bg-slate-200 border-slate-300";
-              let cardBg = "bg-slate-50/50 border-slate-100";
-              let tagColor = "default";
-              let statusLabel = step.status || "Menunggu";
-
-              if (isApproved) {
-                dotColor =
-                  "bg-emerald-500 border-emerald-600 ring-4 ring-emerald-50";
-                cardBg = "bg-emerald-50/30 border-emerald-100/80";
-                tagColor = "success";
-              } else if (isRejected) {
-                dotColor = "bg-rose-500 border-rose-600 ring-4 ring-rose-50";
-                cardBg = "bg-rose-50/30 border-rose-100/80";
-                tagColor = "error";
-              } else if (isCurrent) {
-                dotColor =
-                  "bg-blue-600 border-blue-700 ring-4 ring-blue-50 animate-pulse";
-                cardBg = "bg-blue-50/40 border-blue-100/80 shadow-sm";
-                tagColor = "processing";
-              }
-
-              return (
-                <div
-                  key={step.proposal_approval_id || idx}
-                  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-2xl border transition-all ${cardBg}`}
-                >
-                  {/* Left Section: Sequence & Position/Role */}
-                  <div className="flex items-center gap-4 min-w-0 sm:w-1/4">
-                    <span
-                      className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${dotColor}`}
-                    />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                        Tahap {step.no_appr || idx + 1}
-                      </span>
-                      <span
-                        className="text-xs font-extrabold text-blue-600 uppercase tracking-wide truncate mt-0.5"
-                        title={step.position_appr || step.jabatan || "Executor"}
-                      >
-                        {step.position_appr || step.jabatan || "Executor"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Middle Section: Name and Employee ID */}
-                  <div className="flex flex-col min-w-0 flex-1">
-                    <span
-                      className="text-sm font-extrabold text-slate-800 truncate"
-                      title={step.name || step.nama}
-                    >
-                      {step.name || step.nama || "-"}
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-mono mt-0.5">
-                      NIK: {step.employee_id || step.nik || "-"}
-                    </span>
-                  </div>
-
-                  {/* Right Section: Status Tag, Date & Delegasi Button */}
-                  <div className="flex flex-col sm:items-end gap-2 flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                      <Tag
-                        color={tagColor}
-                        className="font-semibold uppercase text-[10px] px-2.5 py-0.5 rounded-md border-none m-0 shadow-sm"
-                      >
-                        {statusLabel}
-                      </Tag>
-                      <Button
-                        type="link"
-                        icon={<SwapOutlined />}
-                        onClick={() => openDelegasiModal(step)}
-                        className="font-bold text-blue-600 hover:text-blue-700 text-xs p-0 h-auto flex items-center gap-0.5 border-none shadow-none"
-                      >
-                        Delegasi
-                      </Button>
-                    </div>
-                    {(step.updated_date ||
-                      step.dateaction ||
-                      step.created_date) && (
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        Diverifikasi:{" "}
-                        {moment(
-                          step.updated_date ||
-                            step.dateaction ||
-                            step.created_date,
-                        ).format("DD MMM YYYY, HH:mm")}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 4. Delegasi Approval Modal */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Delegasi Approval Modal Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <Modal
-        title={
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <SwapOutlined className="text-blue-600 text-lg" />
-            <span className="text-lg font-bold text-slate-800">
-              Delegasi Approval
-            </span>
-          </div>
-        }
+        title={null}
         open={isDelegasiModalOpen}
-        okText="Delegasikan"
-        okButtonProps={{
-          disabled: !selectedEmployeeId,
-          loading: isDelegating,
-          className:
-            "bg-blue-600 hover:bg-blue-700 border-blue-600 rounded-lg text-white",
-          size: "large",
-        }}
-        cancelButtonProps={{ size: "large", className: "rounded-lg" }}
-        onOk={handleDelegasiSubmit}
+        footer={null}
         onCancel={closeDelegasiModal}
-        confirmLoading={isDelegating}
-        className="rounded-xl overflow-hidden"
+        width={480}
+        className="rounded-2xl overflow-hidden"
+        styles={{ body: { padding: 0 } }}
       >
-        <div className="py-4">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <SwapOutlined className="text-white text-lg" />
+          </div>
+          <div>
+            <h2 className="text-white font-bold text-base leading-tight">
+              Delegasi Approval
+            </h2>
+            <p className="text-blue-200 text-xs mt-0.5">
+              Alihkan tahap persetujuan ke karyawan lain
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6">
           {activeStepRow && (
-            <div className="mb-4 p-3 bg-blue-50/60 border border-blue-100 rounded-xl">
-              <Text className="block text-[11px] font-bold uppercase text-blue-500 tracking-wider mb-1">
+            <div className="mb-5 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-1.5">
                 Tahap yang Didelegasikan
-              </Text>
-              <Text className="text-sm font-extrabold text-slate-800 block">
+              </p>
+              <p className="text-sm font-extrabold text-slate-800">
                 {activeStepRow.name || activeStepRow.nama || "-"}
-              </Text>
-              <Text className="text-xs text-slate-500 font-mono">
-                NIK: {activeStepRow.employee_id || activeStepRow.nik || "-"}{" "}
-                &nbsp;·&nbsp; Jabatan:{" "}
+              </p>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">
+                NIK: {activeStepRow.employee_id || activeStepRow.nik || "-"}
+                &nbsp;Ã‚Â·&nbsp;{" "}
                 {activeStepRow.position_appr || activeStepRow.jabatan || "-"}
-              </Text>
+              </p>
             </div>
           )}
-          <Text className="block text-slate-500 text-sm mb-4 leading-relaxed">
-            Pilih karyawan pengganti dengan jabatan yang sama untuk
-            mendelegasikan langkah approval ini.
-          </Text>
+
+          <p className="text-slate-500 text-sm mb-5 leading-relaxed">
+            Pilih karyawan pengganti untuk mendelegasikan langkah approval ini.
+            Karyawan yang dipilih akan menerima notifikasi untuk melakukan
+            persetujuan.
+          </p>
+
           <Form form={formDelegasi} layout="vertical">
             <Form.Item
               label={
-                <Text className="font-semibold text-slate-700">
+                <span className="font-semibold text-slate-700 text-sm">
                   Karyawan Pengganti
-                </Text>
+                </span>
               }
               name="nip"
-              rules={[{ required: true, message: "Pilih karyawan pengganti!" }]}
+              rules={[
+                { required: true, message: "Pilih karyawan pengganti!" },
+              ]}
             >
               <Select
                 style={{ width: "100%" }}
                 showSearch
-                placeholder="Cari NIK atau Nama..."
+                placeholder="Cari NIK atau Nama Karyawan..."
                 optionFilterProp="label"
                 onChange={(val) => setSelectedEmployeeId(val)}
                 filterOption={filterDelegasiOption}
                 options={delegasiOptions}
                 loading={isCandidatesLoading}
                 size="large"
-                className="w-full rounded-lg"
+                className="w-full rounded-xl"
               />
             </Form.Item>
           </Form>
+
+          <div className="flex items-center gap-3 mt-6">
+            <Button
+              size="large"
+              onClick={closeDelegasiModal}
+              className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            >
+              Batal
+            </Button>
+            <Button
+              type="primary"
+              size="large"
+              loading={isDelegating}
+              disabled={!selectedEmployeeId}
+              onClick={handleDelegasiSubmit}
+              className="flex-1 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 border-blue-600"
+            >
+              Delegasikan
+            </Button>
+          </div>
         </div>
       </Modal>
 
-      {/* 5. Edit Proposal Modal */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Edit Proposal Modal Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <Modal
-        title={
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-4 pr-6">
-            <EditOutlined className="text-blue-600 text-xl" />
-            <span className="text-lg font-black text-slate-800">
-              Edit Data Detail Proposal
-            </span>
-          </div>
-        }
+        title={null}
         open={isEditModalOpen}
         onCancel={() => setIsEditModalOpen(false)}
         footer={null}
-        width={720}
+        width={680}
         className="rounded-2xl overflow-hidden"
+        styles={{ body: { padding: 0 } }}
       >
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
+            <EditOutlined className="text-white text-lg" />
+          </div>
+          <div>
+            <h2 className="text-white font-bold text-base leading-tight">
+              Edit Proposal
+            </h2>
+            <p className="text-slate-300 text-xs mt-0.5">
+              Perbarui informasi detail proposal
+            </p>
+          </div>
+        </div>
+
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSaveUpdate}
-          className="mt-6 space-y-4"
+          className="p-6 space-y-1"
         >
           <Form.Item
             name="title"
             label={
-              <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
-                Title
+              <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+                Title Proposal
               </span>
             }
           >
             <Input.TextArea
-              placeholder="Masukkan Nama Proposal..."
-              size="large"
-              className="rounded-xl"
+              placeholder="Masukkan nama / title proposal..."
+              rows={2}
+              className="rounded-xl text-sm"
             />
           </Form.Item>
 
           <Form.Item
             name="expired_date"
             label={
-              <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
-                Tanggal Kadaluarsa (Expired Date)
+              <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+                Tanggal Kadaluarsa
               </span>
             }
           >
             <DatePicker
-              placeholder="Pilih Tanggal Kadaluarsa"
+              placeholder="Pilih tanggal kadaluarsa"
               size="large"
               style={{ width: "100%" }}
               className="rounded-xl"
             />
           </Form.Item>
 
+          <Divider className="!my-4 border-slate-100">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Konteks Strategis
+            </span>
+          </Divider>
+
           <Form.Item
             name="background"
             label={
-              <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
+              <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
                 Latar Belakang (Background)
               </span>
             }
           >
             <Input.TextArea
-              placeholder="Tuliskan latar belakang..."
+              placeholder="Tuliskan latar belakang proposal..."
               rows={3}
-              className="rounded-xl"
+              className="rounded-xl text-sm"
             />
           </Form.Item>
 
           <Form.Item
             name="objective"
             label={
-              <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
+              <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
                 Tujuan (Objective)
               </span>
             }
@@ -1164,29 +1320,29 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
             <Input.TextArea
               placeholder="Tuliskan tujuan proposal..."
               rows={3}
-              className="rounded-xl"
+              className="rounded-xl text-sm"
             />
           </Form.Item>
 
           <Form.Item
             name="mechanism"
             label={
-              <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
-                Mekanisme Pelaksanaan (Mechanism)
+              <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+                Mekanisme Pelaksanaan
               </span>
             }
           >
             <Input.TextArea
               placeholder="Tuliskan mekanisme pelaksanaan..."
               rows={3}
-              className="rounded-xl"
+              className="rounded-xl text-sm"
             />
           </Form.Item>
 
           <Form.Item
             name="kpi"
             label={
-              <span className="font-bold text-slate-700 text-xs uppercase tracking-wider">
+              <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
                 Indikator Kinerja (KPI)
               </span>
             }
@@ -1198,11 +1354,11 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
             />
           </Form.Item>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-6 mt-6">
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-100 mt-6">
             <Button
               onClick={() => setIsEditModalOpen(false)}
               size="large"
-              className="rounded-xl font-bold border-slate-200 text-slate-500 hover:text-slate-700"
+              className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700"
             >
               Batal
             </Button>
@@ -1211,7 +1367,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
               htmlType="submit"
               size="large"
               loading={isUpdatingProposal}
-              className="rounded-xl font-bold bg-blue-600 hover:bg-blue-700 border-blue-600 px-6"
+              className="flex-1 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 border-blue-600 shadow-sm shadow-blue-200"
             >
               Simpan Perubahan
             </Button>
