@@ -23,9 +23,13 @@ export function Header1() {
     } catch (_) {}
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setModalOpen(false);
-    logout();
+    try {
+      await logout();
+    } catch (_) {
+      // logout() handles its own error modal; we just ensure modal closes
+    }
   };
 
   return (

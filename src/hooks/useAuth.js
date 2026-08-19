@@ -149,14 +149,10 @@ export function useAuth() {
       const response = await authService.logout({ m_user_id });
 
       if (response?.ok && !response.data?.error) {
-        modal.success({
-          ...buildLogoutSuccessModal(),
-          onOk() {
-            clearUserCredentials();
-            document.cookie = `${SESSION_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-            router.push(ROUTES.LOGIN);
-          },
-        });
+        // Clear session immediately and redirect — no extra OK-click needed
+        clearUserCredentials();
+        document.cookie = `${SESSION_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        router.push(ROUTES.LOGIN);
       } else {
         modal.error(buildLogoutErrorModal());
       }
