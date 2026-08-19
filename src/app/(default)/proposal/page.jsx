@@ -69,6 +69,7 @@ function UploadModal({
   onUpload,
   isUploading,
   result,
+  templateUrl,
 }) {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -254,7 +255,21 @@ function UploadModal({
               )}
             </div>
 
-            {/* Action Buttons */}
+            {/* Download Template */}
+            {templateUrl && (
+              <div className="flex items-center justify-center">
+                <a
+                  href={templateUrl}
+                  download
+                  onClick={(e) => e.stopPropagation()}
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold ${ac.text} hover:underline`}
+                >
+                  <FileExcelOutlined className="text-sm" />
+                  Download Template Excel
+                </a>
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 onClick={onClose}
@@ -608,6 +623,7 @@ export default function ProposalSupportPage() {
         onUpload={uploadSendEmailUlang}
         isUploading={isUploadingEmail}
         result={uploadEmailResult}
+        templateUrl="/templates/proposal/Template Proposal Send Email.xlsx"
       />
 
       {/* ── Upload Reversal Internasional Modal ── */}
@@ -621,6 +637,7 @@ export default function ProposalSupportPage() {
         onUpload={uploadReversalInternasional}
         isUploading={isUploadingReversal}
         result={uploadReversalResult}
+        templateUrl="/templates/proposal/Template Reverse Internasional.xlsx"
       />
     </>
   );
