@@ -81,7 +81,7 @@ export const useProposal = (proposalId = null) => {
           currentPage: params.currentPage,
           pageSize: params.pageSize,
           nik: creds?.employee_id || "",
-          employee_id: creds?.employee_id || creds?.employeeId || "",
+          // employee_id: creds?.employee_id || creds?.employeeId || "",
           searchText: params.searchText,
           division: params.division,
           fcstatus: params.fcstatus,
