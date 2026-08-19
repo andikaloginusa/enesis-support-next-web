@@ -39,24 +39,22 @@ export const useProposal = (proposalId = null) => {
   const [isCandidatesEnabled, setIsCandidatesEnabled] = useState(false);
 
   // 3. Candidates Query — fires only when the delegasi modal is open
-  const {
-    data: candidatesList = [],
-    isLoading: isCandidatesLoading,
-  } = useQuery({
-    queryKey: queryKeys.proposal.candidates(),
-    enabled: isCandidatesEnabled,
-    // staleTime: 0 — always fetch fresh when modal opens so options are never stale/empty
-    staleTime: 0,
-    queryFn: async () => {
-      const response = await proposalService.getListUserApprovalProposal();
-      if (response.ok && response.data) {
-        const result =
-          response.data.results || response.data.result || response.data;
-        if (Array.isArray(result)) return result;
-      }
-      return [];
-    },
-  });
+  const { data: candidatesList = [], isLoading: isCandidatesLoading } =
+    useQuery({
+      queryKey: queryKeys.proposal.candidates(),
+      enabled: isCandidatesEnabled,
+      // staleTime: 0 — always fetch fresh when modal opens so options are never stale/empty
+      staleTime: 0,
+      queryFn: async () => {
+        const response = await proposalService.getListUserApprovalProposal();
+        if (response.ok && response.data) {
+          const result =
+            response.data.results || response.data.result || response.data;
+          if (Array.isArray(result)) return result;
+        }
+        return [];
+      },
+    });
 
   /** Enable candidates query when delegasi modal opens */
   const fetchCandidatesForJabatan = () => {
@@ -82,7 +80,7 @@ export const useProposal = (proposalId = null) => {
         const response = await proposalService.getListProposal({
           currentPage: params.currentPage,
           pageSize: params.pageSize,
-          nik: creds?.nik || "",
+          nik: creds?.employee_id || "",
           employee_id: creds?.employee_id || creds?.employeeId || "",
           searchText: params.searchText,
           division: params.division,
