@@ -13,19 +13,22 @@ export const KlaimSupportServices = (apiInstance) => {
    * Fetch the list of proposal claims with pagination, search, and filter queries.
    * @param {Object} params - Query filters (e.g., currentPage, pageSize, searchText)
    */
-  const getListKlaim = (params) => apiInstance.get("proposalklaim/list", params);
+  const getListKlaim = (params) =>
+    apiInstance.get("proposalklaim/list", params);
 
   /**
    * Delete submit log for a specific claim.
    * @param {Object} data - Payload containing `{ nomor_klaim }`
    */
-  const deleteLogSubmitKlaim = (data) => apiInstance.delete("proposalklaim/deleteLogSubmit", data);
+  const deleteLogSubmitKlaim = (data) =>
+    apiInstance.delete("proposalklaim/deleteLogSubmit", data);
 
   /**
    * Update claim status dynamically.
    * @param {Object} data - Payload containing `{ m_user_id, klaim_id, kode_status_baru, reason }`
    */
-  const updateStatusKlaim = (data) => apiInstance.post("support/klaim/update-status", data);
+  const updateStatusKlaim = (data) =>
+    apiInstance.put("support/klaim/update-status", data);
 
   return {
     getListKlaim,
