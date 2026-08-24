@@ -37,14 +37,21 @@ async function getActiveLocale() {
 }
 
 export const metadata = {
-  title: "Wieldy - Admin Dashboard",
-  icons: `${ASSET_IMAGES}/favicon.ico`,
+  title: "Enesis - Support Dashboard",
+  icons: {
+    icon: [
+      { url: `${ASSET_IMAGES}/favicon.ico`, sizes: "any" },
+      { url: `${ASSET_IMAGES}/favicon-512.png`, sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: `${ASSET_IMAGES}/favicon-512.png`, sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: `${ASSET_IMAGES}/favicon.ico`,
+  },
 };
 
 export default async function RootLayout(props) {
-  const {
-    children
-  } = props;
+  const { children } = props;
 
   const locale = await getActiveLocale();
   const translation = await getDictionary(locale);
