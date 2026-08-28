@@ -23,9 +23,9 @@ export const ListFKRApprovalServices = (apiInstance) => {
 
   /**
    * Reject FKR entry with a formal reason
-   * @param {Object} data - Payload containing `{ fkr_id, reason }` or similar
+   * @param {Object} data - Payload containing `{ fkr_id, reason, kode_status, m_user_id }`
    */
-  const rejectListApprovalFkr = (data) => apiInstance.post("support/fkr", data);
+  const rejectListApprovalFkr = (data) => apiInstance.put("support/fkr/update/status", data);
 
   /**
    * Update active user approval assignment

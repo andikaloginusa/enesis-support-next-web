@@ -18,6 +18,7 @@ import moment from "moment";
 import { useRouter } from "next/navigation";
 import { useFkr, useDebounce } from "@/hooks";
 import { DataTablePanel, GenericFormModal } from "@/components/ui";
+import { getUserId } from "@/utils/storage";
 
 const { Text } = Typography;
 
@@ -98,6 +99,8 @@ export default function FkrSupportPage() {
       const payload = {
         fkr_id: activeFkrId,
         reason: values.reason?.trim() ?? "",
+        kode_status: "RJC",
+        m_user_id: getUserId(),
       };
 
       await rejectFkr(payload);
