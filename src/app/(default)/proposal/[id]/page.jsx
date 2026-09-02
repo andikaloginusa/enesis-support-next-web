@@ -1,6 +1,7 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useMemo } from "react";
+import PropTypes from "prop-types";
 import {
   Button,
   Tag,
@@ -36,7 +37,7 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useProposal } from "@/hooks";
 import {
   Card,
@@ -53,7 +54,47 @@ import {
 } from "@/components/ui";
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Sub-components
+//  Constants & Configurations
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STRATEGIC_FIELDS = [
+  {
+    key: "background",
+    label: "Latar Belakang (Background)",
+    borderColor: "border-slate-300",
+    rows: 4,
+  },
+  {
+    key: "objective",
+    label: "Tujuan (Objective)",
+    borderColor: "border-blue-300",
+    rows: 4,
+  },
+  {
+    key: "mechanism",
+    label: "Mekanisme Pelaksanaan",
+    borderColor: "border-indigo-300",
+    rows: 4,
+  },
+  {
+    key: "kpi",
+    label: "Indikator Kinerja (KPI)",
+    borderColor: "border-purple-300",
+    rows: 4,
+    mono: true,
+  },
+];
+
+/** Helper to safely convert various date formats into YYYY-MM-DD string */
+function formatDateToISO(val) {
+  if (!val) return null;
+  if (typeof val === "string") return val.split("T")[0];
+  if (typeof val.format === "function") return val.format("YYYY-MM-DD");
+  return dayjs(val).isValid() ? dayjs(val).format("YYYY-MM-DD") : null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Sub-components: States & Visuals
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Animated loading skeleton for detail page load */
@@ -83,7 +124,7 @@ function DetailPageSkeleton() {
   );
 }
 
-/** Not found state */
+/** Error / Not found state */
 function NotFoundState({ onBack }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
@@ -109,26 +150,33 @@ function NotFoundState({ onBack }) {
   );
 }
 
+NotFoundState.propTypes = {
+  onBack: PropTypes.func.isRequired,
+};
+
 /** Circular step indicator for approval timeline */
 function StepDot({ isApproved, isRejected, isCurrent, step }) {
-  if (isApproved)
+  if (isApproved) {
     return (
       <span className="w-9 h-9 rounded-full bg-emerald-500 shadow-md shadow-emerald-200 ring-4 ring-emerald-50 flex items-center justify-center flex-shrink-0">
         <CheckOutlined className="text-white text-sm" />
       </span>
     );
-  if (isRejected)
+  }
+  if (isRejected) {
     return (
       <span className="w-9 h-9 rounded-full bg-rose-500 shadow-md shadow-rose-200 ring-4 ring-rose-50 flex items-center justify-center flex-shrink-0">
         <CloseCircleOutlined className="text-white text-sm" />
       </span>
     );
-  if (isCurrent)
+  }
+  if (isCurrent) {
     return (
       <span className="w-9 h-9 rounded-full bg-blue-600 shadow-md shadow-blue-200 ring-4 ring-blue-50 flex items-center justify-center flex-shrink-0 animate-pulse">
         <ClockCircleOutlined className="text-white text-sm" />
       </span>
     );
+  }
   return (
     <span className="w-9 h-9 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center flex-shrink-0">
       <span className="text-[10px] font-bold text-slate-400">{step}</span>
@@ -136,18 +184,26 @@ function StepDot({ isApproved, isRejected, isCurrent, step }) {
   );
 }
 
+StepDot.propTypes = {
+  isApproved: PropTypes.bool,
+  isRejected: PropTypes.bool,
+  isCurrent: PropTypes.bool,
+  step: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+};
+
 /** Approval Timeline Card row */
 function ApprovalStepCard({ step, idx, onDelegasi }) {
   const raw = (step.status || step.status_approval_desc || "").toLowerCase();
   const isApproved = raw.includes("approve") || raw === "y" || raw === "success";
   const isCurrent = raw.includes("proses") || raw.includes("wait") || raw.includes("menunggu") || raw.includes("belum");
   const isRejected = raw.includes("reject") || raw === "failed";
-  const cfg = getStatusStyle(raw);
 
   let cardCls = "border-slate-100 bg-white";
   if (isApproved) cardCls = "border-emerald-100/80 bg-emerald-50/30";
   if (isRejected) cardCls = "border-rose-100/80 bg-rose-50/30";
   if (isCurrent) cardCls = "border-blue-200/80 bg-blue-50/40 shadow-sm shadow-blue-100";
+
+  const actionDate = step.updated_date || step.dateaction || step.created_date;
 
   return (
     <div className={`relative flex items-start gap-4 p-4 rounded-2xl border transition-all ${cardCls}`}>
@@ -171,10 +227,9 @@ function ApprovalStepCard({ step, idx, onDelegasi }) {
               Tahap {step.no_appr || idx + 1}
             </span>
           </div>
-          {(step.updated_date || step.dateaction || step.created_date) && (
+          {actionDate && (
             <span className="text-[10px] text-slate-400 mt-1 block">
-              {isApproved ? "Disetujui" : isRejected ? "Ditolak" : "Diverifikasi"}:{" "}
-              {moment(step.updated_date || step.dateaction || step.created_date).format("DD MMM YYYY, HH:mm")}
+              {isApproved ? "Disetujui" : isRejected ? "Ditolak" : "Diverifikasi"}: {renderDateTime(actionDate)}
             </span>
           )}
         </div>
@@ -196,6 +251,12 @@ function ApprovalStepCard({ step, idx, onDelegasi }) {
   );
 }
 
+ApprovalStepCard.propTypes = {
+  step: PropTypes.object.isRequired,
+  idx: PropTypes.number.isRequired,
+  onDelegasi: PropTypes.func.isRequired,
+};
+
 /** Quick stats summary row */
 function ApprovalSummaryRow({ label, value, bg, text }) {
   return (
@@ -206,10 +267,18 @@ function ApprovalSummaryRow({ label, value, bg, text }) {
   );
 }
 
+ApprovalSummaryRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+  bg: PropTypes.string.isRequired,
+  text: PropTypes.string.isRequired,
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Modal Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Modal for delegating approval steps */
 function DelegasiModal({
   open,
   form,
@@ -232,6 +301,7 @@ function DelegasiModal({
       className="rounded-2xl overflow-hidden"
       styles={{ body: { padding: 0 } }}
       closable={false}
+      destroyOnClose
     >
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -285,7 +355,11 @@ function DelegasiModal({
         </Form>
 
         <div className="flex items-center gap-3 mt-6">
-          <Button size="large" onClick={onCancel} className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300">
+          <Button
+            size="large"
+            onClick={onCancel}
+            className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300"
+          >
             Batal
           </Button>
           <Button
@@ -304,98 +378,130 @@ function DelegasiModal({
   );
 }
 
-function EditProposalModal({ open, onCancel, form, proposalDetail, onSave, confirmLoading }) {
+DelegasiModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  form: PropTypes.object.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  confirmLoading: PropTypes.bool,
+  candidates: PropTypes.array.isRequired,
+  candidatesLoading: PropTypes.bool,
+  activeStep: PropTypes.object,
+  selectedEmployeeId: PropTypes.string,
+  onSelectChange: PropTypes.func.isRequired,
+  filterOption: PropTypes.func.isRequired,
+};
+
+/** Modular modal for updating a single proposal header field (PATCH) */
+function SingleFieldEditModal({
+  open,
+  onCancel,
+  fieldContext,
+  proposalDetail,
+  onSave,
+  confirmLoading,
+}) {
+  const [form] = Form.useForm();
+
+  // Initialize form value whenever modal opens with a specific field context
+  React.useEffect(() => {
+    if (open && fieldContext) {
+      const rawVal = proposalDetail?.[fieldContext.fieldKey];
+      if (fieldContext.type === "date") {
+        form.setFieldsValue({
+          value: rawVal ? dayjs(rawVal) : null,
+        });
+      } else {
+        form.setFieldsValue({
+          value: rawVal ?? "",
+        });
+      }
+    } else {
+      form.resetFields();
+    }
+  }, [open, fieldContext, proposalDetail, form]);
+
   const handleFinish = (values) => {
+    if (!fieldContext) return;
+    const { fieldKey, type } = fieldContext;
+    let formattedValue;
+
+    if (type === "date") {
+      formattedValue = formatDateToISO(values.value);
+      const oldDate = formatDateToISO(proposalDetail?.[fieldKey]);
+      if (formattedValue === oldDate) {
+        message.warning("Tidak ada perubahan tanggal.");
+        return;
+      }
+    } else {
+      formattedValue = values.value !== undefined ? values.value : "";
+      const oldValue = proposalDetail?.[fieldKey] ?? "";
+      if (formattedValue === oldValue) {
+        message.warning("Tidak ada perubahan data.");
+        return;
+      }
+    }
+
     const payload = {
       proposal_id: Number(proposalDetail?.proposal_id),
+      [fieldKey]: formattedValue,
     };
-
-    const textFields = ["title", "background", "objective", "mechanism", "kpi"];
-
-    textFields.forEach((field) => {
-      const oldValue = proposalDetail?.[field] ?? "";
-      const newValue = values?.[field] ?? "";
-      // Bandingkan teks baru vs lama (mempertahankan karakter enter \n apa adanya)
-      if (newValue !== oldValue) {
-        payload[field] = newValue;
-      }
-    });
-
-    // Cek expired_date
-    const oldDate = proposalDetail?.expired_date
-      ? moment(proposalDetail.expired_date).format("YYYY-MM-DD")
-      : null;
-    const newDate = values?.expired_date
-      ? moment(values.expired_date).format("YYYY-MM-DD")
-      : null;
-
-    if (newDate !== oldDate) {
-      payload.expired_date = newDate;
-    }
-
-    // Pastikan ada setidaknya satu field yang diubah selain proposal_id
-    const changedFields = Object.keys(payload).filter((k) => k !== "proposal_id");
-    if (changedFields.length === 0) {
-      message.warning("Tidak ada perubahan data untuk disimpan.");
-      return;
-    }
 
     onSave(payload);
   };
+
+  if (!fieldContext) return null;
 
   return (
     <Modal
       open={open}
       onCancel={onCancel}
       footer={null}
-      width={680}
+      width={560}
       className="rounded-2xl overflow-hidden"
       styles={{ body: { padding: 0 } }}
       closable={false}
+      destroyOnClose
     >
-      <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-5 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center flex-shrink-0">
-          <EditOutlined className="text-white text-lg" />
+      <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
+          <EditOutlined className="text-white text-base" />
         </div>
         <div>
-          <h2 className="text-white font-bold text-base leading-tight">Edit Proposal</h2>
-          <p className="text-slate-300 text-xs mt-0.5">Perbarui informasi detail proposal</p>
+          <h2 className="text-white font-bold text-sm leading-tight">Edit {fieldContext.label}</h2>
+          <p className="text-slate-300 text-[11px] mt-0.5">Perbarui data proposal secara spesifik</p>
         </div>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={handleFinish} className="p-6 space-y-1">
-        <Form.Item name="title" label={<span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">Title Proposal</span>}>
-          <Input.TextArea placeholder="Masukkan nama / title proposal..." rows={2} className="rounded-xl text-sm" />
-        </Form.Item>
-        <Form.Item name="expired_date" label={<span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">Tanggal Kadaluarsa</span>}>
-          <DatePicker placeholder="Pilih tanggal kadaluarsa" size="large" style={{ width: "100%" }} className="rounded-xl" />
-        </Form.Item>
-
-        <Divider className="!my-4 border-slate-100">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Konteks Strategis</span>
-        </Divider>
-
-        {["background", "objective", "mechanism", "kpi"].map((field) => (
-          <Form.Item
-            key={field}
-            name={field}
-            label={<span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
-              {field === "background" ? "Latar Belakang (Background)" :
-               field === "objective" ? "Tujuan (Objective)" :
-               field === "mechanism" ? "Mekanisme Pelaksanaan" :
-               "Indikator Kinerja (KPI)"}
-            </span>}
-          >
-            <Input.TextArea
-              placeholder={`Tuliskan ${field}...`}
-              rows={3}
-              className={`rounded-xl text-sm ${field === "kpi" ? "font-mono text-xs" : ""}`}
+      <Form form={form} layout="vertical" onFinish={handleFinish} className="p-6 space-y-4">
+        <Form.Item
+          name="value"
+          label={<span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">{fieldContext.label}</span>}
+          className="mb-0"
+        >
+          {fieldContext.type === "date" ? (
+            <DatePicker
+              placeholder={`Pilih ${fieldContext.label.toLowerCase()}...`}
+              size="large"
+              style={{ width: "100%" }}
+              className="rounded-xl"
             />
-          </Form.Item>
-        ))}
+          ) : (
+            <Input.TextArea
+              placeholder={`Masukkan ${fieldContext.label.toLowerCase()}...`}
+              rows={fieldContext.rows || 4}
+              className={`rounded-xl text-sm ${fieldContext.mono ? "font-mono text-xs" : ""}`}
+              autoFocus
+            />
+          )}
+        </Form.Item>
 
-        <div className="flex items-center gap-3 pt-4 border-t border-slate-100 mt-6">
-          <Button size="large" onClick={onCancel} className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700">
+        <div className="flex items-center gap-3 pt-3 border-t border-slate-100 mt-5">
+          <Button
+            size="large"
+            onClick={onCancel}
+            className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700"
+          >
             Batal
           </Button>
           <Button
@@ -413,6 +519,21 @@ function EditProposalModal({ open, onCancel, form, proposalDetail, onSave, confi
   );
 }
 
+SingleFieldEditModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  fieldContext: PropTypes.shape({
+    fieldKey: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    type: PropTypes.oneOf(["date", "textarea"]),
+    rows: PropTypes.number,
+    mono: PropTypes.bool,
+  }),
+  proposalDetail: PropTypes.object,
+  onSave: PropTypes.func.isRequired,
+  confirmLoading: PropTypes.bool,
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Main Page Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -424,10 +545,9 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
 
   const [modal] = Modal.useModal();
   const [formDelegasi] = Form.useForm();
-  const [formEdit] = Form.useForm();
 
   const [isDelegasiModalOpen, setIsDelegasiModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [singleEditContext, setSingleEditContext] = useState(null);
   const [activeStep, setActiveStep] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
 
@@ -446,13 +566,13 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   } = useProposal(proposalId);
 
   // ── Derived Data ──
-  const sortedProgress = React.useMemo(() => {
+  const sortedProgress = useMemo(() => {
     if (!proposalDetail) return [];
     const list = proposalDetail.approvalprogress || proposalDetail.progress || [];
     return [...list].sort((a, b) => (a.no_appr || a.urutan || 0) - (b.no_appr || b.urutan || 0));
   }, [proposalDetail]);
 
-  const currentApprover = React.useMemo(() => {
+  const currentApprover = useMemo(() => {
     if (!sortedProgress.length) return null;
     return (
       sortedProgress.find((item) => {
@@ -463,15 +583,20 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   }, [sortedProgress]);
 
   const docStatus = (proposalDetail?.status || proposalDetail?.fcstatus || "PENDING").toLowerCase();
-  const statusConfig = getStatusStyle(docStatus);
 
-  // Delegasi options
-  const delegasiOptions = React.useMemo(() => {
+  // Delegasi Select Options
+  const delegasiOptions = useMemo(() => {
     if (!Array.isArray(candidatesList)) return [];
     return candidatesList.map((data, i) => {
       const nik = data.nip || data.employee_id || "";
       const name = data.name || data.nama_user || data.nama || "";
-      return { key: i, value: nik, label: `${nik} – ${name}`, searchNik: String(nik).toLowerCase(), searchName: String(name).toLowerCase() };
+      return {
+        key: i,
+        value: nik,
+        label: `${nik} – ${name}`,
+        searchNik: String(nik).toLowerCase(),
+        searchName: String(name).toLowerCase(),
+      };
     });
   }, [candidatesList]);
 
@@ -514,31 +639,32 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         cancelButtonProps: { size: "large" },
         onOk: async () => {
           try {
-            await delegasiApproval({ proposal_approval_id: `${activeStep.proposal_approval_id}`, nip: values.nip });
+            await delegasiApproval({
+              proposal_approval_id: `${activeStep.proposal_approval_id}`,
+              nip: values.nip,
+            });
             closeDelegasiModal();
             refetchDetail();
-          } catch { /* Handled by mutation onError */ }
+          } catch {
+            /* Handled by mutation onError */
+          }
         },
       });
     });
   };
 
-  const openEditModal = () => {
-    formEdit.setFieldsValue({
-      title: proposalDetail?.title || proposalDetail?.name || "",
-      background: proposalDetail?.background || "",
-      objective: proposalDetail?.objective || "",
-      mechanism: proposalDetail?.mechanism || "",
-      kpi: proposalDetail?.kpi || "",
-      expired_date: proposalDetail?.expired_date ? moment(proposalDetail.expired_date) : null,
-    });
-    setIsEditModalOpen(true);
+  const openSingleFieldEdit = (fieldKey, label, type = "textarea", extra = {}) => {
+    setSingleEditContext({ fieldKey, label, type, ...extra });
+  };
+
+  const closeSingleFieldEdit = () => {
+    setSingleEditContext(null);
   };
 
   const handleSave = async (payload) => {
     try {
       await updateProposalData(payload);
-      setIsEditModalOpen(false);
+      setSingleEditContext(null);
       refetchDetail();
     } catch (err) {
       console.error(err);
@@ -581,13 +707,6 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         </Button>
         <div className="flex items-center gap-2">
           <StatusBadge status={proposalDetail.status || proposalDetail.fcstatus} />
-          <Button
-            icon={<EditOutlined />}
-            onClick={openEditModal}
-            className="bg-white border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-300 font-semibold rounded-xl h-9 px-4 flex items-center gap-1.5"
-          >
-            Edit Proposal
-          </Button>
         </div>
       </div>
 
@@ -602,9 +721,21 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
               <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">
                 Proposal Support &middot; {docNo}
               </p>
-              <h1 className="text-slate-900 font-bold text-lg leading-snug line-clamp-2">
-                {proposalDetail.title || proposalDetail.name || "Detail Proposal"}
-              </h1>
+              <div className="flex items-start gap-2">
+                <h1 className="text-slate-900 font-bold text-lg leading-snug line-clamp-2">
+                  {proposalDetail.title || proposalDetail.name || "Detail Proposal"}
+                </h1>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => openSingleFieldEdit("title", "Title Proposal", "textarea", { rows: 2 })}
+                  className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg h-7 px-2 flex items-center gap-1 text-xs font-semibold flex-shrink-0"
+                  title="Edit Title Proposal"
+                >
+                  Edit
+                </Button>
+              </div>
               <p className="text-slate-500 text-sm mt-1 font-medium">
                 <CalendarOutlined className="mr-1 text-slate-400" />
                 {renderDateTime(proposalDetail.proposal_date || proposalDetail.documentdate || proposalDetail.created)}
@@ -662,7 +793,12 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
               <div className="absolute left-[17px] top-9 bottom-9 w-px bg-gradient-to-b from-blue-200 via-slate-200 to-slate-100 pointer-events-none" />
               <div className="flex flex-col gap-3">
                 {sortedProgress.map((step, idx) => (
-                  <ApprovalStepCard key={step.proposal_approval_id || idx} step={step} idx={idx} onDelegasi={openDelegasiModal} />
+                  <ApprovalStepCard
+                    key={step.proposal_approval_id || idx}
+                    step={step}
+                    idx={idx}
+                    onDelegasi={openDelegasiModal}
+                  />
                 ))}
               </div>
             </div>
@@ -685,11 +821,27 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <InfoField label="Nomor Dokumen" value={docNo} icon={<FileTextOutlined />} mono />
-                <InfoField label="Tanggal Proposal" value={renderDate(proposalDetail.proposal_date || proposalDetail.documentdate || proposalDetail.created)} icon={<CalendarOutlined />} />
-                <InfoField label="Divisi & Region" value={`${proposalDetail.division_code || proposalDetail.division || "-"} – ${proposalDetail.region || "-"}`} icon={<GlobalOutlined />} />
+                <InfoField
+                  label="Tanggal Proposal"
+                  value={renderDate(proposalDetail.proposal_date || proposalDetail.documentdate || proposalDetail.created)}
+                  icon={<CalendarOutlined />}
+                />
+                <InfoField
+                  label="Divisi & Region"
+                  value={`${proposalDetail.division_code || proposalDetail.division || "-"} – ${proposalDetail.region || "-"}`}
+                  icon={<GlobalOutlined />}
+                />
                 <InfoField label="Brand" value={proposalDetail.brand || "-"} icon={<TagOutlined />} />
-                <InfoField label="Vendor / Agency" value={proposalDetail.nama_vendor ? `${proposalDetail.nama_vendor}${proposalDetail.kode_vendor ? ` (${proposalDetail.kode_vendor})` : ""}` : "-"} icon={<BankOutlined />} />
-                <InfoField label="Periode / Tahun" value={`${proposalDetail.budget_year || proposalDetail.period || "-"}${proposalDetail.period_start ? ` – ${proposalDetail.period_start} s/d ${proposalDetail.period_end}` : ""}`} icon={<CalendarOutlined />} />
+                <InfoField
+                  label="Vendor / Agency"
+                  value={proposalDetail.nama_vendor ? `${proposalDetail.nama_vendor}${proposalDetail.kode_vendor ? ` (${proposalDetail.kode_vendor})` : ""}` : "-"}
+                  icon={<BankOutlined />}
+                />
+                <InfoField
+                  label="Periode / Tahun"
+                  value={`${proposalDetail.budget_year || proposalDetail.period || "-"}${proposalDetail.period_start ? ` – ${proposalDetail.period_start} s/d ${proposalDetail.period_end}` : ""}`}
+                  icon={<CalendarOutlined />}
+                />
               </div>
 
               <Divider className="my-5 border-slate-100" />
@@ -700,15 +852,28 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                     <DollarOutlined className="text-xs" />
                     <span className="text-[10px] font-bold uppercase tracking-widest">Nominal Anggaran</span>
                   </div>
-                  <span className="text-blue-700 font-black text-lg tracking-tight leading-tight">{renderCurrency(totalBudget)}</span>
+                  <span className="text-blue-700 font-black text-lg tracking-tight leading-tight">
+                    {renderCurrency(totalBudget)}
+                  </span>
                 </div>
-                <div className={`rounded-xl p-4 flex flex-col gap-1 border ${proposalDetail.expired_date ? "bg-amber-50 border-amber-100" : "bg-slate-50 border-slate-100"}`}>
-                  <div className={`flex items-center gap-1.5 ${proposalDetail.expired_date ? "text-amber-400" : "text-slate-400"}`}>
-                    <CalendarOutlined className="text-xs" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Expired Date</span>
+                <div className={`rounded-xl p-4 flex flex-col justify-between gap-2 border ${proposalDetail.expired_date ? "bg-amber-50/70 border-amber-200" : "bg-slate-50 border-slate-200"}`}>
+                  <div className="flex items-center justify-between">
+                    <div className={`flex items-center gap-1.5 ${proposalDetail.expired_date ? "text-amber-600" : "text-slate-400"}`}>
+                      <CalendarOutlined className="text-xs" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Expired Date</span>
+                    </div>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={() => openSingleFieldEdit("expired_date", "Tanggal Kadaluarsa", "date")}
+                      className="text-amber-700 hover:text-amber-900 hover:bg-amber-100 rounded-md h-6 px-1.5 text-xs font-semibold flex items-center gap-1"
+                    >
+                      Edit
+                    </Button>
                   </div>
-                  <span className={`font-bold text-sm ${proposalDetail.expired_date ? "text-amber-700" : "text-slate-400 italic text-xs"}`}>
-                    {proposalDetail.expired_date ? renderDate(proposalDetail.expired_date) : "Tidak ada expired date"}
+                  <span className={`font-bold text-sm ${proposalDetail.expired_date ? "text-amber-800" : "text-slate-400 italic text-xs"}`}>
+                    {proposalDetail.expired_date ? renderDate(proposalDetail.expired_date) : "Belum diatur"}
                   </span>
                 </div>
                 <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex flex-col gap-1">
@@ -725,40 +890,50 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
           </Card>
 
           {/* Strategic Context */}
-          {(proposalDetail.background || proposalDetail.objective || proposalDetail.mechanism || proposalDetail.kpi) && (
-            <Card className="border-slate-200/70 shadow-sm">
-              <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
-                <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <BarChartOutlined className="text-purple-500" />
-                  Konteks Strategis & Target
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-5">
-                {[
-                  { field: "background", label: "Latar Belakang (Background)", borderColor: "slate-200", accent: "text-slate-700" },
-                  { field: "objective", label: "Tujuan (Objective)", borderColor: "blue-200", accent: "text-slate-700" },
-                  { field: "mechanism", label: "Mekanisme Pelaksanaan", borderColor: "indigo-200", accent: "text-slate-700" },
-                ].map(({ field, label, borderColor, accent }) =>
-                  proposalDetail[field] ? (
-                    <div key={field}>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">{label}</p>
-                      <p className={`text-slate-700 text-sm leading-relaxed whitespace-pre-line border-l-2 border-${borderColor} pl-3 ${accent}`}>
-                        {proposalDetail[field]}
+          <Card className="border-slate-200/70 shadow-sm">
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 py-4 px-6">
+              <CardTitle className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <BarChartOutlined className="text-purple-500" />
+                Konteks Strategis & Target
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-5">
+              {STRATEGIC_FIELDS.map(({ key, label, borderColor, rows, mono }) => {
+                const val = proposalDetail[key];
+                return (
+                  <div key={key} className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={() => openSingleFieldEdit(key, label, "textarea", { rows, mono })}
+                        className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 font-semibold text-xs h-6 px-2 rounded-md flex items-center gap-1"
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                    {val ? (
+                      mono ? (
+                        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 leading-relaxed whitespace-pre-line">
+                          {val}
+                        </div>
+                      ) : (
+                        <p className={`text-slate-700 text-sm leading-relaxed whitespace-pre-line border-l-2 ${borderColor} pl-3`}>
+                          {val}
+                        </p>
+                      )
+                    ) : (
+                      <p className="text-slate-400 italic text-xs border-l-2 border-slate-200 pl-3">
+                        Belum diisi. Klik edit untuk menambahkan {label.toLowerCase()}.
                       </p>
-                    </div>
-                  ) : null
-                )}
-                {proposalDetail.kpi && (
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Indikator Kinerja (KPI)</p>
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-xs text-slate-700 leading-relaxed whitespace-pre-line">
-                      {proposalDetail.kpi}
-                    </div>
+                    )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                );
+              })}
+            </CardContent>
+          </Card>
 
           {/* Budget Lines Table */}
           {budgetLines.length > 0 && (
@@ -776,9 +951,17 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                   pagination={false}
                   size="small"
                   columns={[
-                    { title: "#", key: "index", width: 44, align: "center", render: (_, __, idx) => <span className="text-slate-400 font-bold text-xs">{idx + 1}</span> },
                     {
-                      title: "Aktivitas & Kode Anggaran", dataIndex: "activity", key: "activity",
+                      title: "#",
+                      key: "index",
+                      width: 44,
+                      align: "center",
+                      render: (_, __, idx) => <span className="text-slate-400 font-bold text-xs">{idx + 1}</span>,
+                    },
+                    {
+                      title: "Aktivitas & Kode Anggaran",
+                      dataIndex: "activity",
+                      key: "activity",
                       render: (t, r) => (
                         <div className="flex flex-col gap-1 py-1">
                           <span className="font-semibold text-slate-800 text-sm">{t || "-"}</span>
@@ -796,10 +979,38 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                         </div>
                       ),
                     },
-                    { title: "Brand", dataIndex: "brand", key: "brand", width: 80, align: "center", render: (t) => <Tag color="blue" className="font-semibold text-xs rounded-md border-none">{t || "-"}</Tag> },
-                    { title: "Bulan", dataIndex: "bulan", key: "bulan", width: 80, align: "center", render: (t) => <span className="text-slate-600 text-xs">{t || "-"}</span> },
-                    { title: "Outstanding Klaim", dataIndex: "outstanding_klaim", key: "outstanding_klaim", width: 150, align: "right", render: (v) => <span className="font-mono text-slate-600 text-xs">{renderCurrency(v)}</span> },
-                    { title: "Budget to Approve", dataIndex: "budgettoapprove", key: "budgettoapprove", width: 150, align: "right", render: (v) => <span className="font-bold text-emerald-600 font-mono text-sm">{renderCurrency(v)}</span> },
+                    {
+                      title: "Brand",
+                      dataIndex: "brand",
+                      key: "brand",
+                      width: 80,
+                      align: "center",
+                      render: (t) => <Tag color="blue" className="font-semibold text-xs rounded-md border-none">{t || "-"}</Tag>,
+                    },
+                    {
+                      title: "Bulan",
+                      dataIndex: "bulan",
+                      key: "bulan",
+                      width: 80,
+                      align: "center",
+                      render: (t) => <span className="text-slate-600 text-xs">{t || "-"}</span>,
+                    },
+                    {
+                      title: "Outstanding Klaim",
+                      dataIndex: "outstanding_klaim",
+                      key: "outstanding_klaim",
+                      width: 150,
+                      align: "right",
+                      render: (v) => <span className="font-mono text-slate-600 text-xs">{renderCurrency(v)}</span>,
+                    },
+                    {
+                      title: "Budget to Approve",
+                      dataIndex: "budgettoapprove",
+                      key: "budgettoapprove",
+                      width: 150,
+                      align: "right",
+                      render: (v) => <span className="font-bold text-emerald-600 font-mono text-sm">{renderCurrency(v)}</span>,
+                    },
                   ]}
                   className="rounded-b-2xl overflow-hidden"
                 />
@@ -835,10 +1046,14 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
                           <PaperClipOutlined className="text-base" />
                         </div>
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="font-semibold text-slate-700 text-xs truncate group-hover:text-slate-900 transition-colors" title={fileItem.name}>{fileItem.name}</span>
+                          <span className="font-semibold text-slate-700 text-xs truncate group-hover:text-slate-900 transition-colors" title={fileItem.name}>
+                            {fileItem.name}
+                          </span>
                           <span className="text-[10px] text-slate-400 font-medium mt-0.5">Dokumen #{fileItem.no || idx + 1}</span>
                         </div>
-                        <span className="text-[11px] font-semibold text-white bg-emerald-500 group-hover:bg-emerald-600 transition-colors px-3 py-1.5 rounded-lg flex-shrink-0">Lihat</span>
+                        <span className="text-[11px] font-semibold text-white bg-emerald-500 group-hover:bg-emerald-600 transition-colors px-3 py-1.5 rounded-lg flex-shrink-0">
+                          Lihat
+                        </span>
                       </a>
                     );
                   })}
@@ -882,11 +1097,11 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
         filterOption={filterDelegasiOption}
       />
 
-      {/* Edit Proposal Modal */}
-      <EditProposalModal
-        open={isEditModalOpen}
-        onCancel={() => setIsEditModalOpen(false)}
-        form={formEdit}
+      {/* Single Field Edit Modal */}
+      <SingleFieldEditModal
+        open={!!singleEditContext}
+        onCancel={closeSingleFieldEdit}
+        fieldContext={singleEditContext}
         proposalDetail={proposalDetail}
         onSave={handleSave}
         confirmLoading={isUpdatingProposal}
