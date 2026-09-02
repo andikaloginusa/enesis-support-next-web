@@ -16,10 +16,10 @@ export const ListFKRApprovalServices = (apiInstance) => {
 
   /**
    * Fetch single FKR entry detail
-   * @param {string|number} data - FKR ID parameter
-   * @param {Object} [data2] - Additional query filters
+   * @param {string|number} id - FKR ID parameter
+   * @param {Object} [queryParams] - Additional query parameters
    */
-  const getDetailListFkr = (data, data2) => apiInstance.get(`fkr/${data}`, data2);
+  const getDetailListFkr = (id, queryParams) => apiInstance.get(`fkr/${id}`, queryParams);
 
   /**
    * Reject FKR entry with a formal reason

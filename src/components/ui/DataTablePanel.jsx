@@ -3,18 +3,37 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Card, Table, Input, Typography } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
 /**
- * Generic Declarative DataTable Panel Component
- * A highly cohesive reusable template shell that manages grid tables, search debouncing inputs,
- * and header slot layouts. Completely isolated to enforce the Single Responsibility Principle.
+ * Enhanced Declarative DataTable Panel Component
+ *
+ * A reusable shell that manages:
+ * - Panel header with title, description, and optional subtitle badge
+ * - Search input with debouncing handled by parent
+ * - Extra header actions slot (filters, buttons, etc.)
+ * - Ant Design Table with consistent modern styling
+ *
+ * Usage:
+ *   <DataTablePanel
+ *     title="Proposal Support"
+ *     description="Kelola pengajuan proposal..."
+ *     columns={columns}
+ *     dataSource={list}
+ *     loading={isLoading}
+ *     rowKey="id"
+ *     pagination={{ total, pageSize, current, onChange }}
+ *     searchProps={{ placeholder, value, onChange }}
+ *     extraHeaderActions={<Button>Export</Button>}
+ *   />
  */
 export const DataTablePanel = ({
   title,
   description,
+  subtitle,           // Optional badge/count next to title
+  subtitleVariant,    // "count" | "badge" | "success" | "warning" | "error"
   columns = [],
   dataSource = [],
   loading = false,
@@ -23,43 +42,79 @@ export const DataTablePanel = ({
   searchProps = {},
   extraHeaderActions = null,
   scrollX = 1600,
+  emptyText = "Tidak ada data yang cocok dengan pencarian Anda.",
 }) => {
+  const subtitleColorMap = {
+    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    warning: "bg-amber-50 text-amber-700 border-amber-200",
+    error: "bg-rose-50 text-rose-700 border-rose-200",
+    info: "bg-blue-50 text-blue-700 border-blue-200",
+    count: "bg-slate-100 text-slate-600 border-slate-200",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  };
+
   return (
-    <div className="space-y-6 max-w-full">
-      {/* Main Declarative Content Panel */}
-      <Card variant={"borderless"} className="shadow-sm bg-white">
-        {/* Table & Header Controls Slot */}
-        <div className="mb-6 space-y-4">
-          {/* Row 1: Title + description */}
-          <div>
-            <Title level={4} className="m-0 text-slate-800 font-bold">
+    <div className="space-y-5 max-w-full">
+      {/* ── Panel Header ── */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Title
+              level={4}
+              className="m-0 text-slate-800 font-bold text-lg tracking-tight"
+            >
               {title}
             </Title>
-            {description && <Text className="text-slate-400 text-xs">{description}</Text>}
-          </div>
-
-          {/* Row 2: Search + extra actions — always full-width, wraps naturally */}
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Search Input Controller */}
-            {searchProps && searchProps.onChange && (
-              <Input
-                placeholder={searchProps.placeholder || "Cari data..."}
-                prefix={<SearchOutlined className="text-slate-400" />}
-                allowClear
-                value={searchProps.value}
-                onChange={(e) => searchProps.onChange(e.target.value)}
-                className="w-72 rounded-lg hover:border-[#1aac32] focus:border-[#1aac32]"
-                size="middle"
-              />
+            {subtitle !== undefined && (
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                  subtitleColorMap[subtitleVariant] ||
+                  subtitleColorMap.count
+                }`}
+              >
+                {subtitleVariant === "count" ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 inline-block" />
+                    {subtitle.toLocaleString("id-ID")} item
+                  </>
+                ) : (
+                  subtitle
+                )}
+              </span>
             )}
-
-            {/* Custom Extra Header Controls (e.g. Refresh, Export buttons) */}
-            {extraHeaderActions}
           </div>
+          {description && (
+            <Text className="text-slate-400 text-xs leading-relaxed">
+              {description}
+            </Text>
+          )}
+        </div>
+      </div>
+
+      {/* ── Controls Bar ── */}
+      <Card
+        variant="bordered"
+        className="shadow-sm border-slate-200 rounded-2xl overflow-hidden"
+        styles={{ body: { padding: "20px 24px" } }}
+      >
+        {/* Search + Actions Row */}
+        <div className="flex items-center gap-3 flex-wrap mb-0">
+          {searchProps && searchProps.onChange && (
+            <Input
+              placeholder={searchProps.placeholder || "Cari data..."}
+              prefix={<SearchOutlined className="text-slate-400" />}
+              allowClear
+              value={searchProps.value}
+              onChange={(e) => searchProps.onChange(e.target.value)}
+              className="w-80 max-w-full rounded-xl border-slate-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors"
+              size="middle"
+            />
+          )}
+          <div className="flex-1" />
+          {extraHeaderActions}
         </div>
 
-
-        {/* Ant Design Dynamic Table */}
+        {/* ── Table ── */}
         <Table
           columns={columns}
           dataSource={dataSource}
@@ -74,15 +129,46 @@ export const DataTablePanel = ({
                   showSizeChanger: true,
                   pageSizeOptions: ["10", "20", "50", "100"],
                   showTotal: (total, range) =>
-                    `Menampilkan ${range[0]}-${range[1]} dari ${total} data`,
+                    `Menampilkan ${range[0]}–${range[1]} dari ${total.toLocaleString("id-ID")} data`,
                   className: "pt-4",
                   ...pagination,
                 }
               : false
           }
-          onChange={(pag) => pagination.onChange && pagination.onChange(pag.current, pag.pageSize)}
+          onChange={(pag) =>
+            pagination.onChange &&
+            pagination.onChange(pag.current, pag.pageSize)
+          }
           scroll={{ x: scrollX }}
-          className="border border-slate-100 rounded-xl overflow-hidden [&_.ant-table-thead_th]:bg-[#f2f8f2] [&_.ant-table-thead_th]:text-slate-700 [&_.ant-table-thead_th]:font-bold"
+          locale={{
+            emptyText: (
+              <div className="flex flex-col items-center justify-center py-12 gap-3">
+                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center">
+                  <SearchOutlined className="text-slate-300 text-2xl" />
+                </div>
+                <p className="text-slate-400 text-sm font-medium">{emptyText}</p>
+              </div>
+            ),
+          }}
+          className="mt-4 border border-slate-100 rounded-xl overflow-hidden
+            [&_.ant-table]:overflow-auto
+            [&_.ant-table-thead>tr>th]:!bg-slate-50
+            [&_.ant-table-thead>tr>th]:!text-slate-600
+            [&_.ant-table-thead>tr>th]:!font-bold
+            [&_.ant-table-thead>tr>th]:!text-xs
+            [&_.ant-table-thead>tr>th]:!uppercase
+            [&_.ant-table-thead>tr>th]:!tracking-wider
+            [&_.ant-table-thead>tr>th]:!border-b-2
+            [&_.ant-table-thead>tr>th]:!border-slate-200
+            [&_.ant-table-thead>tr>th:first-child]:!rounded-tl-xl
+            [&_.ant-table-thead>tr>th:last-child]:!rounded-tr-xl
+            [&_.ant-table-tbody>tr>td]:!border-b
+            [&_.ant-table-tbody>tr>td]:!border-slate-50
+            [&_.ant-table-tbody>tr:hover>td]:!bg-emerald-50/30
+            [&_.ant-table-tbody>tr:hover>td]:!transition-colors
+            [&_.ant-table-wrapper]:overflow-auto
+            [&_.ant-pagination]:mb-0
+            [&_.ant-pagination-options]:gap-2"
         />
       </Card>
     </div>
@@ -92,6 +178,15 @@ export const DataTablePanel = ({
 DataTablePanel.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string,
+  subtitle: PropTypes.node,
+  subtitleVariant: PropTypes.oneOf([
+    "count",
+    "badge",
+    "success",
+    "warning",
+    "error",
+    "info",
+  ]),
   columns: PropTypes.array.isRequired,
   dataSource: PropTypes.array,
   loading: PropTypes.bool,
@@ -109,4 +204,5 @@ DataTablePanel.propTypes = {
   }),
   extraHeaderActions: PropTypes.node,
   scrollX: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  emptyText: PropTypes.string,
 };

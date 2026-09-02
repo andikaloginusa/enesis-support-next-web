@@ -1,15 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Button,
-  Tag,
-  Typography,
-  Tooltip,
-  Select,
-  Modal,
-  Table,
-} from "antd";
+import { Button, Tag, Typography, Select, Modal, Table } from "antd";
 import {
   EyeOutlined,
   ReloadOutlined,
@@ -21,44 +13,103 @@ import {
   CloseCircleOutlined,
   FileExcelOutlined,
 } from "@ant-design/icons";
-import moment from "moment";
 import { useRouter } from "next/navigation";
 import { useProposal, useDebounce } from "@/hooks";
-import { DataTablePanel } from "@/components/ui";
+import {
+  DataTablePanel,
+  StatusBadge,
+  renderCurrency,
+  renderDate,
+  renderBold,
+  renderMedium,
+  renderTruncated,
+} from "@/components/ui";
 
-const { Text, Title } = Typography;
+// ─────────────────────────────────────────────────────────────────────────────
+//  Upload Result Display Sub-component
+// ─────────────────────────────────────────────────────────────────────────────
 
+function ResultPanel({ rows, type }) {
+  const columns = [
+    {
+      title: "No",
+      key: "no",
+      width: 48,
+      align: "center",
+      render: (_, __, idx) => (
+        <span className="text-slate-400 text-xs font-bold">{idx + 1}</span>
+      ),
+    },
+    {
+      title: "Nomor Dokumen",
+      dataIndex: "doc_no",
+      key: "doc_no",
+      render: (v) => (
+        <Typography.Text className="font-mono text-xs text-slate-700">
+          {v || "-"}
+        </Typography.Text>
+      ),
+    },
+    {
+      title: "Keterangan",
+      dataIndex: "message",
+      key: "message",
+      render: (v) => (
+        <Typography.Text className={`text-xs ${v ? "text-rose-600" : "text-emerald-600"}`}>
+          {v || "✓ Berhasil dikirim"}
+        </Typography.Text>
+      ),
+    },
+  ];
 
+  const borderColor = type === "success" ? "border-emerald-100" : "border-rose-100";
+  const iconColor = type === "success" ? "text-emerald-500" : "text-rose-500";
+  const label =
+    type === "success"
+      ? `Berhasil (${rows.length} proposal)`
+      : `Gagal / Error (${rows.length} baris)`;
 
-// ==========================================
-// 1. Formatters & Utility Helpers
-// ==========================================
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-3">
+        <CheckCircleOutlined className={iconColor} />
+        <span className="font-semibold text-sm text-slate-700">{label}</span>
+      </div>
+      <Table
+        dataSource={rows}
+        columns={columns}
+        rowKey={(r, i) => r.doc_no || i}
+        pagination={false}
+        size="small"
+        className={`rounded-xl overflow-hidden border ${borderColor}`}
+      />
+    </div>
+  );
+}
 
-const formatCurrency = (val) => {
-  if (val === null || val === undefined) return "-";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(val);
+// ─────────────────────────────────────────────────────────────────────────────
+//  Upload Modal Sub-component
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ACCENT_THEMES = {
+  blue: {
+    header: "from-blue-600 to-blue-700",
+    btn: "bg-blue-600 hover:bg-blue-700 border-blue-600",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    text: "text-blue-600",
+    dragger: "border-blue-300 hover:border-blue-500",
+  },
+  purple: {
+    header: "from-purple-600 to-purple-700",
+    btn: "bg-purple-600 hover:bg-purple-700 border-purple-600",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    text: "text-purple-600",
+    dragger: "border-purple-300 hover:border-purple-500",
+  },
 };
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return "-";
-  return moment(dateStr).format("DD MMM YYYY");
-};
-
-// ==========================================
-// 2. Upload Modal Sub-component
-// ==========================================
-
-/**
- * Generic Excel upload modal used by both Send Email Ulang and Reversal Internasional.
- * Props:
- *   open, onClose, title, description, accentColor,
- *   icon, onUpload, isUploading, result
- */
 function UploadModal({
   open,
   onClose,
@@ -75,7 +126,6 @@ function UploadModal({
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Reset file state when modal closes
   useEffect(() => {
     if (!open) {
       setSelectedFile(null);
@@ -90,12 +140,9 @@ function UploadModal({
       file.type === "application/vnd.ms-excel" ||
       file.name.endsWith(".xlsx") ||
       file.name.endsWith(".xls");
-
-    if (!isExcel) {
-      return false; // antd Upload will show error
-    }
+    if (!isExcel) return false;
     setSelectedFile(file);
-    return false; // prevent auto-upload by antd
+    return false;
   };
 
   const handleDrop = (e) => {
@@ -109,63 +156,14 @@ function UploadModal({
     if (!selectedFile) return;
     try {
       await onUpload(selectedFile);
-    } catch (_) {
-      // error handled by mutation onError
+    } catch {
+      // Handled by mutation onError
     }
   };
 
-  const accentMap = {
-    blue: {
-      header: "from-blue-600 to-blue-700",
-      btn: "bg-blue-600 hover:bg-blue-700 border-blue-600",
-      border: "border-blue-200",
-      bg: "bg-blue-50",
-      text: "text-blue-600",
-      dragger: "border-blue-300 hover:border-blue-500",
-    },
-    purple: {
-      header: "from-purple-600 to-purple-700",
-      btn: "bg-purple-600 hover:bg-purple-700 border-purple-600",
-      border: "border-purple-200",
-      bg: "bg-purple-50",
-      text: "text-purple-600",
-      dragger: "border-purple-300 hover:border-purple-500",
-    },
-  };
-  const ac = accentMap[accentColor] || accentMap.blue;
-
-  // Parse result — can be { detail: [], message: "" } or error array
+  const ac = ACCENT_THEMES[accentColor] || ACCENT_THEMES.blue;
   const successRows = result?.detail || [];
   const errorRows = Array.isArray(result?.data) ? result.data : [];
-
-  const resultColumns = [
-    {
-      title: "No",
-      key: "no",
-      width: 48,
-      align: "center",
-      render: (_, __, idx) => (
-        <span className="text-slate-400 text-xs font-bold">{idx + 1}</span>
-      ),
-    },
-    {
-      title: "Nomor Dokumen",
-      dataIndex: "doc_no",
-      key: "doc_no",
-      render: (v) => <Text className="font-mono text-xs text-slate-700">{v || "-"}</Text>,
-    },
-    {
-      title: "Keterangan",
-      dataIndex: "message",
-      key: "message",
-      render: (v) => (
-        <Text className={`text-xs ${v ? "text-rose-600" : "text-emerald-600"}`}>
-          {v || "✓ Berhasil dikirim"}
-        </Text>
-      ),
-    },
-  ];
-
   const hasResult = successRows.length > 0 || errorRows.length > 0;
 
   return (
@@ -180,9 +178,7 @@ function UploadModal({
       closable={false}
     >
       {/* Gradient Header */}
-      <div
-        className={`bg-gradient-to-r ${ac.header} px-6 py-5 flex items-center gap-3`}
-      >
+      <div className={`bg-gradient-to-r ${ac.header} px-6 py-5 flex items-center gap-3`}>
         <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
           {icon}
         </div>
@@ -199,16 +195,15 @@ function UploadModal({
       </div>
 
       <div className="p-6 space-y-5">
-        {/* File Drop Zone */}
         {!hasResult && (
           <>
+            {/* Drop Zone */}
             <div
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}
               className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer
-                ${dragOver ? `${ac.bg} ${ac.border} scale-[1.01]` : "border-slate-200 hover:border-slate-300 bg-slate-50/40"}
-              `}
+                ${dragOver ? `${ac.bg} ${ac.border} scale-[1.01]` : "border-slate-200 hover:border-slate-300 bg-slate-50/40"}`}
               onClick={() => fileInputRef.current?.click()}
             >
               <input
@@ -264,12 +259,13 @@ function UploadModal({
                   onClick={(e) => e.stopPropagation()}
                   className={`inline-flex items-center gap-1.5 text-xs font-semibold ${ac.text} hover:underline`}
                 >
-                  <FileExcelOutlined className="text-sm" />
+                  <FileExcelOutlined />
                   Download Template Excel
                 </a>
               </div>
             )}
 
+            {/* Action Buttons */}
             <div className="flex gap-2">
               <button
                 onClick={onClose}
@@ -283,8 +279,7 @@ function UploadModal({
                 className={`flex-1 h-10 rounded-xl text-white text-sm font-bold transition-all
                   ${selectedFile && !isUploading
                     ? `${ac.btn} shadow-sm`
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  }`}
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
               >
                 {isUploading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -304,72 +299,123 @@ function UploadModal({
 
         {/* Result Panel */}
         {hasResult && (
-          <>
-            {successRows.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircleOutlined className="text-emerald-500" />
-                  <span className="font-semibold text-sm text-slate-700">
-                    Berhasil ({successRows.length} proposal)
-                  </span>
-                </div>
-                <Table
-                  dataSource={successRows}
-                  columns={resultColumns}
-                  rowKey={(r, i) => r.doc_no || i}
-                  pagination={false}
-                  size="small"
-                  className="rounded-xl overflow-hidden border border-emerald-100"
-                />
-              </div>
-            )}
-
-            {errorRows.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <CloseCircleOutlined className="text-rose-500" />
-                  <span className="font-semibold text-sm text-slate-700">
-                    Gagal / Error ({errorRows.length} baris)
-                  </span>
-                </div>
-                <Table
-                  dataSource={errorRows}
-                  columns={resultColumns}
-                  rowKey={(r, i) => r.doc_no || i}
-                  pagination={false}
-                  size="small"
-                  className="rounded-xl overflow-hidden border border-rose-100"
-                />
-              </div>
-            )}
-
+          <div className="space-y-4">
+            {successRows.length > 0 && <ResultPanel rows={successRows} type="success" />}
+            {errorRows.length > 0 && <ResultPanel rows={errorRows} type="error" />}
             <button
               onClick={onClose}
               className={`w-full h-10 rounded-xl text-white text-sm font-bold ${ac.btn} transition-all shadow-sm`}
             >
               Tutup
             </button>
-          </>
+          </div>
         )}
       </div>
     </Modal>
   );
 }
 
-// ==========================================
-// 3. Main Page Component
-// ==========================================
+// ─────────────────────────────────────────────────────────────────────────────
+//  Column Definitions
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ProposalStatusCell({ status, fcstatus }) {
+  return <StatusBadge status={status || fcstatus} />;
+}
+
+const buildColumns = ({ onView }) => [
+  {
+    title: "Nomor Proposal",
+    dataIndex: "documentno",
+    key: "documentno",
+    fixed: "left",
+    width: 220,
+    render: (text, row) =>
+      renderBold(text || row.nomor_proposal || row.nomor || row.reference_no || "-"),
+  },
+  {
+    title: "Tanggal Pengajuan",
+    dataIndex: "documentdate",
+    key: "documentdate",
+    width: 160,
+    render: (val, row) =>
+      renderDate(val || row.created || row.tanggal_pengajuan),
+  },
+  {
+    title: "Divisi",
+    dataIndex: "division_code",
+    key: "division_code",
+    width: 120,
+    render: (text, row) => renderMedium(text || row.division),
+  },
+  {
+    title: "Nama Proposal",
+    dataIndex: "name",
+    key: "name",
+    width: 280,
+    render: (text, row) =>
+      renderTruncated(
+        text || row.nama_vendor || row.nama_requester || "-",
+        270
+      ),
+  },
+  {
+    title: "Nominal",
+    dataIndex: "budget",
+    key: "budget",
+    width: 180,
+    align: "right",
+    render: (val, row) =>
+      renderCurrency(val ?? row.amount ?? row.nominal ?? row.nominal_proposal ?? 0),
+  },
+  {
+    title: "Status",
+    key: "status",
+    width: 160,
+    align: "center",
+    render: (row) => <ProposalStatusCell status={row.status} fcstatus={row.fcstatus} />,
+  },
+  {
+    title: "Aksi",
+    key: "action",
+    align: "center",
+    fixed: "right",
+    width: 120,
+    render: (row) => (
+      <Typography.Text
+        className="text-blue-600 hover:text-blue-700 font-semibold text-xs cursor-pointer"
+        onClick={() =>
+          onView(row.proposal_id || row.id || row.fkr_id)
+        }
+      >
+        Lihat Detail →
+      </Typography.Text>
+    ),
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Main Page Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DIVISION_OPTIONS = [
+  { value: "MM", label: "MM" },
+  { value: "MT", label: "MT" },
+  { value: "GT", label: "GT" },
+  { value: "ECOM", label: "ECOM" },
+  { value: "PHAR", label: "PHAR" },
+];
+
+const STATUS_OPTIONS = [
+  { value: "Draft", label: "Draft" },
+  { value: "Pending", label: "Pending" },
+  { value: "Approved", label: "Approved" },
+  { value: "Rejected", label: "Rejected" },
+];
 
 export default function ProposalSupportPage() {
   const router = useRouter();
 
-  // Upload modal visibility
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [reversalModalOpen, setReversalModalOpen] = useState(false);
-
-  // ==========================================
-  // React Query Hook State & Actions
-  // ==========================================
   const {
     proposalList,
     totalCount,
@@ -387,7 +433,7 @@ export default function ProposalSupportPage() {
     uploadReversalResult,
   } = useProposal();
 
-  // Local debounced search binding
+  // ── Search State ──
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 400);
 
@@ -395,132 +441,15 @@ export default function ProposalSupportPage() {
     handleSearchChange(debouncedSearch);
   }, [debouncedSearch, handleSearchChange]);
 
-  // ==========================================
-  // Columns Configuration
-  // ==========================================
+  // ── Upload Modal State ──
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [reversalModalOpen, setReversalModalOpen] = useState(false);
 
-  const columnsConfig = [
-    {
-      title: "Nomor Proposal",
-      dataIndex: "documentno",
-      key: "documentno",
-      fixed: "left",
-      width: 220,
-      render: (text, row) => (
-        <Text className="font-semibold text-slate-800">
-          {text || row.nomor_proposal || row.nomor || row.reference_no || "-"}
-        </Text>
-      ),
-    },
-    {
-      title: "Tanggal Pengajuan",
-      dataIndex: "documentdate",
-      key: "documentdate",
-      width: 160,
-      render: (val, row) => formatDate(val || row.created || row.tanggal_pengajuan),
-    },
-    {
-      title: "Divisi",
-      dataIndex: "division_code",
-      key: "division_code",
-      width: 120,
-      render: (text, row) => (
-        <Text className="font-medium text-slate-700">{text || row.division || "-"}</Text>
-      ),
-    },
-    {
-      title: "Nama Proposal",
-      dataIndex: "name",
-      key: "name",
-      width: 280,
-      render: (text, row) => (
-        <Tooltip title={text || row.nama_vendor || row.nama_requester || "-"}>
-          <Text className="block truncate max-w-[270px] font-medium text-slate-600">
-            {text || row.nama_vendor || row.nama_requester || "-"}
-          </Text>
-        </Tooltip>
-      ),
-    },
-    {
-      title: "Nominal",
-      dataIndex: "budget",
-      key: "budget",
-      width: 180,
-      align: "right",
-      render: (val, row) => (
-        <Text className="font-semibold text-slate-700">
-          {formatCurrency(val ?? row.amount ?? row.nominal ?? row.nominal_proposal ?? 0)}
-        </Text>
-      ),
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 160,
-      align: "center",
-      render: (val, row) => {
-        const rawStatus = (val || row.fcstatus || "PENDING").toLowerCase();
-        let color = "processing";
-        if (
-          rawStatus === "approved" ||
-          rawStatus === "apr" ||
-          rawStatus === "y" ||
-          rawStatus === "success"
-        )
-          color = "success";
-        if (
-          rawStatus === "rejected" ||
-          rawStatus === "failed" ||
-          rawStatus === "reject" ||
-          rawStatus === "n"
-        )
-          color = "error";
-        if (
-          rawStatus === "waiting approval" ||
-          rawStatus === "draft" ||
-          rawStatus === "pending" ||
-          rawStatus === "on progress"
-        )
-          color = "warning";
+  // ── Column Definitions ──
+  const columnsConfig = buildColumns({
+    onView: (id) => router.push(`/proposal/${id}`),
+  });
 
-        return (
-          <Tag
-            color={color}
-            className="font-semibold uppercase px-2 py-0.5 rounded border-none"
-          >
-            {val || row.fcstatus || "PENDING"}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: "Aksi",
-      key: "action",
-      align: "center",
-      fixed: "right",
-      width: 120,
-      render: (row) => (
-        <Tooltip title="Lihat Detail Proposal">
-          <Button
-            type="primary"
-            shape="circle"
-            icon={<EyeOutlined />}
-            onClick={() =>
-              router.push(
-                `/proposal/${row.proposal_id || row.id || row.fkr_id}`
-              )
-            }
-            className="bg-blue-600 hover:bg-blue-700 border-blue-600"
-          />
-        </Tooltip>
-      ),
-    },
-  ];
-
-  // ==========================================
-  // Render
-  // ==========================================
   return (
     <>
       <DataTablePanel
@@ -543,19 +472,13 @@ export default function ProposalSupportPage() {
         }}
         extraHeaderActions={
           <div className="flex items-center gap-2 flex-wrap">
-            {/* ── Filters ── */}
+            {/* Filters */}
             <Select
               placeholder="Semua Divisi"
               allowClear
               style={{ width: 140 }}
               onChange={(val) => handleFilterChange("division", val)}
-              options={[
-                { value: "MM", label: "MM" },
-                { value: "MT", label: "MT" },
-                { value: "GT", label: "GT" },
-                { value: "ECOM", label: "ECOM" },
-                { value: "PHAR", label: "PHAR" },
-              ]}
+              options={DIVISION_OPTIONS}
               className="font-medium"
             />
             <Select
@@ -563,56 +486,43 @@ export default function ProposalSupportPage() {
               allowClear
               style={{ width: 148 }}
               onChange={(val) => handleFilterChange("fcstatus", val)}
-              options={[
-                { value: "Draft", label: "Draft" },
-                { value: "Pending", label: "Pending" },
-                { value: "Approved", label: "Approved" },
-                { value: "Rejected", label: "Rejected" },
-              ]}
+              options={STATUS_OPTIONS}
               className="font-medium"
             />
 
-            {/* Separator */}
             <span className="w-px h-5 bg-slate-200 self-center mx-1" />
 
-            {/* ── Upload Actions ── */}
-            <Tooltip title="Upload file Excel berisi daftar nomor proposal untuk kirim ulang email notifikasi">
-              <Button
-                icon={<MailOutlined />}
-                onClick={() => setEmailModalOpen(true)}
-                loading={isUploadingEmail}
-                className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 font-medium text-sm flex items-center gap-1.5 transition-all"
-              >
-                Send Email Ulang
-              </Button>
-            </Tooltip>
+            {/* Upload Actions */}
+            <Button
+              icon={<MailOutlined />}
+              onClick={() => setEmailModalOpen(true)}
+              loading={isUploadingEmail}
+              className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Send Email Ulang
+            </Button>
 
-            <Tooltip title="Upload file Excel untuk memproses reversal internasional secara batch">
-              <Button
-                icon={<SwapOutlined />}
-                onClick={() => setReversalModalOpen(true)}
-                loading={isUploadingReversal}
-                className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-purple-600 hover:border-purple-400 hover:bg-purple-50 font-medium text-sm flex items-center gap-1.5 transition-all"
-              >
-                Reversal Internasional
-              </Button>
-            </Tooltip>
+            <Button
+              icon={<SwapOutlined />}
+              onClick={() => setReversalModalOpen(true)}
+              loading={isUploadingReversal}
+              className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-purple-600 hover:border-purple-400 hover:bg-purple-50 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Reversal Internasional
+            </Button>
 
-            {/* ── Reload ── */}
-            <Tooltip title="Muat Ulang Data">
-              <Button
-                shape="circle"
-                icon={<ReloadOutlined className={isListFetching ? "animate-spin" : ""} />}
-                onClick={() => refetchList()}
-                className="h-9 w-9 border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300"
-              />
-            </Tooltip>
+            {/* Reload */}
+            <Button
+              shape="circle"
+              icon={<ReloadOutlined className={isListFetching ? "animate-spin" : ""} />}
+              onClick={refetchList}
+              className="h-9 w-9 border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            />
           </div>
         }
       />
 
-
-      {/* ── Upload Send Email Ulang Modal ── */}
+      {/* Send Email Ulang Modal */}
       <UploadModal
         open={emailModalOpen}
         onClose={() => setEmailModalOpen(false)}
@@ -626,7 +536,7 @@ export default function ProposalSupportPage() {
         templateUrl="/templates/proposal/Template Proposal Send Email.xlsx"
       />
 
-      {/* ── Upload Reversal Internasional Modal ── */}
+      {/* Reversal Internasional Modal */}
       <UploadModal
         open={reversalModalOpen}
         onClose={() => setReversalModalOpen(false)}

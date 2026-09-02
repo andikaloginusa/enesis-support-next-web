@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { klaimService } from "@services/klaim.service";
-import { App } from "antd";
 import { queryKeys } from "@/lib/queryKeys";
 import { assertApiSuccess } from "@/utils/errorHelpers";
+import { NOTIF_MESSAGES } from "@/utils/constants";
+import { useNotify, NOTIF_DURATION_SHORT, NOTIF_DURATION_MEDIUM } from "@/utils/notify";
 import { useListParams } from "@/hooks/useListParams";
 
 /**
@@ -14,15 +15,16 @@ import { useListParams } from "@/hooks/useListParams";
  * - `useListParams` for shared pagination/search state (DRY)
  * - `queryKeys.klaim.*` for centralized cache key management
  * - `assertApiSuccess` for standardized error throwing in mutations
+ * - `useNotify` for centralized notification handling
  */
 export const useKlaim = () => {
   const queryClient = useQueryClient();
-  const { notification } = App.useApp();
+  const { notifySuccess, notifyError } = useNotify();
 
-  // 1. Shared pagination + search state
+  // Shared pagination + search state
   const { params, handlePaginationChange, handleSearchChange } = useListParams();
 
-  // 2. Query: Paginated Klaim List
+  // Query: Paginated Klaim List
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: queryKeys.klaim.list(params),
     queryFn: async () => {
@@ -32,72 +34,60 @@ export const useKlaim = () => {
         searchText: params.searchText,
       });
 
-      assertApiSuccess(
-        response,
-        response?.data?.message || response?.problem || "Failed to retrieve claim list"
-      );
+      assertApiSuccess(response, NOTIF_MESSAGES.FETCH_CLAIMS_ERROR);
       return response.data;
     },
-    // Keep previous data when fetching new pages — no layout flicker
     placeholderData: (prev) => prev,
   });
 
-  // 3. Mutation: Delete Log Submit
+  // Mutation: Delete Log Submit
   const deleteMutation = useMutation({
     mutationFn: async (nomor_klaim) => {
       const response = await klaimService.deleteLogSubmitKlaim({ nomor_klaim });
-      assertApiSuccess(response, "Log Submit Gagal Di Hapus");
+      assertApiSuccess(response, NOTIF_MESSAGES.DELETE_LOG_ERROR);
       return response;
     },
     onSuccess: (response) => {
-      notification.success({
-        message: "Sukses",
-        description: response.data?.message || "Log Submit Berhasil Di Hapus",
-        duration: 2,
-      });
+      notifySuccess(
+        NOTIF_MESSAGES.SUCCESS,
+        response.data?.message || NOTIF_MESSAGES.DELETE_LOG_SUCCESS,
+        NOTIF_DURATION_SHORT,
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.klaim.all() });
     },
     onError: (err) => {
-      notification.error({
-        message: "Error",
-        description: err.message || "Log Submit Gagal Di Hapus",
-        duration: 3,
-      });
+      notifyError(NOTIF_MESSAGES.ERROR, err.message || NOTIF_MESSAGES.DELETE_LOG_ERROR, NOTIF_DURATION_MEDIUM);
     },
   });
 
-  // 4. Mutation: Update Klaim Status
+  // Mutation: Update Klaim Status
   const updateStatusMutation = useMutation({
     mutationFn: async (payload) => {
       const response = await klaimService.updateStatusKlaim(payload);
-      assertApiSuccess(response, "Gagal Memperbarui Status Klaim");
+      assertApiSuccess(response, NOTIF_MESSAGES.UPDATE_STATUS_ERROR);
       return response;
     },
     onSuccess: (response) => {
-      notification.success({
-        message: "Sukses",
-        description: response.data?.message || "Status Klaim Berhasil Diperbarui",
-        duration: 2,
-      });
+      notifySuccess(
+        NOTIF_MESSAGES.SUCCESS,
+        response.data?.message || NOTIF_MESSAGES.UPDATE_STATUS_SUCCESS,
+        NOTIF_DURATION_SHORT,
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.klaim.all() });
     },
     onError: (err) => {
-      notification.error({
-        message: "Error",
-        description: err.message || "Gagal Memperbarui Status Klaim",
-        duration: 3,
-      });
+      notifyError(NOTIF_MESSAGES.ERROR, err.message || NOTIF_MESSAGES.UPDATE_STATUS_ERROR, NOTIF_DURATION_MEDIUM);
     },
   });
 
   return {
-    // Queries
-    claims: data?.results || [],
-    total: data?.meta?.count || 0,
-    fetching: isLoading || isFetching,
+    // List Query
+    klaimList: data?.results || [],
+    totalCount: data?.meta?.count || 0,
+    isListFetching: isLoading || isFetching,
+    refetchList: refetch,
     error,
     params,
-    refetch,
 
     // Mutations
     deleteLogSubmit: deleteMutation.mutateAsync,

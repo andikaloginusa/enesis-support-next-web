@@ -11,7 +11,7 @@ import {
   clearUserCredentials,
   setChangeCredentials,
 } from "@/utils/storage";
-import { USER_ROLES, ROUTES, SESSION_COOKIE_NAME, SESSION_COOKIE_MAX_AGE } from "@/utils/constants";
+import { USER_ROLES, ROUTES, SESSION_COOKIE_NAME, SESSION_COOKIE_MAX_AGE, HTTP_STATUS } from "@/utils/constants";
 import {
   buildPasswordExpiredModal,
   buildTokenMissingModal,
@@ -21,8 +21,6 @@ import {
   buildLogoutErrorModal,
 } from "@/utils/authModalConfigs";
 
-// Internal constant — not exported
-const HTTP_STATUS_PASSWORD_EXPIRED = 302;
 
 /**
  * useAuth — Authentication Hook
@@ -62,7 +60,7 @@ export function useAuth() {
         // Case 1: Password Expired (Status 302) — prompt user before proceeding
         if (
           responseData.status === "302" ||
-          responseData.status === HTTP_STATUS_PASSWORD_EXPIRED
+          responseData.status === HTTP_STATUS.SESSION_EXPIRED
         ) {
           modal.error({
             ...buildPasswordExpiredModal(responseData.message),

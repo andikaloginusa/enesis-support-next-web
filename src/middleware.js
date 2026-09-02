@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ROUTES } from "@/utils/constants";
 
 /**
  * Next.js Server-Side Middleware Route Guard
@@ -11,11 +12,11 @@ export function middleware(request) {
   const path = nextUrl.pathname;
 
   // 1. Identify static files and API requests to bypass guarding
-  const isStaticOrApi = 
-    path.startsWith("/_next") || 
-    path.startsWith("/api") || 
+  const isStaticOrApi =
+    path.startsWith("/_next") ||
+    path.startsWith("/api") ||
     path.startsWith("/favicon.ico") ||
-    path.includes(".") || // static assets like images, fonts, icons
+    path.includes(".") ||
     path.startsWith("/public");
 
   if (isStaticOrApi) {
@@ -23,23 +24,22 @@ export function middleware(request) {
   }
 
   // 2. Identify auth paths (login, signup, password reset)
-  const isAuthPath = path.startsWith("/auth/login-1") || path.startsWith("/auth/signup-1");
+  const isAuthPath =
+    path.startsWith("/auth/login-1") ||
+    path.startsWith("/auth/signup-1");
 
   // 3. User is NOT authenticated (cookie is missing)
   if (!token) {
-    // If accessing any protected page (not starting with /auth), redirect to login
     if (!path.startsWith("/auth")) {
-      const loginUrl = new URL("/auth/login-1", request.url);
-      // Optional: Preserve redirect path so user goes back after signing in
+      const loginUrl = new URL(ROUTES.LOGIN, request.url);
       loginUrl.searchParams.set("redirect", path);
       return NextResponse.redirect(loginUrl);
     }
-  } 
+  }
   // 4. User IS authenticated (cookie is present)
   else {
-    // If logged-in user tries to visit login/signup pages, redirect to home
     if (isAuthPath) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(ROUTES.HOME, request.url));
     }
   }
 

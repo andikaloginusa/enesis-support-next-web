@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fkrService } from "@services/fkr.service";
 import { useState, useCallback } from "react";
-import { App } from "antd";
 import { getUserId } from "@/utils/storage";
 import { queryKeys } from "@/lib/queryKeys";
-import { assertApiSuccess, extractApiError } from "@/utils/errorHelpers";
+import { assertApiSuccess, extractResponseData } from "@/utils/errorHelpers";
+import { NOTIF_MESSAGES, API_LABELS } from "@/utils/constants";
+import { useNotify, NOTIF_DURATION_MEDIUM } from "@/utils/notify";
 import { useListParams } from "@/hooks/useListParams";
 
 /**
@@ -17,18 +18,20 @@ import { useListParams } from "@/hooks/useListParams";
  * - `useListParams` for shared pagination/search state (DRY)
  * - `storage.getUserId` for consistent localStorage access
  * - `queryKeys.fkr.*` for centralized cache key management
- * - `assertApiSuccess` / `extractApiError` for standardized error handling
+ * - `assertApiSuccess` for standardized error throwing
+ * - `extractResponseData` for normalized payload extraction
+ * - `notifySuccess`/`notifyError` for centralized notification handling
  *
  * @param {string|number|null} [fkrId=null] - Optional FKR ID to enable detail query
  */
 export const useFkr = (fkrId = null) => {
   const queryClient = useQueryClient();
-  const { notification } = App.useApp();
+  const { notifySuccess, notifyError } = useNotify();
 
-  // 1. Shared pagination + search state (composed, not copy-pasted)
+  // Shared pagination + search state
   const { params, handlePaginationChange, handleSearchChange } = useListParams();
 
-  // 2. Local candidates state (dynamic per-jabatan caching)
+  // Local candidates state (dynamic per-jabatan caching)
   const [candidatesCache, setCandidatesCache] = useState({});
   const [activeCandidates, setActiveCandidates] = useState([]);
   const [isLoadingCandidates, setIsLoadingCandidates] = useState(false);
@@ -44,7 +47,6 @@ export const useFkr = (fkrId = null) => {
       if (!jabatan) return;
       const key = jabatan.toUpperCase();
 
-      // Return instantly from local state cache if already fetched
       if (candidatesCache[key]) {
         setActiveCandidates(candidatesCache[key]);
         return;
@@ -53,8 +55,8 @@ export const useFkr = (fkrId = null) => {
       setIsLoadingCandidates(true);
       try {
         const response = await fkrService.getListUserApproval({ jabatan });
-        if (response.ok && response.data) {
-          const result = response.data.results || response.data.result || response.data;
+        if (response.ok) {
+          const result = extractResponseData(response);
           if (Array.isArray(result)) {
             setCandidatesCache((prev) => ({ ...prev, [key]: result }));
             setActiveCandidates(result);
@@ -63,21 +65,22 @@ export const useFkr = (fkrId = null) => {
           }
         }
       } catch (err) {
-        console.warn(`[useFkr] Failed to fetch candidates for jabatan ${jabatan}`, err);
+        console.warn(
+          `${API_LABELS.FKR} Failed to fetch candidates for jabatan ${jabatan}`,
+          err,
+        );
       }
 
       setCandidatesCache((prev) => ({ ...prev, [key]: [] }));
       setActiveCandidates([]);
       setIsLoadingCandidates(false);
     },
-    [candidatesCache]
+    [candidatesCache],
   );
 
-  const clearActiveCandidates = useCallback(() => {
-    setActiveCandidates([]);
-  }, []);
+  const clearActiveCandidates = useCallback(() => setActiveCandidates([]), []);
 
-  // 3. Query: Paginated FKR List
+  // Query: Paginated FKR List
   const {
     data: listData,
     isLoading: isListLoading,
@@ -94,11 +97,9 @@ export const useFkr = (fkrId = null) => {
           searchText: params.searchText,
         });
 
-        if (response.ok && response.data) {
-          return response.data;
-        }
+        if (response.ok) return response.data;
       } catch (err) {
-        console.warn("[useFkr] List API request failed, using empty fallback.", err);
+        console.warn(`${API_LABELS.FKR} List API request failed.`, err);
       }
 
       return { results: [], meta: { count: 0 } };
@@ -106,7 +107,7 @@ export const useFkr = (fkrId = null) => {
     placeholderData: (prev) => prev,
   });
 
-  // 4. Query: Single FKR Detail
+  // Query: Single FKR Detail
   const {
     data: detailData,
     isLoading: isDetailLoading,
@@ -117,64 +118,53 @@ export const useFkr = (fkrId = null) => {
     queryFn: async () => {
       try {
         const response = await fkrService.getDetailListFkr(fkrId);
-        if (response.ok && response.data) {
-          return response.data.result || response.data;
+        if (response.ok) {
+          return extractResponseData(response) ?? response.data;
         }
       } catch (err) {
-        console.warn("[useFkr] Detail API request failed.", err);
+        console.warn(`${API_LABELS.FKR} Detail API request failed.`, err);
       }
       return null;
     },
   });
 
-  // 5. Mutation: Reject FKR
+  // Mutation: Reject FKR
   const rejectMutation = useMutation({
     mutationFn: async (payload) => {
       const response = await fkrService.rejectListApprovalFkr(payload);
-      assertApiSuccess(response, "Gagal melakukan penolakan FKR");
+      assertApiSuccess(response, NOTIF_MESSAGES.REJECT_ERROR);
       return response;
     },
     onSuccess: (response, variables) => {
-      notification.success({
-        message: "Reject Berhasil",
-        description:
-          response?.data?.message ||
-          `FKR berhasil direject dengan alasan: "${variables.reason}"`,
-        duration: 3,
-      });
-      // Invalidate entire fkr scope to refresh both list and current detail
+      notifySuccess(
+        NOTIF_MESSAGES.REJECT_SUCCESS,
+        response?.data?.message || `FKR berhasil direject dengan alasan: "${variables.reason}"`,
+        NOTIF_DURATION_MEDIUM,
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.fkr.all() });
     },
     onError: (err) => {
-      notification.error({
-        message: "Reject Gagal",
-        description: err.message || "Gagal melakukan penolakan FKR",
-        duration: 3,
-      });
+      notifyError(NOTIF_MESSAGES.REJECT_ERROR, err.message || NOTIF_MESSAGES.REJECT_ERROR, NOTIF_DURATION_MEDIUM);
     },
   });
 
-  // 6. Mutation: Reassign/Update Approver User
+  // Mutation: Reassign/Update Approver User
   const updateApprovalMutation = useMutation({
     mutationFn: async (payload) => {
       const response = await fkrService.updateListApprovalFkr(payload);
-      assertApiSuccess(response, "Gagal memperbarui user approval FKR");
+      assertApiSuccess(response, NOTIF_MESSAGES.APPROVAL_UPDATE_ERROR);
       return response;
     },
     onSuccess: (response) => {
-      notification.success({
-        message: "Approval Diperbarui",
-        description: response?.data?.message || "User approval FKR berhasil diperbarui",
-        duration: 3,
-      });
+      notifySuccess(
+        NOTIF_MESSAGES.APPROVAL_UPDATE_SUCCESS,
+        response?.data?.message || NOTIF_MESSAGES.APPROVAL_UPDATE_SUCCESS,
+        NOTIF_DURATION_MEDIUM,
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.fkr.detail(fkrId) });
     },
     onError: (err) => {
-      notification.error({
-        message: "Update Gagal",
-        description: err.message || "Gagal memperbarui user approval FKR",
-        duration: 3,
-      });
+      notifyError(NOTIF_MESSAGES.APPROVAL_UPDATE_ERROR, err.message || NOTIF_MESSAGES.APPROVAL_UPDATE_ERROR, NOTIF_DURATION_MEDIUM);
     },
   });
 

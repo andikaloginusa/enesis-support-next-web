@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Build-time env vars — read from .env file in the same directory
+      args:
+        BASE_URL: ${BASE_URL}
+        BASE_URL_LOGIN: ${BASE_URL_LOGIN}
+    image: enesis-support-next:latest
+    container_name: enesis-support-next
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    # Runtime env vars (available to the running container)
+    environment:
+      NODE_ENV: production
+      BASE_URL: ${BASE_URL}
+      BASE_URL_LOGIN: ${BASE_URL_LOGIN}
+    # Health check so docker compose knows when the app is ready
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
