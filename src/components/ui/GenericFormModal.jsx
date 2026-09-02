@@ -2,8 +2,10 @@
 
 import React from "react";
 import PropTypes from "prop-types";
-import { Modal, Form, Input, Select, DatePicker, InputNumber, Switch, Typography } from "antd";
+import { App, Modal, Form, Input, Select, DatePicker, InputNumber, Switch, Upload, Typography } from "antd";
+import { InboxOutlined } from "@ant-design/icons";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
+import { validateDocumentFile } from "@/utils/documentValidation";
 
 const { Text } = Typography;
 
@@ -15,11 +17,12 @@ const { Text } = Typography;
  * Renders the correct input component based on field type.
  * Each type maps to one Ant Design component with consistent styling.
  */
-function FieldRenderer({ field, value, onChange }) {
+export function FieldRenderer({ field, value, onChange }) {
   // Use CSS variable — Tailwind arbitrary values (e.g. border-[var(--brand)]) are valid
   // but runtime template interpolation like `border-[${BRAND_FOCUS_COLOR}]` breaks PurgeCSS.
   // Solution: use a CSS variable defined via style prop instead of a Tailwind class.
   const brandStyle = { "--brand": BRAND_FOCUS_COLOR };
+  const { notification } = App.useApp();
 
   const inputClassName = (field) =>
     field.type !== "select" && field.type !== "switch" && field.type !== "toggle"
@@ -112,6 +115,53 @@ function FieldRenderer({ field, value, onChange }) {
           unCheckedChildren={field.unCheckedChildren}
         />
       );
+
+    case "upload": {
+      const fileList = Array.isArray(value) ? value : [];
+      return (
+        <Upload.Dragger
+          accept={field.accept}
+          multiple={false}
+          maxCount={1}
+          fileList={fileList}
+          beforeUpload={(file) => {
+            // Resolve the document type at the moment of upload, not from a
+            // captured prop — captures go stale when the user picks the type
+            // and the file in rapid succession.
+            const type = typeof field.getDocumentType === "function"
+              ? field.getDocumentType()
+              : field.documentType;
+            const result = validateDocumentFile(file, type);
+            if (!result.ok) {
+              notification.error({ title: "File tidak valid", description: result.message });
+              return Upload.LIST_IGNORE;
+            }
+            return false; // Hold file in form — actual upload happens on form submit
+          }}
+          onChange={(info) => {
+            const next = info.fileList.slice(-1); // keep only the latest file
+            onChange(next);
+            if (field.onFileChange) field.onFileChange(next);
+          }}
+          onRemove={() => {
+            onChange([]);
+            if (field.onFileChange) field.onFileChange([]);
+            return true;
+          }}
+          disabled={field.disabled}
+        >
+          <p className="ant-upload-drag-icon">
+            <InboxOutlined className="text-emerald-600" />
+          </p>
+          <p className="ant-upload-text font-semibold text-slate-700">
+            {field.placeholder || "Klik atau seret file ke sini untuk unggah"}
+          </p>
+          <p className="ant-upload-hint text-slate-400 text-xs">
+            {field.hint || "Pastikan format dan ukuran file sesuai ketentuan."}
+          </p>
+        </Upload.Dragger>
+      );
+    }
 
     default:
       return (
@@ -221,7 +271,7 @@ export const GenericFormModal = ({
 
 GenericFormModal.propTypes = {
   title: PropTypes.node.isRequired,
-  description: PropTypes.string,
+  description: PropTypes.node,
   open: PropTypes.bool.isRequired,
   onOk: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
@@ -251,6 +301,12 @@ GenericFormModal.propTypes = {
       extra: PropTypes.node,
       checkedChildren: PropTypes.node,
       unCheckedChildren: PropTypes.node,
+      // Upload-specific
+      accept: PropTypes.string,
+      documentType: PropTypes.string,
+      getDocumentType: PropTypes.func,
+      hint: PropTypes.node,
+      onFileChange: PropTypes.func,
     })
   ).isRequired,
 };

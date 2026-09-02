@@ -168,6 +168,30 @@ export const useFkr = (fkrId = null) => {
     },
   });
 
+  // Mutation: Re-upload an FKR document
+  const reuploadDocumentMutation = useMutation({
+    mutationFn: async ({ fkr_id, document_type, file }) => {
+      const response = await fkrService.reuploadDocument({ fkr_id, document_type, file });
+      assertApiSuccess(response, NOTIF_MESSAGES.REUPLOAD_DOCUMENT_ERROR);
+      return response;
+    },
+    onSuccess: (response) => {
+      notifySuccess(
+        NOTIF_MESSAGES.REUPLOAD_DOCUMENT_SUCCESS,
+        response?.data?.message || NOTIF_MESSAGES.REUPLOAD_DOCUMENT_SUCCESS,
+        NOTIF_DURATION_MEDIUM,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.fkr.all() });
+    },
+    onError: (err) => {
+      notifyError(
+        NOTIF_MESSAGES.REUPLOAD_DOCUMENT_ERROR,
+        err.message || NOTIF_MESSAGES.REUPLOAD_DOCUMENT_ERROR,
+        NOTIF_DURATION_MEDIUM,
+      );
+    },
+  });
+
   return {
     // List Query
     fkrList: listData?.results || [],
@@ -197,5 +221,8 @@ export const useFkr = (fkrId = null) => {
 
     updateApprover: updateApprovalMutation.mutateAsync,
     isUpdatingApprover: updateApprovalMutation.isPending,
+
+    reuploadDocument: reuploadDocumentMutation.mutateAsync,
+    isReuploadingDocument: reuploadDocumentMutation.isPending,
   };
 };

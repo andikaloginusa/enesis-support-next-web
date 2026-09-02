@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Form, Space, Tooltip } from "antd";
-import { EyeOutlined, CloseCircleOutlined, ReloadOutlined } from "@ant-design/icons";
+import { EyeOutlined, CloseCircleOutlined, ReloadOutlined, CloudUploadOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useFkr, useDebounce } from "@/hooks";
 import { getUserId } from "@/utils/storage";
@@ -16,6 +16,7 @@ import {
   renderBold,
   renderMedium,
 } from "@/components/ui";
+import { ReuploadDocumentModal } from "@/components/features/fkr/ReuploadDocumentModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Modal Config Builder
@@ -58,7 +59,7 @@ function buildRejectModalConfig({ open, form, onCancel, onOk, confirmLoading, fk
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-const buildColumns = ({ onView, onReject }) => [
+const buildColumns = ({ onView, onReject, onReupload }) => [
   {
     title: "Nomor FKR",
     dataIndex: "nomor_fkr",
@@ -108,7 +109,7 @@ const buildColumns = ({ onView, onReject }) => [
     key: "action",
     align: "center",
     fixed: "right",
-    width: 140,
+    width: 180,
     render: (row) => (
       <Space size="middle">
         <Tooltip title="Lihat Detail FKR">
@@ -120,6 +121,17 @@ const buildColumns = ({ onView, onReject }) => [
             style={{ backgroundColor: "#1677ff", borderColor: "#1677ff" }}
           />
         </Tooltip>
+        {row.status !== "REJECTED" && (
+          <Tooltip title="Re-Upload Dokumen">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<CloudUploadOutlined />}
+              onClick={() => onReupload(row)}
+              style={{ backgroundColor: "#1aac32", borderColor: "#1aac32" }}
+            />
+          </Tooltip>
+        )}
         {row.status !== "REJECTED" && (
           <Tooltip title="Reject FKR">
             <Button
@@ -153,6 +165,8 @@ export default function FkrSupportPage() {
     rejectFkr,
     isRejecting,
     refetchList,
+    reuploadDocument,
+    isReuploadingDocument,
   } = useFkr();
 
   // ── Search State ──
@@ -167,6 +181,8 @@ export default function FkrSupportPage() {
   const [rejectForm] = Form.useForm();
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [activeFkr, setActiveFkr] = useState({ id: null, no: "" });
+
+  const [isReuploadModalOpen, setIsReuploadModalOpen] = useState(false);
 
   // ── Action Handlers ──
 
@@ -197,10 +213,30 @@ export default function FkrSupportPage() {
     }
   };
 
+  const openReuploadModal = (fkr) => {
+    setActiveFkr({ id: fkr.fkr_id, no: fkr.nomor_fkr });
+    setIsReuploadModalOpen(true);
+  };
+
+  const closeReuploadModal = () => {
+    setIsReuploadModalOpen(false);
+    setActiveFkr({ id: null, no: "" });
+  };
+
+  const handleReuploadSubmit = async (payload) => {
+    try {
+      await reuploadDocument(payload);
+      closeReuploadModal();
+    } catch {
+      // Errors surfaced via useNotify in the hook
+    }
+  };
+
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
     onView: (row) => router.push(`/fkr/${row.fkr_id}`),
     onReject: openRejectModal,
+    onReupload: openReuploadModal,
   });
 
   const rejectModalConfig = buildRejectModalConfig({
@@ -251,6 +287,15 @@ export default function FkrSupportPage() {
       />
 
       <GenericFormModal {...rejectModalConfig} />
+
+      <ReuploadDocumentModal
+        open={isReuploadModalOpen}
+        onCancel={closeReuploadModal}
+        onSubmit={handleReuploadSubmit}
+        confirmLoading={isReuploadingDocument}
+        fkrId={activeFkr.id}
+        fkrNo={activeFkr.no}
+      />
     </>
   );
 }
