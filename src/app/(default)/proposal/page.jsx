@@ -389,7 +389,7 @@ const buildColumns = ({ onView }) => [
           onClick={() =>
             onView(row.proposal_id || row.id || row.fkr_id)
           }
-          className="border-emerald-200 text-emerald-700 bg-emerald-50/80 hover:!bg-emerald-600 hover:!text-white hover:!border-emerald-600 font-semibold text-xs rounded-lg px-3 py-1 h-7 inline-flex items-center gap-1.5 transition-all shadow-xs group cursor-pointer active:scale-95"
+          className="border-emerald-200 text-emerald-700 bg-emerald-50 hover:!bg-emerald-600 hover:!text-white hover:!border-emerald-600 font-semibold text-xs rounded-lg px-3 py-1 h-7 inline-flex items-center gap-1.5 transition-all shadow-xs group cursor-pointer active:scale-95"
         >
           <span>Lihat Detail</span>
         </Button>

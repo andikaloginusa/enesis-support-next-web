@@ -165,14 +165,25 @@ export const DataTablePanel = ({
             [&_.ant-table-tbody>tr>td]:!bg-white
             [&_.ant-table-tbody>tr>td]:!border-b
             [&_.ant-table-tbody>tr>td]:!border-slate-100
-            [&_.ant-table-tbody>tr:hover>td]:!bg-emerald-50/40
+            [&_.ant-table-tbody>tr:hover>td]:!bg-[#f0fdf4]
+            [&_.ant-table-tbody>tr>td.ant-table-cell-row-hover]:!bg-[#f0fdf4]
             [&_.ant-table-tbody>tr:hover>td]:!transition-colors
             [&_.ant-table-cell-fix-left]:!bg-white
             [&_.ant-table-cell-fix-right]:!bg-white
+            [&_.ant-table-cell-fix-left]:!z-[2]
+            [&_.ant-table-cell-fix-right]:!z-[2]
             [&_.ant-table-thead_.ant-table-cell-fix-left]:!bg-slate-50
             [&_.ant-table-thead_.ant-table-cell-fix-right]:!bg-slate-50
-            [&_.ant-table-tbody>tr:hover_.ant-table-cell-fix-left]:!bg-emerald-50/40
-            [&_.ant-table-tbody>tr:hover_.ant-table-cell-fix-right]:!bg-emerald-50/40
+            [&_.ant-table-thead_.ant-table-cell-fix-left]:!z-[3]
+            [&_.ant-table-thead_.ant-table-cell-fix-right]:!z-[3]
+            [&_.ant-table-tbody>tr:hover_.ant-table-cell-fix-left]:!bg-[#f0fdf4]
+            [&_.ant-table-tbody>tr:hover_.ant-table-cell-fix-right]:!bg-[#f0fdf4]
+            [&_.ant-table-tbody>tr>td.ant-table-cell-row-hover.ant-table-cell-fix-left]:!bg-[#f0fdf4]
+            [&_.ant-table-tbody>tr>td.ant-table-cell-row-hover.ant-table-cell-fix-right]:!bg-[#f0fdf4]
+            [&_.ant-table-cell-fix-right-first]:!border-l
+            [&_.ant-table-cell-fix-right-first]:!border-slate-200
+            [&_.ant-table-cell-fix-left-last]:!border-r
+            [&_.ant-table-cell-fix-left-last]:!border-slate-200
             [&_.ant-table-wrapper]:overflow-auto
             [&_.ant-pagination]:mb-0
             [&_.ant-pagination-options]:gap-2"
