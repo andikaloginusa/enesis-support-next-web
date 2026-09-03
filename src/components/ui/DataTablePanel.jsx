@@ -162,10 +162,17 @@ export const DataTablePanel = ({
             [&_.ant-table-thead>tr>th]:!border-slate-200
             [&_.ant-table-thead>tr>th:first-child]:!rounded-tl-xl
             [&_.ant-table-thead>tr>th:last-child]:!rounded-tr-xl
+            [&_.ant-table-tbody>tr>td]:!bg-white
             [&_.ant-table-tbody>tr>td]:!border-b
-            [&_.ant-table-tbody>tr>td]:!border-slate-50
-            [&_.ant-table-tbody>tr:hover>td]:!bg-emerald-50/30
+            [&_.ant-table-tbody>tr>td]:!border-slate-100
+            [&_.ant-table-tbody>tr:hover>td]:!bg-emerald-50/40
             [&_.ant-table-tbody>tr:hover>td]:!transition-colors
+            [&_.ant-table-cell-fix-left]:!bg-white
+            [&_.ant-table-cell-fix-right]:!bg-white
+            [&_.ant-table-thead_.ant-table-cell-fix-left]:!bg-slate-50
+            [&_.ant-table-thead_.ant-table-cell-fix-right]:!bg-slate-50
+            [&_.ant-table-tbody>tr:hover_.ant-table-cell-fix-left]:!bg-emerald-50/40
+            [&_.ant-table-tbody>tr:hover_.ant-table-cell-fix-right]:!bg-emerald-50/40
             [&_.ant-table-wrapper]:overflow-auto
             [&_.ant-pagination]:mb-0
             [&_.ant-pagination-options]:gap-2"

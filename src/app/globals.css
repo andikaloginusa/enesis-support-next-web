@@ -66,3 +66,19 @@ body,
   height: 100px;
   width: 100px;
 }
+
+/* ── Ant Design Table Fixed Column Transparency Fix ── */
+.ant-table-wrapper .ant-table-cell-fix-left,
+.ant-table-wrapper .ant-table-cell-fix-right {
+  background-color: #ffffff !important;
+}
+
+.ant-table-wrapper .ant-table-thead .ant-table-cell-fix-left,
+.ant-table-wrapper .ant-table-thead .ant-table-cell-fix-right {
+  background-color: #f8fafc !important;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:hover > td.ant-table-cell-fix-left,
+.ant-table-wrapper .ant-table-tbody > tr:hover > td.ant-table-cell-fix-right {
+  background-color: #f0fdf4 !important;
+}
