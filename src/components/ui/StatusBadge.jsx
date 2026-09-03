@@ -10,63 +10,100 @@ const STATUS_CONFIG = {
   approved: {
     color: "success",
     label: "APPROVED",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   success: {
     color: "success",
     label: "SUCCESS",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   apr: {
     color: "success",
-    label: "APR",
+    label: "APPROVED",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   y: {
     color: "success",
-    label: "Y",
+    label: "APPROVED",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
   },
   rejected: {
     color: "error",
     label: "REJECTED",
+    className: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   reject: {
     color: "error",
     label: "REJECTED",
+    className: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   failed: {
     color: "error",
     label: "FAILED",
+    className: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   rjc: {
     color: "error",
-    label: "RJC",
+    label: "REJECTED",
+    className: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   n: {
     color: "error",
     label: "REJECTED",
+    className: "bg-rose-50 text-rose-700 border-rose-200",
+    dot: "bg-rose-500",
   },
   waiting_approval: {
     color: "warning",
-    label: "WAITING",
+    label: "WAITING APPROVAL",
+    className: "bg-amber-50 text-amber-800 border-amber-200",
+    dot: "bg-amber-500",
   },
   draft: {
     color: "default",
     label: "DRAFT",
+    className: "bg-slate-100 text-slate-700 border-slate-200",
+    dot: "bg-slate-400",
   },
   pending: {
     color: "warning",
     label: "PENDING",
+    className: "bg-amber-50 text-amber-800 border-amber-200",
+    dot: "bg-amber-500",
   },
   processing: {
     color: "processing",
     label: "PROCESSING",
+    className: "bg-blue-50 text-blue-700 border-blue-200",
+    dot: "bg-blue-500",
   },
 };
 
 /**
- * Maps a raw status string to a consistent Ant Design Tag badge.
- * Uses STATUS_CONFIG lookup with lowercase normalization.
+ * Maps a raw status string to a consistent, high-contrast StatusBadge.
+ * Displays the actual status text from response with high readability and no washed-out colors.
  */
 export function StatusBadge({ status, className = "" }) {
-  const raw = (status || "").toLowerCase().trim();
+  if (!status) {
+    return (
+      <span
+        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide border shadow-2xs bg-slate-100 text-slate-600 border-slate-200 ${className}`}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+        <span>PENDING</span>
+      </span>
+    );
+  }
+
+  const raw = String(status).toLowerCase().trim();
   let config = STATUS_CONFIG[raw];
 
   // Fallback: fuzzy match on substring
@@ -86,19 +123,33 @@ export function StatusBadge({ status, className = "" }) {
       raw.includes("belum") ||
       raw.includes("pending")
     ) {
-      config = STATUS_CONFIG.processing;
+      config = raw.includes("wait") || raw.includes("menunggu")
+        ? STATUS_CONFIG.waiting_approval
+        : STATUS_CONFIG.processing;
+    } else if (raw.includes("draft")) {
+      config = STATUS_CONFIG.draft;
     } else {
-      config = { color: "default", label: (status || "PENDING").toUpperCase() };
+      config = {
+        color: "default",
+        label: String(status).toUpperCase(),
+        className: "bg-slate-100 text-slate-700 border-slate-200",
+        dot: "bg-slate-400",
+      };
     }
   }
 
+  // Use the exact response status formatted to uppercase if it's descriptive,
+  // or fall back to normalized config label if raw is a single-letter code ('y', 'n', 'apr', 'rjc')
+  const isShortCode = ["y", "n", "apr", "rjc"].includes(raw);
+  const displayLabel = isShortCode ? config.label : String(status).toUpperCase();
+
   return (
-    <Tag
-      color={config.color}
-      className={`font-semibold uppercase text-[10px] px-2 py-0.5 rounded border-none ${className}`}
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide border shadow-2xs ${config.className} ${className}`}
     >
-      {config.label}
-    </Tag>
+      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+      <span>{displayLabel}</span>
+    </span>
   );
 }
 

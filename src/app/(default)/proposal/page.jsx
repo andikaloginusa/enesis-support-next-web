@@ -319,8 +319,8 @@ function UploadModal({
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ProposalStatusCell({ status, fcstatus }) {
-  return <StatusBadge status={status || fcstatus} />;
+function ProposalStatusCell({ status }) {
+  return <StatusBadge status={status} />;
 }
 
 const buildColumns = ({ onView }) => [
@@ -373,7 +373,7 @@ const buildColumns = ({ onView }) => [
     key: "status",
     width: 160,
     align: "center",
-    render: (row) => <ProposalStatusCell status={row.status} fcstatus={row.fcstatus} />,
+    render: (row) => <ProposalStatusCell status={row.status} />,
   },
   {
     title: "Aksi",

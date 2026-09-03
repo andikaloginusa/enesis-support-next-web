@@ -303,41 +303,47 @@ function DelegasiModal({
       closable={false}
       destroyOnClose
     >
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex items-center gap-3">
+      {/* ── Header ── */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-5 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
           <SwapOutlined className="text-white text-lg" />
         </div>
         <div>
           <h2 className="text-white font-bold text-base leading-tight">Delegasi Approval</h2>
-          <p className="text-blue-200 text-xs mt-0.5">Alihkan tahap persetujuan ke karyawan lain</p>
+          <p className="text-blue-100/80 text-xs mt-0.5">Alihkan tahap persetujuan ke karyawan lain</p>
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 space-y-4">
+        {/* Info step yang didelegasikan */}
         {activeStep && (
-          <div className="mb-5 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-blue-500 mb-1.5">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-1.5">
               Tahap yang Didelegasikan
             </p>
             <p className="text-sm font-extrabold text-slate-800">
               {activeStep.name || activeStep.nama || "-"}
             </p>
             <p className="text-xs text-slate-500 font-mono mt-0.5">
-              NIK: {activeStep.employee_id || activeStep.nik || "-"} &nbsp;|&nbsp;{" "}
+              NIK: {activeStep.employee_id || activeStep.nik || "-"}&nbsp;|&nbsp;
               {activeStep.position_appr || activeStep.jabatan || "-"}
             </p>
           </div>
         )}
 
-        <Typography.Text className="text-slate-500 text-sm mb-5 block leading-relaxed">
-          Pilih karyawan pengganti untuk mendelegasikan langkah approval ini.
-          Karyawan yang dipilih akan menerima notifikasi untuk melakukan persetujuan.
-        </Typography.Text>
+        {/* Deskripsi */}
+        <p className="text-slate-500 text-sm leading-relaxed">
+          Pilih karyawan pengganti dan isi alasan delegasi untuk mencatat riwayat perubahan approval.
+        </p>
 
-        <Form form={form} layout="vertical" className="space-y-1">
-          {/* Pilihan karyawan pengganti */}
+        <Form form={form} layout="vertical" className="space-y-0">
+          {/* ─ Field: Karyawan Pengganti ─ */}
           <Form.Item
-            label={<span className="font-semibold text-slate-700 text-sm">Karyawan Pengganti</span>}
+            label={
+              <span className="text-slate-700 font-semibold text-sm">
+                Karyawan Pengganti
+              </span>
+            }
             name="nip"
             rules={[{ required: true, message: "Pilih karyawan pengganti!" }]}
           >
@@ -350,39 +356,40 @@ function DelegasiModal({
               options={candidates}
               loading={candidatesLoading}
               size="large"
-              className="w-full rounded-xl"
+              className="w-full"
+              popupClassName="rounded-xl shadow-lg"
             />
           </Form.Item>
 
-          {/* Alasan delegasi — wajib diisi */}
+          {/* ─ Field: Alasan Delegasi (required) ─ */}
           <Form.Item
             label={
-              <span className="font-semibold text-slate-700 text-sm">
+              <span className="text-slate-700 font-semibold text-sm">
                 Alasan Delegasi
-                <span className="ml-1 text-rose-500 text-xs font-bold">*</span>
               </span>
             }
             name="reason_change"
             rules={[
               { required: true, message: "Alasan delegasi wajib diisi!" },
-              { min: 10, message: "Alasan minimal 10 karakter." },
+              { min: 10, message: "Minimal 10 karakter." },
             ]}
           >
             <Input.TextArea
               rows={3}
               maxLength={300}
               showCount
-              placeholder="Contoh: Approver sedang cuti, digantikan oleh karyawan yang bersangkutan..."
-              className="rounded-xl text-sm"
+              placeholder="Masukkan nomor WO contoh WO/IT BUSINESS APPLICATION/26/0056555"
+              className="rounded-xl text-sm text-slate-700 placeholder:text-slate-400"
             />
           </Form.Item>
         </Form>
 
-        <div className="flex items-center gap-3 mt-6">
+        {/* ─ Action Buttons ─ */}
+        <div className="flex items-center gap-3 pt-2">
           <Button
             size="large"
             onClick={onCancel}
-            className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            className="flex-1 h-11 rounded-xl font-semibold bg-slate-100 border-slate-200 text-slate-600 hover:!bg-slate-200 hover:!border-slate-300 hover:!text-slate-800 transition-all"
           >
             Batal
           </Button>
@@ -392,7 +399,7 @@ function DelegasiModal({
             loading={confirmLoading}
             disabled={!selectedEmployeeId}
             onClick={onSubmit}
-            className="flex-1 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 border-blue-600"
+            className="flex-1 h-11 rounded-xl font-bold !bg-indigo-600 !border-indigo-600 !text-white hover:!bg-indigo-700 hover:!border-indigo-700 disabled:!bg-slate-200 disabled:!border-slate-200 disabled:!text-slate-400 disabled:cursor-not-allowed shadow-md shadow-indigo-200/60 transition-all"
           >
             Delegasikan
           </Button>
@@ -485,6 +492,7 @@ function SingleFieldEditModal({
       closable={false}
       destroyOnClose
     >
+      {/* ── Header ── */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
           <EditOutlined className="text-white text-base" />
@@ -495,12 +503,12 @@ function SingleFieldEditModal({
         </div>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={handleFinish} className="p-6 space-y-1">
-        {/* Field konten yang diedit */}
+      <Form form={form} layout="vertical" onFinish={handleFinish} className="p-6 space-y-0">
+        {/* ─ Field konten yang diedit ─ */}
         <Form.Item
           name="value"
           label={
-            <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+            <span className="text-slate-600 font-semibold text-xs uppercase tracking-wider">
               {fieldContext.label}
             </span>
           }
@@ -516,40 +524,42 @@ function SingleFieldEditModal({
             <Input.TextArea
               placeholder={`Masukkan ${fieldContext.label.toLowerCase()}...`}
               rows={fieldContext.rows || 4}
-              className={`rounded-xl text-sm ${fieldContext.mono ? "font-mono text-xs" : ""}`}
+              className={`rounded-xl text-sm text-slate-700 placeholder:text-slate-400 ${
+                fieldContext.mono ? "font-mono text-xs" : ""
+              }`}
               autoFocus
             />
           )}
         </Form.Item>
 
-        {/* Alasan perubahan — wajib diisi sebelum menyimpan */}
+        {/* ─ Alasan perubahan — wajib diisi ─ */}
         <Form.Item
           name="reason_change"
           label={
-            <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+            <span className="text-slate-600 font-semibold text-xs uppercase tracking-wider">
               Alasan Perubahan
-              <span className="ml-1 text-rose-500 font-bold">*</span>
             </span>
           }
           rules={[
             { required: true, message: "Alasan perubahan wajib diisi!" },
-            { min: 10, message: "Alasan minimal 10 karakter." },
+            { min: 10, message: "Minimal 10 karakter." },
           ]}
         >
           <Input.TextArea
             rows={2}
             maxLength={300}
             showCount
-            placeholder="Contoh: Perbaikan typo pada mekanisme pelaksanaan, disesuaikan dengan revisi terbaru..."
-            className="rounded-xl text-sm"
+            placeholder="Masukkan nomor WO contoh WO/IT BUSINESS APPLICATION/26/0056555"
+            className="rounded-xl text-sm text-slate-700 placeholder:text-slate-400"
           />
         </Form.Item>
 
+        {/* ─ Action Buttons ─ */}
         <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
           <Button
             size="large"
             onClick={onCancel}
-            className="flex-1 rounded-xl font-semibold border-slate-200 text-slate-500 hover:text-slate-700"
+            className="flex-1 h-11 rounded-xl font-semibold bg-slate-100 border-slate-200 text-slate-600 hover:!bg-slate-200 hover:!border-slate-300 hover:!text-slate-800 transition-all"
           >
             Batal
           </Button>
@@ -558,7 +568,7 @@ function SingleFieldEditModal({
             htmlType="submit"
             size="large"
             loading={confirmLoading}
-            className="flex-1 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 border-blue-600 shadow-sm shadow-blue-200"
+            className="flex-1 h-11 rounded-xl font-bold !bg-slate-800 !border-slate-800 !text-white hover:!bg-slate-900 hover:!border-slate-900 shadow-md shadow-slate-300/60 transition-all"
           >
             Simpan Perubahan
           </Button>
@@ -631,7 +641,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
     );
   }, [sortedProgress]);
 
-  const docStatus = (proposalDetail?.status || proposalDetail?.fcstatus || "PENDING").toLowerCase();
+  const docStatus = (proposalDetail?.status || "PENDING").toLowerCase();
 
   // Delegasi Select Options
   const delegasiOptions = useMemo(() => {
@@ -756,7 +766,7 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
           Kembali
         </Button>
         <div className="flex items-center gap-2">
-          <StatusBadge status={proposalDetail.status || proposalDetail.fcstatus} />
+          <StatusBadge status={proposalDetail?.status} />
         </div>
       </div>
 

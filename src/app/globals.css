@@ -82,3 +82,27 @@ body,
 .ant-table-wrapper .ant-table-tbody > tr:hover > td.ant-table-cell-fix-right {
   background-color: #f0fdf4 !important;
 }
+
+/* ── Ant Design Modal Form — Input Focus Override ── */
+/* Ensure Select & TextArea inside modals use a blue focus ring,
+   not the emerald/green color from the table theme. */
+.ant-modal .ant-select:not(.ant-select-disabled):hover .ant-select-selector,
+.ant-modal .ant-select-focused .ant-select-selector {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+}
+
+.ant-modal .ant-input-affix-wrapper:focus,
+.ant-modal .ant-input-affix-wrapper-focused,
+.ant-modal .ant-input:focus,
+.ant-modal .ant-input-focused,
+.ant-modal textarea.ant-input:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Ant Form required marker — use red (rose-500) for clarity */
+.ant-modal .ant-form-item-label > label.ant-form-item-required::before {
+  color: #f43f5e !important;
+  font-weight: 700;
+}
