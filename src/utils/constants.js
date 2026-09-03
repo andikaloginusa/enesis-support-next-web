@@ -102,6 +102,8 @@ export const NOTIF_MESSAGES = {
   UPDATE_PROPOSAL_ERROR: "Gagal Memperbarui Data Proposal",
   DELEGASI_SUCCESS: "Delegasi Berhasil",
   DELEGASI_ERROR: "Delegasi Gagal",
+  DELEGASI_APPROVER_SUCCESS: "Approver berhasil diperbarui",
+  DELEGASI_APPROVER_ERROR: "Gagal memperbarui approver",
   EMAIL_RESEND_SUCCESS: (count) =>
     `Berhasil mengirim ulang email untuk ${count} proposal`,
   EMAIL_RESEND_ERROR: "Gagal Mengirim Ulang Email",

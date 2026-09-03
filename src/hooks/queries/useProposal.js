@@ -128,7 +128,11 @@ export const useProposal = (proposalId = null) => {
   // Mutation: Update Proposal Data
   const updateProposalMutation = useMutation({
     mutationFn: async (payload) => {
-      const response = await proposalService.updateProposalData(payload);
+      const creds = getUserCredentials();
+      const response = await proposalService.updateProposalData({
+        m_user_id: creds?.m_user_id || creds?.id || "",
+        ...payload,
+      });
       assertApiSuccess(response, NOTIF_MESSAGES.UPDATE_PROPOSAL_ERROR);
       return response.data;
     },
@@ -146,21 +150,35 @@ export const useProposal = (proposalId = null) => {
     },
   });
 
-  // Mutation: Delegasi — Reassign Proposal Approval Step
+  // Mutation: Delegasi — Reassign Proposal Approval Step to a new approver by NIP
   const delegasiMutation = useMutation({
     mutationFn: async (payload) => {
-      const response = await proposalService.updateApprovalProposal(payload);
-      assertApiSuccess(response, NOTIF_MESSAGES.DELEGASI_ERROR);
+      const creds = getUserCredentials();
+      const response = await proposalService.updateApprovalProposal({
+        m_user_id: creds?.m_user_id || creds?.id || "",
+        proposal_approval_id: payload.proposal_approval_id,
+        new_nip: payload.new_nip,
+        reason_change: payload.reason_change,
+      });
+      assertApiSuccess(response, NOTIF_MESSAGES.DELEGASI_APPROVER_ERROR);
       return response.data;
     },
     onSuccess: (res) => {
-      notifySuccess(NOTIF_MESSAGES.DELEGASI_SUCCESS, res?.message || NOTIF_MESSAGES.DELEGASI_SUCCESS, NOTIF_DURATION_MEDIUM);
+      notifySuccess(
+        NOTIF_MESSAGES.DELEGASI_APPROVER_SUCCESS,
+        res?.message || NOTIF_MESSAGES.DELEGASI_APPROVER_SUCCESS,
+        NOTIF_DURATION_MEDIUM,
+      );
       queryClient.invalidateQueries({ queryKey: queryKeys.proposal.detail(proposalId) });
       // Clear all candidates caches so reopening the modal always fetches fresh
       queryClient.removeQueries({ queryKey: ["proposal", "candidates"], exact: false });
     },
     onError: (err) => {
-      notifyError(NOTIF_MESSAGES.DELEGASI_ERROR, err.message || NOTIF_MESSAGES.DELEGASI_ERROR, NOTIF_DURATION_MEDIUM);
+      notifyError(
+        NOTIF_MESSAGES.DELEGASI_APPROVER_ERROR,
+        err.message || NOTIF_MESSAGES.DELEGASI_APPROVER_ERROR,
+        NOTIF_DURATION_MEDIUM,
+      );
     },
   });
 

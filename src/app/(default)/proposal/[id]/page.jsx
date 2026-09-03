@@ -334,7 +334,8 @@ function DelegasiModal({
           Karyawan yang dipilih akan menerima notifikasi untuk melakukan persetujuan.
         </Typography.Text>
 
-        <Form form={form} layout="vertical">
+        <Form form={form} layout="vertical" className="space-y-1">
+          {/* Pilihan karyawan pengganti */}
           <Form.Item
             label={<span className="font-semibold text-slate-700 text-sm">Karyawan Pengganti</span>}
             name="nip"
@@ -350,6 +351,29 @@ function DelegasiModal({
               loading={candidatesLoading}
               size="large"
               className="w-full rounded-xl"
+            />
+          </Form.Item>
+
+          {/* Alasan delegasi — wajib diisi */}
+          <Form.Item
+            label={
+              <span className="font-semibold text-slate-700 text-sm">
+                Alasan Delegasi
+                <span className="ml-1 text-rose-500 text-xs font-bold">*</span>
+              </span>
+            }
+            name="reason_change"
+            rules={[
+              { required: true, message: "Alasan delegasi wajib diisi!" },
+              { min: 10, message: "Alasan minimal 10 karakter." },
+            ]}
+          >
+            <Input.TextArea
+              rows={3}
+              maxLength={300}
+              showCount
+              placeholder="Contoh: Approver sedang cuti, digantikan oleh karyawan yang bersangkutan..."
+              className="rounded-xl text-sm"
             />
           </Form.Item>
         </Form>
@@ -403,19 +427,16 @@ function SingleFieldEditModal({
 }) {
   const [form] = Form.useForm();
 
-  // Initialize form value whenever modal opens with a specific field context
+  // Initialize field value & reset reason_change whenever modal opens/closes
   React.useEffect(() => {
     if (open && fieldContext) {
       const rawVal = proposalDetail?.[fieldContext.fieldKey];
-      if (fieldContext.type === "date") {
-        form.setFieldsValue({
-          value: rawVal ? dayjs(rawVal) : null,
-        });
-      } else {
-        form.setFieldsValue({
-          value: rawVal ?? "",
-        });
-      }
+      form.setFieldsValue({
+        value: fieldContext.type === "date"
+          ? (rawVal ? dayjs(rawVal) : null)
+          : (rawVal ?? ""),
+        reason_change: "",  // always start empty so user must type fresh
+      });
     } else {
       form.resetFields();
     }
@@ -444,6 +465,7 @@ function SingleFieldEditModal({
 
     const payload = {
       proposal_id: Number(proposalDetail?.proposal_id),
+      reason_change: values.reason_change.trim(),
       [fieldKey]: formattedValue,
     };
 
@@ -473,11 +495,15 @@ function SingleFieldEditModal({
         </div>
       </div>
 
-      <Form form={form} layout="vertical" onFinish={handleFinish} className="p-6 space-y-4">
+      <Form form={form} layout="vertical" onFinish={handleFinish} className="p-6 space-y-1">
+        {/* Field konten yang diedit */}
         <Form.Item
           name="value"
-          label={<span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">{fieldContext.label}</span>}
-          className="mb-0"
+          label={
+            <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+              {fieldContext.label}
+            </span>
+          }
         >
           {fieldContext.type === "date" ? (
             <DatePicker
@@ -496,7 +522,30 @@ function SingleFieldEditModal({
           )}
         </Form.Item>
 
-        <div className="flex items-center gap-3 pt-3 border-t border-slate-100 mt-5">
+        {/* Alasan perubahan — wajib diisi sebelum menyimpan */}
+        <Form.Item
+          name="reason_change"
+          label={
+            <span className="font-semibold text-slate-600 text-xs uppercase tracking-wider">
+              Alasan Perubahan
+              <span className="ml-1 text-rose-500 font-bold">*</span>
+            </span>
+          }
+          rules={[
+            { required: true, message: "Alasan perubahan wajib diisi!" },
+            { min: 10, message: "Alasan minimal 10 karakter." },
+          ]}
+        >
+          <Input.TextArea
+            rows={2}
+            maxLength={300}
+            showCount
+            placeholder="Contoh: Perbaikan typo pada mekanisme pelaksanaan, disesuaikan dengan revisi terbaru..."
+            className="rounded-xl text-sm"
+          />
+        </Form.Item>
+
+        <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
           <Button
             size="large"
             onClick={onCancel}
@@ -630,9 +679,9 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
   const handleDelegasiSubmit = () => {
     formDelegasi.validateFields().then(async (values) => {
       modal.confirm({
-        title: "Konfirmasi Delegasi",
+        title: "Konfirmasi Delegasi Approver",
         icon: <ExclamationCircleOutlined className="text-amber-500" />,
-        content: "Apakah Anda yakin ingin mendelegasikan approval ini?",
+        content: "Apakah Anda yakin ingin mendelegasikan approval ini? Tindakan ini tidak dapat dibatalkan.",
         okText: "Ya, Delegasikan",
         cancelText: "Batal",
         okButtonProps: { className: "bg-blue-600 hover:bg-blue-700 border-blue-600 rounded-lg", size: "large" },
@@ -641,12 +690,13 @@ export default function ProposalDetailPage({ params: paramsPromise }) {
           try {
             await delegasiApproval({
               proposal_approval_id: `${activeStep.proposal_approval_id}`,
-              nip: values.nip,
+              new_nip: values.nip,               // form field name: 'nip', API param: 'new_nip'
+              reason_change: values.reason_change,
             });
             closeDelegasiModal();
             refetchDetail();
           } catch {
-            /* Handled by mutation onError */
+            /* Error notification handled by mutation onError */
           }
         },
       });
