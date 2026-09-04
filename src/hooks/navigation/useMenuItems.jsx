@@ -3,46 +3,19 @@ import Link from "next/link";
 import { BiBitcoin } from "react-icons/bi";
 import { RiDashboard2Fill } from "react-icons/ri";
 import { FileText } from "lucide-react";
+import { TableOutlined } from "@ant-design/icons";
 
 export const useMenuItems = () => {
   const t = useTranslation();
   const subMenuTheme = "light";
   return [
     {
-      label: t("sidebar.menuGroup.main"),
-      key: "main",
-      theme: subMenuTheme,
-      children: [
-        {
-          label: t("sidebar.menu.dashboards"),
-          key: "dashboards",
-          icon: <RiDashboard2Fill />,
-          theme: subMenuTheme,
-          children: [
-            {
-              label: (
-                <Link href="/dashboards/crypto">
-                  {t("sidebar.menuItem.crypto")}
-                </Link>
-              ),
-              key: "crypto",
-              icon: <BiBitcoin />,
-            },
-          ],
-        },
-      ],
-    },
-    {
       label: t("sidebar.menuGroup.klaim"),
       key: "klaim",
       theme: subMenuTheme,
       children: [
         {
-          label: (
-            <Link href="/klaim">
-              Klaim Support
-            </Link>
-          ),
+          label: <Link href="/klaim">Klaim Support</Link>,
           key: "list-klaim",
           icon: <FileText className="w-5 h-5" />,
         },
@@ -54,11 +27,7 @@ export const useMenuItems = () => {
       theme: subMenuTheme,
       children: [
         {
-          label: (
-            <Link href="/fkr">
-              FKR Support
-            </Link>
-          ),
+          label: <Link href="/fkr">FKR Support</Link>,
           key: "list-fkr",
           icon: <FileText className="w-5 h-5 text-emerald-600" />,
         },
@@ -70,13 +39,21 @@ export const useMenuItems = () => {
       theme: subMenuTheme,
       children: [
         {
-          label: (
-            <Link href="/proposal">
-              Proposal Support
-            </Link>
-          ),
+          label: <Link href="/proposal">Proposal Support</Link>,
           key: "list-proposal",
           icon: <FileText className="w-5 h-5 text-blue-600" />,
+        },
+      ],
+    },
+    {
+      label: "Referensi",
+      key: "referensi",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/template-guide">Panduan Template Excel</Link>,
+          key: "template-guide",
+          icon: <TableOutlined className="text-slate-600" />,
         },
       ],
     },

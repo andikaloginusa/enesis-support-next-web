@@ -1,0 +1,1478 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panduan Template Excel — ENESIS Support</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f8f7f4;
+        --surface: #ffffff;
+        --surface-2: #f2f1ee;
+        --border: #e4e2dc;
+        --text: #1c1b18;
+        --text-2: #6b6860;
+        --text-3: #a09e98;
+        --accent: #1aac32;
+        --accent-hover: #15a02c;
+        --accent-bg: #edfaf0;
+        --accent-border: #a3ddab;
+
+        /* Template colors */
+        --emerald-h: 154;
+        --blue-h: 217;
+        --purple-h: 270;
+        --amber-h: 38;
+
+        --type-string-bg: #f0eff5;
+        --type-string-text: #3d3b52;
+        --type-date-bg: #fff8ed;
+        --type-date-text: #8a5a00;
+        --type-uuid-bg: #edf0ff;
+        --type-uuid-text: #2940a8;
+        --type-decimal-bg: #edfaf3;
+        --type-decimal-text: #1a7a40;
+
+        --font-sans: "DM Sans", system-ui, sans-serif;
+        --font-mono: "DM Mono", "Courier New", monospace;
+
+        --radius: 10px;
+        --radius-sm: 6px;
+        --radius-lg: 16px;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        --shadow-md:
+          0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+      }
+
+      [data-theme="dark"] {
+        --bg: #131310;
+        --surface: #1e1d1a;
+        --surface-2: #252420;
+        --border: #333230;
+        --text: #eeece8;
+        --text-2: #9c9a95;
+        --text-3: #5e5d5a;
+        --accent-bg: #0d2618;
+        --accent-border: #1e5032;
+        --type-string-bg: #1e1e2c;
+        --type-string-text: #9996c0;
+        --type-date-bg: #2a1e00;
+        --type-date-text: #c99a40;
+        --type-uuid-bg: #121c38;
+        --type-uuid-text: #6a90e0;
+        --type-decimal-bg: #0e2418;
+        --type-decimal-text: #50c080;
+        --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+        --shadow-md:
+          0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        font-family: var(--font-sans);
+        font-size: 15px;
+        -webkit-font-smoothing: antialiased;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+
+      /* ── Header ─────────────────────────────────── */
+      .page-header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 clamp(1rem, 5vw, 3rem);
+      }
+
+      .header-inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 0 1.5rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .header-brand {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .header-text h1 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+
+      .header-text p {
+        margin-top: 0.2rem;
+        font-size: 0.875rem;
+        color: var(--text-2);
+        font-weight: 400;
+      }
+
+      /* ── Main Content ────────────────────────────── */
+      .page-body {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2.5rem clamp(1rem, 5vw, 3rem) 4rem;
+      }
+
+      /* ── Tabs ───────────────────────────────────── */
+      .tabs {
+        display: flex;
+        gap: 2px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.1rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-2);
+        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        transition: all 0.15s;
+        white-space: nowrap;
+        position: relative;
+      }
+
+      .tab-btn:hover {
+        color: var(--text);
+        background: var(--surface-2);
+      }
+
+      .tab-btn.active {
+        color: var(--accent);
+        font-weight: 600;
+        background: var(--accent-bg);
+      }
+
+      .tab-btn.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--accent);
+        border-radius: 2px 2px 0 0;
+      }
+
+      .tab-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.4;
+        font-size: 0.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+      }
+
+      .tab-btn.active .tab-dot {
+        opacity: 1;
+      }
+
+      /* ── Tab Panels ──────────────────────────────── */
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+        animation: fadeIn 0.2s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ── Template Header Card ───────────────────── */
+      .template-header {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+      }
+
+      .template-header-bar {
+        padding: 1.1rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: #fff;
+      }
+
+      .template-header-bar.emerald {
+        background: hsl(154, 59%, 42%);
+      }
+      .template-header-bar.blue {
+        background: hsl(217, 84%, 48%);
+      }
+      .template-header-bar.purple {
+        background: hsl(270, 60%, 46%);
+      }
+
+      .thb-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+      }
+
+      .thb-text {
+        flex: 1;
+        min-width: 0;
+      }
+      .thb-text h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+      }
+      .thb-text span {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-family: var(--font-mono);
+      }
+
+      .thb-badge {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 20px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.72rem;
+        color: #fff;
+        font-family: var(--font-mono);
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .template-header-body {
+        padding: 1.1rem 1.5rem;
+        background: var(--surface);
+      }
+
+      .template-header-body p {
+        font-size: 0.875rem;
+        color: var(--text-2);
+        line-height: 1.65;
+      }
+
+      .template-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.85rem;
+      }
+
+      .stat-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.78rem;
+        color: var(--text-2);
+        font-weight: 500;
+      }
+
+      .stat-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .stat-dot.col {
+        background: hsl(var(--h), 59%, 42%);
+      }
+      .stat-dot.mand {
+        background: #e05555;
+      }
+      .stat-dot.form {
+        background: hsl(38, 92%, 50%);
+      }
+
+      /* ── Column Grid ────────────────────────────── */
+      .col-section-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-3);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .col-section-label::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      .col-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 0.9rem;
+        margin-bottom: 1.75rem;
+      }
+
+      /* ── Column Card ────────────────────────────── */
+      .col-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition:
+          box-shadow 0.2s,
+          transform 0.15s;
+      }
+
+      .col-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-1px);
+      }
+
+      .col-card-header {
+        padding: 0.7rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .col-num {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        font-family: var(--font-mono);
+        flex-shrink: 0;
+      }
+
+      .col-num.emerald {
+        background: hsl(154, 59%, 92%);
+        color: hsl(154, 59%, 32%);
+      }
+      .col-num.blue {
+        background: hsl(217, 84%, 92%);
+        color: hsl(217, 84%, 32%);
+      }
+      .col-num.purple {
+        background: hsl(270, 60%, 92%);
+        color: hsl(270, 60%, 32%);
+      }
+
+      .col-name-block {
+        flex: 1;
+        min-width: 0;
+      }
+      .col-name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .col-key {
+        font-size: 0.7rem;
+        color: var(--text-3);
+        font-family: var(--font-mono);
+      }
+
+      .col-badges {
+        display: flex;
+        gap: 0.4rem;
+        flex-shrink: 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+
+      .badge-type {
+        font-family: var(--font-mono);
+      }
+
+      .badge-type.string {
+        background: var(--type-string-bg);
+        color: var(--type-string-text);
+      }
+      .badge-type.date {
+        background: var(--type-date-bg);
+        color: var(--type-date-text);
+      }
+      .badge-type.uuid {
+        background: var(--type-uuid-bg);
+        color: var(--type-uuid-text);
+      }
+      .badge-type.decimal {
+        background: var(--type-decimal-bg);
+        color: var(--type-decimal-text);
+      }
+
+      .badge-mand {
+        background: #fdf0f0;
+        color: #c03535;
+      }
+      [data-theme="dark"] .badge-mand {
+        background: #2a1010;
+        color: #e05555;
+      }
+      .badge-opt {
+        background: var(--surface-2);
+        color: var(--text-3);
+      }
+
+      .col-card-body {
+        padding: 0.9rem 1rem;
+      }
+
+      .field-block {
+        margin-bottom: 0.8rem;
+      }
+      .field-block:last-child {
+        margin-bottom: 0;
+      }
+
+      .field-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-3);
+        margin-bottom: 0.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      .field-label.info {
+        color: var(--text-2);
+      }
+      .field-label.ok {
+        color: hsl(154, 59%, 40%);
+      }
+      .field-label.warn {
+        color: hsl(38, 92%, 45%);
+      }
+
+      .field-value {
+        font-size: 0.82rem;
+        color: var(--text);
+        line-height: 1.55;
+        padding-left: 0.25rem;
+      }
+
+      code {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 0.15rem 0.45rem;
+        color: var(--text);
+      }
+
+      /* ── Additional Field Card ─────────────────── */
+      .add-card {
+        background: var(--surface);
+        border: 1px solid hsl(38, 92%, 75%);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        grid-column: span 1;
+      }
+
+      .add-card-header {
+        padding: 0.7rem 1rem;
+        background: hsl(38, 92%, 95%);
+        border-bottom: 1px solid hsl(38, 92%, 80%);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      [data-theme="dark"] .add-card-header {
+        background: hsl(38, 50%, 12%);
+        border-color: hsl(38, 50%, 20%);
+      }
+
+      .add-card-header span {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: hsl(38, 70%, 35%);
+      }
+
+      [data-theme="dark"] .add-card-header span {
+        color: hsl(38, 80%, 65%);
+      }
+
+      .form-badge {
+        margin-left: auto;
+        background: hsl(38, 92%, 88%);
+        color: hsl(38, 70%, 35%);
+        border-radius: 20px;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.68rem;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+
+      [data-theme="dark"] .form-badge {
+        background: hsl(38, 50%, 18%);
+        color: hsl(38, 80%, 65%);
+      }
+
+      .add-card-body {
+        padding: 0.9rem 1rem;
+      }
+
+      .add-card-body .field-value {
+        margin-bottom: 0.4rem;
+      }
+
+      /* ── Summary Table ──────────────────────────── */
+      .summary-table-wrap {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        overflow-x: auto;
+        margin-bottom: 2rem;
+      }
+
+      .summary-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+        min-width: 520px;
+      }
+
+      .summary-table th {
+        background: var(--surface-2);
+        padding: 0.6rem 1rem;
+        text-align: left;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-3);
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      .summary-table td {
+        padding: 0.65rem 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+        vertical-align: middle;
+      }
+
+      .summary-table tr:last-child td {
+        border-bottom: none;
+      }
+      .summary-table tr:hover td {
+        background: var(--surface-2);
+      }
+
+      .td-num {
+        color: var(--text-3);
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        text-align: center;
+        width: 2.5rem;
+      }
+      .td-name {
+        font-weight: 600;
+      }
+      .td-type span {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+      }
+      .td-type .t-string {
+        background: var(--type-string-bg);
+        color: var(--type-string-text);
+      }
+      .td-type .t-date {
+        background: var(--type-date-bg);
+        color: var(--type-date-text);
+      }
+      .td-type .t-uuid {
+        background: var(--type-uuid-bg);
+        color: var(--type-uuid-text);
+      }
+      .td-type .t-decimal {
+        background: var(--type-decimal-bg);
+        color: var(--type-decimal-text);
+      }
+
+      .td-mand {
+        color: #c03535;
+        font-weight: 600;
+        font-size: 0.78rem;
+      }
+      .td-opt {
+        color: var(--text-3);
+        font-size: 0.78rem;
+      }
+      .td-ex code {
+        font-size: 0.75rem;
+      }
+
+      /* ── Tips Card ──────────────────────────────── */
+      .tips-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.2rem 1.5rem;
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        box-shadow: var(--shadow);
+      }
+
+      .tips-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: hsl(217, 84%, 94%);
+        color: hsl(217, 84%, 45%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.9rem;
+      }
+
+      [data-theme="dark"] .tips-icon {
+        background: hsl(217, 50%, 15%);
+        color: hsl(217, 80%, 65%);
+      }
+
+      .tips-body h3 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+      .tips-body ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+      .tips-body li {
+        font-size: 0.82rem;
+        color: var(--text-2);
+        padding-left: 0.85rem;
+        position: relative;
+        line-height: 1.5;
+      }
+      .tips-body li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      /* ── Theme Toggle ────────────────────────────── */
+      .theme-toggle {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+      }
+
+      .toggle-btn {
+        width: 36px;
+        height: 20px;
+        border-radius: 10px;
+        background: var(--border);
+        border: none;
+        cursor: pointer;
+        position: relative;
+        transition: background 0.2s;
+      }
+
+      .toggle-btn::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      [data-theme="dark"] .toggle-btn {
+        background: hsl(217, 84%, 55%);
+      }
+      [data-theme="dark"] .toggle-btn::after {
+        transform: translateX(16px);
+      }
+
+      /* ── Responsive ─────────────────────────────── */
+      @media (max-width: 640px) {
+        .col-grid {
+          grid-template-columns: 1fr;
+        }
+        .header-inner {
+          flex-direction: column;
+        }
+        .theme-toggle {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ── HEADER ──────────────────────────────────────── -->
+    <header class="page-header">
+      <div class="header-inner">
+        <div class="header-brand">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+        </div>
+        <div class="header-text">
+          <h1>Panduan Template Excel</h1>
+          <p>
+            Ketentuan kolom untuk setiap template upload Excel di ENESIS Support
+          </p>
+        </div>
+        <div class="theme-toggle">
+          <button
+            class="toggle-btn"
+            onclick="toggleTheme()"
+            aria-label="Toggle theme"
+          ></button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── MAIN ──────────────────────────────────────── -->
+    <main class="page-body">
+      <!-- Tabs -->
+      <div class="tabs" role="tablist">
+        <button
+          class="tab-btn active"
+          data-tab="fkr"
+          role="tab"
+          aria-selected="true"
+        >
+          <span class="tab-dot"></span> FKR Pemusnahan
+        </button>
+        <button
+          class="tab-btn"
+          data-tab="email"
+          role="tab"
+          aria-selected="false"
+        >
+          <span class="tab-dot"></span> Proposal Email Ulang
+        </button>
+        <button
+          class="tab-btn"
+          data-tab="reverse"
+          role="tab"
+          aria-selected="false"
+        >
+          <span class="tab-dot"></span> Reverse Internasional
+        </button>
+      </div>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- PANEL: FKR PEMUSNAHAN                        -->
+      <!-- ══════════════════════════════════════════════ -->
+      <div class="tab-panel active" id="panel-fkr" role="tabpanel">
+        <div class="template-header">
+          <div class="template-header-bar emerald">
+            <div class="thb-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div class="thb-text">
+              <h2>Template Upload Open FKR Pemusnahan</h2>
+              <span>Template Upload Open FKR Pemusnahan.xlsx</span>
+            </div>
+            <div class="thb-badge">Format: .xlsx</div>
+          </div>
+          <div class="template-header-body">
+            <p>
+              Upload massal data pemusnahan FKR berdasarkan kode distributor dan
+              rentang tanggal. Setiap baris mewakili satu pasangan distributor
+              dan periode pemusnahan. Nomor Work Order (WO) dicatat sebagai log
+              audit proses ini.
+            </p>
+            <div class="template-stats">
+              <div class="stat-chip">
+                <span class="stat-dot col"></span>3 kolom Excel
+              </div>
+              <div class="stat-chip">
+                <span class="stat-dot mand"></span>3 kolom wajib
+              </div>
+              <div class="stat-chip">
+                <span class="stat-dot form"></span>+1 input manual (Nomor WO)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Kolom Excel -->
+        <p class="col-section-label">Kolom Excel</p>
+        <div class="col-grid">
+          <!-- Kolom 1 -->
+          <div class="col-card">
+            <div class="col-card-header">
+              <div class="col-num emerald">1</div>
+              <div class="col-name-block">
+                <div class="col-name">Kode Distributor</div>
+                <div class="col-key">string</div>
+              </div>
+              <div class="col-badges">
+                <span class="badge badge-type string">String</span>
+                <span class="badge badge-mand">Wajib</span>
+              </div>
+            </div>
+            <div class="col-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  Kode unik distributor yang melakukan pemusnahan barang FKR.
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value">
+                  <code>6000435</code> <code>6000534</code> <code>6000999</code>
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Tidak boleh kosong. Angka kode distributor harus terdaftar di
+                  sistem (例: <code>6000435</code>).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom 2 -->
+          <div class="col-card">
+            <div class="col-card-header">
+              <div class="col-num emerald">2</div>
+              <div class="col-name-block">
+                <div class="col-name">Start</div>
+                <div class="col-key">date</div>
+              </div>
+              <div class="col-badges">
+                <span class="badge badge-type date">Date</span>
+                <span class="badge badge-mand">Wajib</span>
+              </div>
+            </div>
+            <div class="col-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  Tanggal awal rentang periode pemusnahan (termasuk tanggal
+                  ini).
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value"><code>2026-08-05</code></div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Format <code>YYYY-MM-DD</code>. Wajib diisi. Start harus ≤
+                  End.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom 3 -->
+          <div class="col-card">
+            <div class="col-card-header">
+              <div class="col-num emerald">3</div>
+              <div class="col-name-block">
+                <div class="col-name">End</div>
+                <div class="col-key">date</div>
+              </div>
+              <div class="col-badges">
+                <span class="badge badge-type date">Date</span>
+                <span class="badge badge-mand">Wajib</span>
+              </div>
+            </div>
+            <div class="col-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  Tanggal akhir rentang periode pemusnahan (termasuk tanggal
+                  ini).
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value"><code>2026-08-05</code></div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Format <code>YYYY-MM-DD</code>. Wajib diisi. End harus ≥
+                  Start.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Input Manual -->
+        <p class="col-section-label">Input Manual (di form, bukan Excel)</p>
+        <div class="col-grid">
+          <div class="add-card">
+            <div class="add-card-header">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>Nomor Work Order (WO)</span>
+              <span class="form-badge">di form</span>
+            </div>
+            <div class="add-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  Nomor Work Order sebagai justifikasi dan log audit proses
+                  upload ini. Diisi manual di form sebelum upload.
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value">
+                  <code>WO/IT BUSINESS APPLICATION/26/0056619</code>
+                  <code>WO/IT BUSINESS APPLICATION/26/0056620</code>
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Tidak boleh kosong. Wajib diisi sebelum submit.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Table -->
+        <p class="col-section-label">Ringkasan</p>
+        <div class="summary-table-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th style="width: 2.5rem">No</th>
+                <th>Nama Kolom</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Contoh</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-num">1</td>
+                <td class="td-name">Kode Distributor</td>
+                <td class="td-type"><span class="t-string">String</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex"><code>6000435</code></td>
+              </tr>
+              <tr>
+                <td class="td-num">2</td>
+                <td class="td-name">Start</td>
+                <td class="td-type"><span class="t-date">Date</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex"><code>2026-08-05</code></td>
+              </tr>
+              <tr>
+                <td class="td-num">3</td>
+                <td class="td-name">End</td>
+                <td class="td-type"><span class="t-date">Date</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex"><code>2026-08-05</code></td>
+              </tr>
+              <tr>
+                <td class="td-num">—</td>
+                <td class="td-name">Nomor WO (form)</td>
+                <td class="td-type"><span class="t-string">String</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex">
+                  <code>WO/IT BUSINESS APPLICATION/26/0056619</code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- PANEL: PROPOSAL EMAIL ULANG                  -->
+      <!-- ══════════════════════════════════════════════ -->
+      <div class="tab-panel" id="panel-email" role="tabpanel">
+        <div class="template-header">
+          <div class="template-header-bar blue">
+            <div class="thb-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div class="thb-text">
+              <h2>Template Proposal Send Email Ulang</h2>
+              <span>Template Proposal Send Email.xlsx</span>
+            </div>
+            <div class="thb-badge">
+              Format: .xlsx
+            </div>
+          </div>
+          <div class="template-header-body">
+            <p>
+              Upload daftar nomor proposal untuk memicu pengiriman ulang email
+              notifikasi ke approver terkait. Cocok untuk email yang gagal
+              terkirim atau perlu di-resend.
+            </p>
+            <div class="template-stats">
+              <div class="stat-chip">
+                <span
+                  class="stat-dot"
+                  style="background: hsl(217, 84%, 48%)"
+                ></span
+                >1 kolom Excel
+              </div>
+              <div class="stat-chip">
+                <span class="stat-dot mand"></span>1 kolom wajib
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="col-section-label">Kolom Excel</p>
+        <div class="col-grid">
+          <div class="col-card">
+            <div class="col-card-header">
+              <div class="col-num blue">1</div>
+              <div class="col-name-block">
+                <div class="col-name">Nomor E-PROP</div>
+                <div class="col-key">string</div>
+              </div>
+              <div class="col-badges">
+                <span class="badge badge-type string">String</span>
+                <span class="badge badge-mand">Wajib</span>
+              </div>
+            </div>
+            <div class="col-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  Nomor dokumen proposal yang akan dikirim ulang email
+                  notifikasinya.
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value">
+                  <code>121099/MI/MM/JUL/2026</code>
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Tidak boleh kosong. Harus merupakan nomor proposal yang sudah
+                  ada di sistem.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="col-section-label">Ringkasan</p>
+        <div class="summary-table-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th style="width: 2.5rem">No</th>
+                <th>Nama Kolom</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Contoh</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-num">1</td>
+                <td class="td-name">Nomor E-PROP</td>
+                <td class="td-type"><span class="t-string">String</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex"><code>121099/MI/MM/JUL/2026</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════ -->
+      <!-- PANEL: REVERSE INTERNASIONAL                 -->
+      <!-- ══════════════════════════════════════════════ -->
+      <div class="tab-panel" id="panel-reverse" role="tabpanel">
+        <div class="template-header">
+          <div class="template-header-bar purple">
+            <div class="thb-icon">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <div class="thb-text">
+              <h2>Template Reverse Internasional</h2>
+              <span>Template Reverse Internasional.xlsx</span>
+            </div>
+            <div class="thb-badge">
+              Format: .xlsx
+            </div>
+          </div>
+          <div class="template-header-body">
+            <p>
+              Upload data budget untuk proses reversal internasional secara
+              batch. Setiap baris mewakili satu entri budget yang akan
+              di-reverse. Data budget diperoleh dari sistem budget management.
+            </p>
+            <div class="template-stats">
+              <div class="stat-chip">
+                <span
+                  class="stat-dot"
+                  style="background: hsl(270, 60%, 46%)"
+                ></span
+                >2 kolom Excel
+              </div>
+              <div class="stat-chip">
+                <span class="stat-dot mand"></span>2 kolom wajib
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="col-section-label">Kolom Excel</p>
+        <div class="col-grid">
+          <div class="col-card">
+            <div class="col-card-header">
+              <div class="col-num purple">1</div>
+              <div class="col-name-block">
+                <div class="col-name">budget_id</div>
+                <div class="col-key">uuid / string</div>
+              </div>
+              <div class="col-badges">
+                <span class="badge badge-type uuid">UUID</span>
+                <span class="badge badge-mand">Wajib</span>
+              </div>
+            </div>
+            <div class="col-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  ID unik budget yang akan di-reverse. Diperoleh dari sistem
+                  budget management.
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value">
+                  <code>42f5572e-01d9-49b2-8866-7d0af30d65de</code>
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Tidak boleh kosong. Harus merupakan budget_id yang valid dan
+                  masih aktif di sistem.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-card">
+            <div class="col-card-header">
+              <div class="col-num purple">2</div>
+              <div class="col-name-block">
+                <div class="col-name">budget</div>
+                <div class="col-key">decimal / number</div>
+              </div>
+              <div class="col-badges">
+                <span class="badge badge-type decimal">Decimal</span>
+                <span class="badge badge-mand">Wajib</span>
+              </div>
+            </div>
+            <div class="col-card-body">
+              <div class="field-block">
+                <div class="field-label info">Deskripsi</div>
+                <div class="field-value">
+                  Jumlah nominal budget yang akan di-reverse.
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label ok">Contoh</div>
+                <div class="field-value">
+                  <code>1500000</code> <code>1500000.50</code>
+                </div>
+              </div>
+              <div class="field-block">
+                <div class="field-label warn">Validasi</div>
+                <div class="field-value">
+                  Tidak boleh kosong. Harus angka positif. Format desimal
+                  menggunakan titik (.)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="col-section-label">Ringkasan</p>
+        <div class="summary-table-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th style="width: 2.5rem">No</th>
+                <th>Nama Kolom</th>
+                <th>Tipe</th>
+                <th>Wajib</th>
+                <th>Contoh</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-num">1</td>
+                <td class="td-name">budget_id</td>
+                <td class="td-type"><span class="t-uuid">UUID</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex"><code>42f5572e-…</code></td>
+              </tr>
+              <tr>
+                <td class="td-num">2</td>
+                <td class="td-name">budget</td>
+                <td class="td-type"><span class="t-decimal">Decimal</span></td>
+                <td class="td-mand">Ya</td>
+                <td class="td-ex"><code>1500000.50</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tips -->
+      <div class="tips-card">
+        <div class="tips-icon">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+        </div>
+        <div class="tips-body">
+          <h3>Tips Penggunaan Template</h3>
+          <ul>
+            <li>
+              Download template resmi dari modal upload — jangan ubah struktur
+              kolomnya.
+            </li>
+            <li>Data harus berurutan tanpa baris kosong di antara data.</li>
+            <li>
+              Format tanggal yang didukung: <code>YYYY-MM-DD</code> atau
+              <code>DD/MM/YYYY</code>.
+            </li>
+            <li>Hapus baris contoh/sample sebelum mengisi data asli.</li>
+            <li>
+              Untuk desimal gunakan titik (<code>.</code>), bukan koma
+              (<code>,</code>).
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ── Tab switching ──────────────────────────────────
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((b) => {
+            b.classList.remove("active");
+            b.setAttribute("aria-selected", "false");
+          });
+          document
+            .querySelectorAll(".tab-panel")
+            .forEach((p) => p.classList.remove("active"));
+          btn.classList.add("active");
+          btn.setAttribute("aria-selected", "true");
+          document
+            .getElementById("panel-" + btn.dataset.tab)
+            .classList.add("active");
+        });
+      });
+
+      // ── Theme toggle ───────────────────────────────────
+      function toggleTheme() {
+        const html = document.documentElement;
+        const current = html.getAttribute("data-theme");
+        html.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+      }
+    </script>
+  </body>
+</html>
