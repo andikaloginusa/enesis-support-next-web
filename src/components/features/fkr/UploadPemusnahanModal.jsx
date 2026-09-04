@@ -1,11 +1,16 @@
 "use client";
 
 import React, { useCallback, useRef } from "react";
-import { Form, Modal, Typography, App } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import { Form, Modal, Typography, App, Button } from "antd";
+import { InboxOutlined, DownloadOutlined } from "@ant-design/icons";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
 const { Text } = Typography;
+
+// ─── Static asset URL ──────────────────────────────────────────────────────────
+
+/** URL to the official Excel template for FKR Pemusnahan bulk upload. */
+const TEMPLATE_URL = "/templates/Template Upload Open FKR Pemusnahan.xlsx";
 
 // ─── Validation constants ─────────────────────────────────────────────────────
 
@@ -272,6 +277,32 @@ export function UploadPemusnahanModal({
       destroyOnHidden
     >
       <div className="py-4">
+        <div className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 mb-4">
+          <div>
+            <Text className="block font-semibold text-slate-700 text-sm">
+              Template Upload Pemusnahan FKR
+            </Text>
+            <Text className="text-slate-400 text-xs">
+              Gunakan template resmi untuk memastikan format kolom sesuai.
+            </Text>
+          </div>
+          <a
+            href={TEMPLATE_URL}
+            download="Template Upload Open FKR Pemusnahan.xlsx"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button
+              type="default"
+              icon={<DownloadOutlined />}
+              size="small"
+              className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-600"
+            >
+              Download Template
+            </Button>
+          </a>
+        </div>
+
         <Text className="block text-slate-500 text-sm mb-4 leading-relaxed">
           Unggah file Excel berisi daftar kode distributor dan rentang tanggal
           pemusnahan. Reason/Nomor Work Order (WO) akan dicatat dalam log
