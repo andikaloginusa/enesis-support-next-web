@@ -64,6 +64,25 @@ export const ListFKRApprovalServices = (apiInstance) => {
   const getListUserApproval = (data) =>
     apiInstance.get(`fkr/get-user-approval-fkr`, data);
 
+  /**
+   * Bulk-upload FKR Pemusnahan via Excel.
+   * Sends multipart/form-data; field name "excel" matches the BE Skipper key.
+   *
+   * @param {Object}  payload
+   * @param {File}    payload.file       - The Excel file (already validated FE-side)
+   * @param {string}  payload.m_user_id  - ID of the currently authenticated user
+   * @param {string}  payload.reason     - Work order number (WO) as the reason/justification
+   */
+  const uploadFkrPemusnahan = ({ file, m_user_id, reason }) => {
+    const formData = new FormData();
+    formData.append("excel", file);
+    formData.append("m_user_id", m_user_id);
+    formData.append("reason", reason);
+    return authFetch("POST", "support/fkr/upload-allowed", {
+      body: formData,
+    });
+  };
+
   return {
     getListApprovalFkr,
     getDetailListFkr,
@@ -71,6 +90,7 @@ export const ListFKRApprovalServices = (apiInstance) => {
     rejectListApprovalFkr,
     updateListApprovalFkr,
     reuploadDocument,
+    uploadFkrPemusnahan,
   };
 };
 

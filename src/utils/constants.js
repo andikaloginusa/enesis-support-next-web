@@ -96,6 +96,8 @@ export const NOTIF_MESSAGES = {
   FETCH_FKR_DETAIL_ERROR: "Gagal mengambil detail FKR",
   REUPLOAD_DOCUMENT_SUCCESS: "Re-Upload Dokumen Berhasil",
   REUPLOAD_DOCUMENT_ERROR: "Gagal Re-Upload Dokumen",
+  UPLOAD_PEMUSNAHAN_SUCCESS: "Upload Pemusnahan Berhasil",
+  UPLOAD_PEMUSNAHAN_ERROR: "Gagal Upload Pemusnahan",
 
   // Proposal
   UPDATE_PROPOSAL_SUCCESS: "Data Proposal Berhasil Diperbarui",

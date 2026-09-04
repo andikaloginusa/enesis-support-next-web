@@ -192,6 +192,31 @@ export const useFkr = (fkrId = null) => {
     },
   });
 
+  // Mutation: Bulk-upload FKR Pemusnahan via Excel
+  const uploadPemusnahanMutation = useMutation({
+    mutationFn: async ({ file, m_user_id, reason }) => {
+      const response = await fkrService.uploadFkrPemusnahan({ file, m_user_id, reason });
+      assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PEMUSNAHAN_ERROR);
+      return response;
+    },
+    onSuccess: (response) => {
+      const count = response?.data?.updated_count ?? 0;
+      notifySuccess(
+        NOTIF_MESSAGES.UPLOAD_PEMUSNAHAN_SUCCESS,
+        `${count} baris data berhasil diproses.`,
+        NOTIF_DURATION_LONG,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.fkr.all() });
+    },
+    onError: (err) => {
+      notifyError(
+        NOTIF_MESSAGES.UPLOAD_PEMUSNAHAN_ERROR,
+        err.message || NOTIF_MESSAGES.UPLOAD_PEMUSNAHAN_ERROR,
+        NOTIF_DURATION_LONG,
+      );
+    },
+  });
+
   return {
     // List Query
     fkrList: listData?.results || [],
@@ -224,5 +249,8 @@ export const useFkr = (fkrId = null) => {
 
     reuploadDocument: reuploadDocumentMutation.mutateAsync,
     isReuploadingDocument: reuploadDocumentMutation.isPending,
+
+    uploadPemusnahan: uploadPemusnahanMutation.mutateAsync,
+    isUploadingPemusnahan: uploadPemusnahanMutation.isPending,
   };
 };

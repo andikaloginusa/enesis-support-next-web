@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button, Form, Space, Tooltip } from "antd";
-import { EyeOutlined, CloseCircleOutlined, ReloadOutlined, CloudUploadOutlined } from "@ant-design/icons";
+import { EyeOutlined, CloseCircleOutlined, ReloadOutlined, CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useFkr, useDebounce } from "@/hooks";
 import { getUserId } from "@/utils/storage";
@@ -17,6 +17,7 @@ import {
   renderMedium,
 } from "@/components/ui";
 import { ReuploadDocumentModal } from "@/components/features/fkr/ReuploadDocumentModal";
+import { UploadPemusnahanModal } from "@/components/features/fkr/UploadPemusnahanModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Modal Config Builder
@@ -167,6 +168,8 @@ export default function FkrSupportPage() {
     refetchList,
     reuploadDocument,
     isReuploadingDocument,
+    uploadPemusnahan,
+    isUploadingPemusnahan,
   } = useFkr();
 
   // ── Search State ──
@@ -183,6 +186,9 @@ export default function FkrSupportPage() {
   const [activeFkr, setActiveFkr] = useState({ id: null, no: "" });
 
   const [isReuploadModalOpen, setIsReuploadModalOpen] = useState(false);
+
+  // ── Upload Pemusnahan Modal State ──
+  const [isUploadPemusnahanOpen, setIsUploadPemusnahanOpen] = useState(false);
 
   // ── Action Handlers ──
 
@@ -232,6 +238,24 @@ export default function FkrSupportPage() {
     }
   };
 
+  // ── Upload Pemusnahan Handlers ──
+  const openUploadPemusnahanModal = () => setIsUploadPemusnahanOpen(true);
+
+  const closeUploadPemusnahanModal = () => setIsUploadPemusnahanOpen(false);
+
+  const handleUploadPemusnahanSubmit = async ({ file, reason }) => {
+    try {
+      await uploadPemusnahan({
+        file,
+        m_user_id: getUserId(),
+        reason,
+      });
+      closeUploadPemusnahanModal();
+    } catch {
+      // Errors surfaced via useNotify in the hook
+    }
+  };
+
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
     onView: (row) => router.push(`/fkr/${row.fkr_id}`),
@@ -270,19 +294,32 @@ export default function FkrSupportPage() {
           onChange: setSearchValue,
         }}
         extraHeaderActions={
-          <Tooltip title="Muat Ulang Data">
-            <Button
-              type="default"
-              shape="circle"
-              size="large"
-              icon={
-                <ReloadOutlined
-                  className={isListFetching ? "animate-spin" : ""}
-                />
-              }
-              onClick={refetchList}
-            />
-          </Tooltip>
+          <Space size="middle">
+            <Tooltip title="Upload Pemusnahan via Excel">
+              <Button
+                type="primary"
+                size="large"
+                icon={<UploadOutlined />}
+                onClick={openUploadPemusnahanModal}
+                className="bg-emerald-600 hover:bg-emerald-700 border-emerald-600"
+              >
+                Upload Pemusnahan
+              </Button>
+            </Tooltip>
+            <Tooltip title="Muat Ulang Data">
+              <Button
+                type="default"
+                shape="circle"
+                size="large"
+                icon={
+                  <ReloadOutlined
+                    className={isListFetching ? "animate-spin" : ""}
+                  />
+                }
+                onClick={refetchList}
+              />
+            </Tooltip>
+          </Space>
         }
       />
 
@@ -295,6 +332,13 @@ export default function FkrSupportPage() {
         confirmLoading={isReuploadingDocument}
         fkrId={activeFkr.id}
         fkrNo={activeFkr.no}
+      />
+
+      <UploadPemusnahanModal
+        open={isUploadPemusnahanOpen}
+        onCancel={closeUploadPemusnahanModal}
+        onSubmit={handleUploadPemusnahanSubmit}
+        confirmLoading={isUploadingPemusnahan}
       />
     </>
   );
