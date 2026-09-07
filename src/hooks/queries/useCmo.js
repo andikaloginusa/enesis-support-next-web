@@ -5,6 +5,8 @@ import { assertApiSuccess } from "@/utils/errorHelpers";
 import { NOTIF_MESSAGES } from "@/utils/constants";
 import { useNotify, NOTIF_DURATION_MEDIUM, NOTIF_DURATION_LONG } from "@/utils/notify";
 import { useListParams } from "@/hooks/useListParams";
+import { buildSearchText } from "@/config/cmoConfig";
+import { getUserId } from "@/utils/storage";
 
 /**
  * useCmo — Custom React Query Hook for CMO Support Module.
@@ -35,30 +37,36 @@ export const useCmo = (initialParams = {}) => {
 
   // Shared pagination + filter state
   const { params, handlePaginationChange, handleFilterChange } = useListParams({
-    bulan: "",
     tahun: "",
+    bulan: "",
+    kategori: "",
     ...initialParams,
   });
 
-  // Query: Paginated SAP-Waiting CMO List
+  // Build searchText from the three combined filters: tahun/kategori/bulan_abbrev
+  const searchText = buildSearchText(params.tahun, params.kategori, params.bulan);
+
+  // Query: Filtered CMO List via searchText endpoint
   const {
     data: listData,
     isLoading: isListLoading,
     isFetching: isListFetching,
     refetch: refetchList,
   } = useQuery({
-    queryKey: queryKeys.cmo.sapWaitingList(params),
+    queryKey: queryKeys.cmo.sapWaitingList({ ...params, searchText }),
     queryFn: async () => {
-      const response = await cmoService.getSapWaitingList({
-        bulan: params.bulan,
-        tahun: params.tahun,
+      const response = await cmoService.getFilteredList({
+        m_user_id: getUserId(),
+        searchText,
         currentPage: params.currentPage,
         pageSize: params.pageSize,
       });
 
       if (response.ok) return response.data;
-      return { data: [], meta: { count: 0 } };
+      return { results: [], meta: { count: 0 } };
     },
+    // Only run the query when all three filters are selected
+    enabled: Boolean(searchText),
     placeholderData: (prev) => prev,
   });
 
@@ -188,7 +196,7 @@ export const useCmo = (initialParams = {}) => {
 
   return {
     // List Query
-    cmoList: listData?.data || [],
+    cmoList: listData?.results || [],
     totalCount: listData?.meta?.count || 0,
     currentPage: listData?.meta?.currentPage || 1,
     isListFetching: isListLoading || isListFetching,

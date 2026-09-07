@@ -3,14 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { Button, Space, Tooltip, Select, Typography } from "antd";
 import {
-  EyeOutlined,
   ReloadOutlined,
   SyncOutlined,
   FileExcelOutlined,
   CloseCircleOutlined,
   RedoOutlined,
 } from "@ant-design/icons";
-import { useRouter } from "next/navigation";
 import { useCmo, useDebounce } from "@/hooks";
 import { getUserId } from "@/utils/storage";
 import {
@@ -26,6 +24,8 @@ import { ProcessResultModal } from "@/components/features/cmo/ProcessResultModal
 import {
   CMO_BULAN_OPTIONS,
   CMO_TAHUN_OPTIONS,
+  CMO_KATEGORI_OPTIONS,
+  buildSearchText,
 } from "@/config/cmoConfig";
 
 const { Text } = Typography;
@@ -34,7 +34,7 @@ const { Text } = Typography;
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-const buildColumns = ({ onView, onRejectKill, onProcessSap }) => [
+const buildColumns = ({ onRejectKill, onProcessSap }) => [
   {
     title: "Nomor CMO",
     dataIndex: "nomor_cmo",
@@ -79,12 +79,14 @@ const buildColumns = ({ onView, onRejectKill, onProcessSap }) => [
     width: 140,
     align: "center",
     render: (text) =>
-      text && text !== "WAITING" ? (
+      text && text !== "ADD-PO" ? (
         <span className="font-mono text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
           {text}
         </span>
       ) : (
-        <span className="text-amber-500 text-xs font-semibold italic">WAITING</span>
+        <span className="text-amber-500 text-xs font-semibold italic">
+          {text === "ADD-PO" ? "ADD-PO" : "—"}
+        </span>
       ),
   },
   {
@@ -106,19 +108,10 @@ const buildColumns = ({ onView, onRejectKill, onProcessSap }) => [
     key: "action",
     align: "center",
     fixed: "right",
-    width: 180,
+    width: 100,
     render: (row) => (
       <Space size="middle">
-        <Tooltip title="Lihat Detail CMO">
-          <Button
-            type="primary"
-            shape="circle"
-            icon={<EyeOutlined />}
-            onClick={() => onView(row)}
-            style={{ backgroundColor: "#1677ff", borderColor: "#1677ff" }}
-          />
-        </Tooltip>
-        {row.no_sap === "WAITING" && (
+        {row.no_sap === null && (
           <Tooltip title="Proses SAP CMO">
             <Button
               type="primary"
@@ -129,7 +122,7 @@ const buildColumns = ({ onView, onRejectKill, onProcessSap }) => [
             />
           </Tooltip>
         )}
-        {row.no_sap === "WAITING" && (
+        {row.no_sap === null && (
           <Tooltip title="Reject / Kill CMO">
             <Button
               type="primary"
@@ -150,8 +143,6 @@ const buildColumns = ({ onView, onRejectKill, onProcessSap }) => [
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function CmoSupportPage() {
-  const router = useRouter();
-
   const {
     cmoList,
     totalCount,
@@ -174,8 +165,13 @@ export default function CmoSupportPage() {
   // ── Filter State ──
   const [filterTahun, setFilterTahun] = useState("");
   const [filterBulan, setFilterBulan] = useState("");
+  const [filterKategori, setFilterKategori] = useState("");
   const debouncedTahun = useDebounce(filterTahun, 400);
   const debouncedBulan = useDebounce(filterBulan, 400);
+  const debouncedKategori = useDebounce(filterKategori, 400);
+
+  // Live preview of the searchText being built
+  const previewSearchText = buildSearchText(filterTahun, filterKategori, filterBulan);
 
   useEffect(() => {
     handleFilterChange("tahun", debouncedTahun);
@@ -184,6 +180,10 @@ export default function CmoSupportPage() {
   useEffect(() => {
     handleFilterChange("bulan", debouncedBulan);
   }, [debouncedBulan, handleFilterChange]);
+
+  useEffect(() => {
+    handleFilterChange("kategori", debouncedKategori);
+  }, [debouncedKategori, handleFilterChange]);
 
   // ── Modal State ──
   const [isReplaceTemplateOpen, setIsReplaceTemplateOpen] = useState(false);
@@ -268,7 +268,6 @@ export default function CmoSupportPage() {
 
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
-    onView: (row) => router.push(`/cmo/${row.cmo_id}`),
     onRejectKill: openRejectKill,
     onProcessSap: handleProcessSapCMO,
   });
@@ -284,30 +283,57 @@ export default function CmoSupportPage() {
         loading={isListFetching}
         rowKey="cmo_id"
         filterBar={
-          <div className="flex items-center gap-3 flex-wrap">
-            <Text className="text-slate-500 text-sm font-medium">Filter:</Text>
-            <Select
-              placeholder="Pilih Tahun"
-              allowClear
-              value={filterTahun || undefined}
-              onChange={setFilterTahun}
-              options={CMO_TAHUN_OPTIONS}
-              size="middle"
-              className="w-36"
-              showSearch
-              optionFilterProp="label"
-            />
-            <Select
-              placeholder="Pilih Bulan"
-              allowClear
-              value={filterBulan || undefined}
-              onChange={setFilterBulan}
-              options={CMO_BULAN_OPTIONS}
-              size="middle"
-              className="w-44"
-              showSearch
-              optionFilterProp="label"
-            />
+          <div className="flex flex-col gap-3">
+            {/* Filter Controls */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <Text className="text-slate-500 text-sm font-medium shrink-0">Filter:</Text>
+              <Select
+                placeholder="Tahun"
+                allowClear
+                value={filterTahun || undefined}
+                onChange={setFilterTahun}
+                options={CMO_TAHUN_OPTIONS}
+                size="middle"
+                className="w-32"
+                showSearch
+                optionFilterProp="label"
+              />
+              <Select
+                placeholder="Bulan"
+                allowClear
+                value={filterBulan || undefined}
+                onChange={setFilterBulan}
+                options={CMO_BULAN_OPTIONS}
+                size="middle"
+                className="w-44"
+                showSearch
+                optionFilterProp="label"
+              />
+              <Select
+                placeholder="Kategori"
+                allowClear
+                value={filterKategori || undefined}
+                onChange={setFilterKategori}
+                options={CMO_KATEGORI_OPTIONS}
+                size="middle"
+                className="w-36"
+                showSearch
+                optionFilterProp="label"
+              />
+            </div>
+            {/* SearchText Preview */}
+            {previewSearchText ? (
+              <div className="flex items-center gap-2">
+                <Text className="text-slate-400 text-xs">searchText:</Text>
+                <code className="bg-slate-100 text-slate-600 text-xs font-mono px-2 py-0.5 rounded border border-slate-200">
+                  {previewSearchText}
+                </code>
+              </div>
+            ) : (
+              <Text className="text-slate-400 text-xs italic">
+                Pilih tahun, bulan, dan kategori untuk memuat data
+              </Text>
+            )}
           </div>
         }
         pagination={{

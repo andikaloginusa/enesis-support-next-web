@@ -12,6 +12,15 @@ import { authFetch } from "@/utils/authFetch";
  */
 export const CmoSupportServices = (apiInstance) => {
   /**
+   * Fetch filtered CMO list using combined searchText payload.
+   * GET /cmo
+   *
+   * @param {Object} params - { m_user_id, searchText: "YYYY/KATEGORI/MONTH_ABBREV", currentPage, pageSize }
+   */
+  const getFilteredList = (params) =>
+    apiInstance.get("cmo", params);
+
+  /**
    * Fetch paginated list of CMO records waiting for SAP response.
    * GET /cmo/list-get-sap-cmo
    *
@@ -72,6 +81,7 @@ export const CmoSupportServices = (apiInstance) => {
   };
 
   return {
+    getFilteredList,
     getSapWaitingList,
     processSapCMO,
     processSapCOrder,
