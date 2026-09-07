@@ -99,6 +99,21 @@ export const NOTIF_MESSAGES = {
   UPLOAD_PEMUSNAHAN_SUCCESS: "Upload Pemusnahan Berhasil",
   UPLOAD_PEMUSNAHAN_ERROR: "Gagal Upload Pemusnahan",
 
+  // CMO
+  REPLACE_TEMPLATE_SUCCESS: "Template Berhasil Diganti",
+  REPLACE_TEMPLATE_ERROR: "Gagal Mengganti Template",
+  REGEN_C_ORDER_SUCCESS: "Regenerasi C-Order Berhasil",
+  REGEN_C_ORDER_ERROR: "Gagal Regenerasi C-Order",
+  REJECT_CMO_SUCCESS: "CMO Berhasil Direject",
+  REJECT_CMO_ERROR: "Gagal Mereject CMO",
+  KILL_CMO_SUCCESS: "CMO Berhasil Dimatikan",
+  KILL_CMO_ERROR: "Gagal Mematikan CMO",
+  PROCESS_SAP_CMO_SUCCESS: "Proses SAP CMO Berhasil",
+  PROCESS_SAP_CMO_ERROR: "Gagal Memproses SAP CMO",
+  PROCESS_SAP_C_ORDER_SUCCESS: "Sinkronisasi SAP C-Order Berhasil",
+  PROCESS_SAP_C_ORDER_ERROR: "Gagal Sinkronisasi SAP C-Order",
+  FETCH_SAP_CMO_ERROR: "Gagal Mengambil Daftar CMO SAP",
+
   // Proposal
   UPDATE_PROPOSAL_SUCCESS: "Data Proposal Berhasil Diperbarui",
   UPDATE_PROPOSAL_ERROR: "Gagal Memperbarui Data Proposal",
@@ -128,4 +143,5 @@ export const API_LABELS = {
   FKR: "[useFkr]",
   KLAIM: "[useKlaim]",
   PROPOSAL: "[useProposal]",
+  CMO: "[useCmo]",
 };

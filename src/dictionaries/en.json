@@ -3,7 +3,8 @@
     "menuGroup": {
       "main": "Sample",
       "klaim": "Klaim Support",
-      "fkr": "FKR Support"
+      "fkr": "FKR Support",
+      "cmo": "CMO Support"
     },
     "menu": {
       "dashboards": "Sample Page"

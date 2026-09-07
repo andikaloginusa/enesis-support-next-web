@@ -5,4 +5,5 @@ export * from "./useListParams";
 export * from "./queries/useKlaim";
 export * from "./queries/useFkr";
 export * from "./queries/useProposal";
+export * from "./queries/useCmo";
 

@@ -1,7 +1,5 @@
 import { useTranslation } from "@/hooks";
 import Link from "next/link";
-import { BiBitcoin } from "react-icons/bi";
-import { RiDashboard2Fill } from "react-icons/ri";
 import { FileText } from "lucide-react";
 import { TableOutlined } from "@ant-design/icons";
 
@@ -42,6 +40,18 @@ export const useMenuItems = () => {
           label: <Link href="/proposal">Proposal Support</Link>,
           key: "list-proposal",
           icon: <FileText className="w-5 h-5 text-blue-600" />,
+        },
+      ],
+    },
+    {
+      label: "CMO Support",
+      key: "cmo",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/cmo">CMO Support</Link>,
+          key: "list-cmo",
+          icon: <FileText className="w-5 h-5 text-amber-600" />,
         },
       ],
     },

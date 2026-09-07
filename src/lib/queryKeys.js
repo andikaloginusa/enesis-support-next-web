@@ -62,4 +62,14 @@ export const queryKeys = {
     /** Matches a single user profile by user ID */
     profile: (userId) => ["user", "profile", userId],
   },
+
+  // ─────────────────────────────────────────────
+  // CMO (Customer Monthly Order)
+  // ─────────────────────────────────────────────
+  cmo: {
+    /** Matches ALL cmo queries */
+    all: () => ["cmo"],
+    /** Matches the SAP-waiting CMO list with specific params */
+    sapWaitingList: (params) => ["cmo", "sap-waiting-list", params],
+  },
 };

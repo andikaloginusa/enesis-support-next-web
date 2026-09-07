@@ -41,6 +41,7 @@ export const DataTablePanel = ({
   pagination = {},
   searchProps = {},
   extraHeaderActions = null,
+  filterBar = null,   // Custom filter row (e.g. tahun/bulan selects)
   scrollX = 1600,
   emptyText = "Tidak ada data yang cocok dengan pencarian Anda.",
 }) => {
@@ -97,6 +98,11 @@ export const DataTablePanel = ({
         className="shadow-sm border-slate-200 rounded-2xl overflow-hidden"
         styles={{ body: { padding: "20px 24px" } }}
       >
+        {/* Filter Bar (optional) */}
+        {filterBar && (
+          <div className="mb-4">{filterBar}</div>
+        )}
+
         {/* Search + Actions Row */}
         <div className="flex items-center gap-3 flex-wrap mb-0">
           {searchProps && searchProps.onChange && (
@@ -223,4 +229,5 @@ DataTablePanel.propTypes = {
   extraHeaderActions: PropTypes.node,
   scrollX: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   emptyText: PropTypes.string,
+  filterBar: PropTypes.node,
 };
