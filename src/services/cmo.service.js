@@ -31,21 +31,21 @@ export const CmoSupportServices = (apiInstance) => {
 
   /**
    * Pull SAP return XML for all WAITING CMO records in a period.
-   * POST /cmo/process-sap-cmo
+   * PUT /cmo/process-sap-cmo
    *
-   * @param {Object} data - { tahun, bulan }
+   * @param {Object} data - { tahun, bulan, m_user_id }
    */
   const processSapCMO = (data) =>
-    apiInstance.post("cmo/process-sap-cmo", data);
+    apiInstance.put("cmo/process-sap-cmo", data);
 
   /**
    * Pull SAP return XML for all WAITING C-Order records in a period.
-   * POST /cmo/process-sap-c-order
+   * PUT /cmo/process-sap-c-order
    *
    * @param {Object} data - { tahun, bulan }
    */
   const processSapCOrder = (data) =>
-    apiInstance.post("cmo/process-sap-c-order", data);
+    apiInstance.put("cmo/process-sap-c-order", data);
 
   /**
    * Generate C-Order records from CMO data for a specific week.

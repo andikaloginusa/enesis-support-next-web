@@ -21,6 +21,8 @@ import { ReplaceTemplateModal } from "@/components/features/cmo/ReplaceTemplateM
 import { RegenerateCOrderModal } from "@/components/features/cmo/RegenerateCOrderModal";
 import { RejectKillCmoModal } from "@/components/features/cmo/RejectKillCmoModal";
 import { ProcessResultModal } from "@/components/features/cmo/ProcessResultModal";
+import { ProsesSapCMOModal } from "@/components/features/cmo/ProsesSapCMOModal";
+import { ProsesSapCOrderModal } from "@/components/features/cmo/ProsesSapCOrderModal";
 import {
   CMO_BULAN_OPTIONS,
   CMO_TAHUN_OPTIONS,
@@ -34,7 +36,7 @@ const { Text } = Typography;
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-const buildColumns = ({ onRejectKill, onProcessSap }) => [
+const buildColumns = ({ onRejectKill }) => [
   {
     title: "Nomor CMO",
     dataIndex: "nomor_cmo",
@@ -112,17 +114,6 @@ const buildColumns = ({ onRejectKill, onProcessSap }) => [
     render: (row) => (
       <Space size="middle">
         {row.no_sap === null && (
-          <Tooltip title="Proses SAP CMO">
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<SyncOutlined />}
-              onClick={() => onProcessSap(row)}
-              style={{ backgroundColor: "#1aac32", borderColor: "#1aac32" }}
-            />
-          </Tooltip>
-        )}
-        {row.no_sap === null && (
           <Tooltip title="Reject / Kill CMO">
             <Button
               type="primary"
@@ -152,8 +143,6 @@ export default function CmoSupportPage() {
     handlePaginationChange,
     handleFilterChange,
     refetchList,
-    processSapCMO,
-    isProcessingSapCMO,
     regenerateCOrder,
     isRegeneratingCOrder,
     rejectOrKillCMO,
@@ -162,10 +151,12 @@ export default function CmoSupportPage() {
     isReplacingTemplate,
   } = useCmo();
 
-  // ── Filter State ──
-  const [filterTahun, setFilterTahun] = useState("");
-  const [filterBulan, setFilterBulan] = useState("");
-  const [filterKategori, setFilterKategori] = useState("");
+  // ── Filter State — defaults: tahun & bulan saat ini, kategori CMO ──
+  const currentYear = new Date().getFullYear();
+  const currentMonth = String(new Date().getMonth() + 1);
+  const [filterTahun, setFilterTahun] = useState(String(currentYear));
+  const [filterBulan, setFilterBulan] = useState(currentMonth);
+  const [filterKategori, setFilterKategori] = useState("CMO");
   const debouncedTahun = useDebounce(filterTahun, 400);
   const debouncedBulan = useDebounce(filterBulan, 400);
   const debouncedKategori = useDebounce(filterKategori, 400);
@@ -190,6 +181,8 @@ export default function CmoSupportPage() {
   const [isRegenCOrderOpen, setIsRegenCOrderOpen] = useState(false);
   const [isRejectKillOpen, setIsRejectKillOpen] = useState(false);
   const [isResultOpen, setIsResultOpen] = useState(false);
+  const [isProsesSapOpen, setIsProsesSapOpen] = useState(false);
+  const [isProsesSapCOrderOpen, setIsProsesSapCOrderOpen] = useState(false);
   const [activeCmo, setActiveCmo] = useState(null);
 
   // ── Regen Result State ──
@@ -255,21 +248,9 @@ export default function CmoSupportPage() {
     }
   };
 
-  const handleProcessSapCMO = async (cmo) => {
-    const tahun = cmo.tahun || params.tahun;
-    const bulan = cmo.bulan || params.bulan;
-
-    try {
-      await processSapCMO({ tahun, bulan });
-    } catch {
-      // Error surfaced via useNotify in the hook
-    }
-  };
-
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
     onRejectKill: openRejectKill,
-    onProcessSap: handleProcessSapCMO,
   });
 
   // ── Render ──
@@ -344,6 +325,23 @@ export default function CmoSupportPage() {
         }}
         extraHeaderActions={
           <Space size="middle" wrap>
+            {/* Proses SAP CMO */}
+            <Tooltip title="Proses SAP CMO — tarik balikan XML dari SFTP">
+              <Button
+                type="primary"
+                size="large"
+                icon={<SyncOutlined />}
+                onClick={() => setIsProsesSapOpen(true)}
+                style={{
+                  backgroundColor: "#1aac32",
+                  borderColor: "#1aac32",
+                  color: "#ffffff",
+                }}
+              >
+                Proses SAP CMO
+              </Button>
+            </Tooltip>
+
             {/* Replace Template */}
             <Tooltip title="Ganti Template CMO / Add PO via Excel">
               <Button
@@ -367,6 +365,23 @@ export default function CmoSupportPage() {
                 className="border-blue-500 text-blue-600 hover:bg-blue-50 hover:border-blue-600"
               >
                 Regenerasi C-Order
+              </Button>
+            </Tooltip>
+
+            {/* Proses SAP C-Order */}
+            <Tooltip title="Proses SAP C-Order — tarik balikan XML dari SFTP">
+              <Button
+                type="primary"
+                size="large"
+                icon={<SyncOutlined />}
+                onClick={() => setIsProsesSapCOrderOpen(true)}
+                style={{
+                  backgroundColor: "#722ed1",
+                  borderColor: "#722ed1",
+                  color: "#ffffff",
+                }}
+              >
+                Proses SAP C-Order
               </Button>
             </Tooltip>
 
@@ -426,6 +441,20 @@ export default function CmoSupportPage() {
         errorList={regenResult.errorList}
         successCount={regenResult.successCount}
         errorCount={regenResult.errorCount}
+      />
+
+      {/* Proses SAP CMO Modal */}
+      <ProsesSapCMOModal
+        open={isProsesSapOpen}
+        onCancel={() => setIsProsesSapOpen(false)}
+        onSuccess={refetchList}
+      />
+
+      {/* Proses SAP C-Order Modal */}
+      <ProsesSapCOrderModal
+        open={isProsesSapCOrderOpen}
+        onCancel={() => setIsProsesSapCOrderOpen(false)}
+        onSuccess={refetchList}
       />
     </>
   );
