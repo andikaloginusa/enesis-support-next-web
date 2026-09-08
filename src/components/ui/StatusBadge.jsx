@@ -25,6 +25,18 @@ const STATUS_CONFIG = {
     className: "bg-emerald-50 text-emerald-700 border-emerald-200",
     dot: "bg-emerald-500",
   },
+  pay: {
+    color: "success",
+    label: "PAYMENT COMPLETED",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
+  "payment completed": {
+    color: "success",
+    label: "PAYMENT COMPLETED",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    dot: "bg-emerald-500",
+  },
   y: {
     color: "success",
     label: "APPROVED",
@@ -139,8 +151,8 @@ export function StatusBadge({ status, className = "" }) {
   }
 
   // Use the exact response status formatted to uppercase if it's descriptive,
-  // or fall back to normalized config label if raw is a single-letter code ('y', 'n', 'apr', 'rjc')
-  const isShortCode = ["y", "n", "apr", "rjc"].includes(raw);
+  // or fall back to normalized config label if raw is a single-letter code ('y', 'n', 'apr', 'rjc', 'pay')
+  const isShortCode = ["y", "n", "apr", "rjc", "pay"].includes(raw);
   const displayLabel = isShortCode ? config.label : String(status).toUpperCase();
 
   return (
@@ -161,7 +173,7 @@ export function getStatusStyle(rawStatus) {
   const s = (rawStatus || "").toLowerCase().trim();
   let cfg;
 
-  if (s.includes("approve") || s === "apr" || s === "y" || s === "success") {
+  if (s.includes("approve") || s === "apr" || s === "y" || s === "success" || s.includes("pay") || s === "pay") {
     cfg = {
       color: "success",
       bg: "bg-emerald-50",

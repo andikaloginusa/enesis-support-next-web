@@ -47,6 +47,7 @@ const STATUS_OPTIONS = [
   { label: "Distributor Kirim Dokumen - SEND", value: "SEND" },
   { label: "ECC terima dok. - RECEIVE", value: "RECEIVE" },
   { label: "Plan Payment - PLAN", value: "PLAN" },
+  { label: "Payment Completed - PAY", value: "PAY" },
   { label: "Reject - RJC", value: "RJC" },
 ];
 
