@@ -53,20 +53,20 @@ export const CMO_TAHUN_OPTIONS = (() => {
   ];
 })();
 
-/** Month number → 3-letter Indonesian abbreviation map. */
+/** Month number → 3-letter English abbreviation map (used for backend/SAP search text). */
 export const CMO_BULAN_ABBREV = {
   1: "JAN",
   2: "FEB",
   3: "MAR",
   4: "APR",
-  5: "MEI",
+  5: "MAY",
   6: "JUN",
   7: "JUL",
-  8: "AGU",
+  8: "AUG",
   9: "SEP",
-  10: "OKT",
+  10: "OCT",
   11: "NOV",
-  12: "DES",
+  12: "DEC",
 };
 
 /**
