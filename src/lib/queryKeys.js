@@ -72,4 +72,22 @@ export const queryKeys = {
     /** Matches the SAP-waiting CMO list with specific params */
     sapWaitingList: (params) => ["cmo", "sap-waiting-list", params],
   },
+
+  // ─────────────────────────────────────────────
+  // Budget (Reversal Budget & Add/Move Budget)
+  // ─────────────────────────────────────────────
+  budget: {
+    /** Matches ALL budget queries */
+    all: () => ["budget"],
+    /** Matches reversal headers list with pagination/search params */
+    reversalHeaders: (params) => ["budget", "reversal-headers", params],
+    /** Matches single reversal header detail by id */
+    reversalHeaderDetail: (id) => ["budget", "reversal-header", id],
+    /** Matches reversal success list by kodeProses and pagination */
+    reversalSuccess: (params) => ["budget", "reversal-success", params],
+    /** Matches reversal reject list by kodeProses and pagination */
+    reversalReject: (params) => ["budget", "reversal-reject", params],
+    /** Matches budget list with pagination and search filters */
+    budgetList: (params) => ["budget", "budget-list", params],
+  },
 };

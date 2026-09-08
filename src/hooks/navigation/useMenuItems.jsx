@@ -56,6 +56,23 @@ export const useMenuItems = () => {
       ],
     },
     {
+      label: "Budget Support",
+      key: "budget",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/budget/reversal">Reversal Budget</Link>,
+          key: "reversal-budget",
+          icon: <FileText className="w-5 h-5 text-indigo-600" />,
+        },
+        {
+          label: <Link href="/budget/add-move">Add & Move Budget</Link>,
+          key: "add-move-budget",
+          icon: <FileText className="w-5 h-5 text-teal-600" />,
+        },
+      ],
+    },
+    {
       label: "Referensi",
       key: "referensi",
       theme: subMenuTheme,

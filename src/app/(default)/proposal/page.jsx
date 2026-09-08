@@ -78,7 +78,7 @@ function ResultPanel({ rows, type }) {
       <Table
         dataSource={rows}
         columns={columns}
-        rowKey={(r, i) => r.doc_no || i}
+        rowKey={(r) => r.doc_no || r.id || r.key || JSON.stringify(r)}
         pagination={false}
         size="small"
         className={`rounded-xl overflow-hidden border ${borderColor}`}
