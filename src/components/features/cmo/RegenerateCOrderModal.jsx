@@ -7,6 +7,7 @@ import {
   CMO_BULAN_OPTIONS,
   CMO_TAHUN_OPTIONS,
 } from "@/config/cmoConfig";
+import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
 
@@ -30,19 +31,35 @@ export function RegenerateCOrderModal({
   confirmLoading = false,
 }) {
   const [form] = Form.useForm();
+  const { confirmAction } = useConfirm();
 
   const handleCancel = () => {
     form.resetFields();
     onCancel();
   };
 
+  /**
+   * Validates form → shows contextual confirmation for C-Order regen →
+   * calls onSubmit only after user explicitly approves.
+   */
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      await onSubmit({
-        tahun: values.tahun,
-        bulan: values.bulan,
-        week_number: values.week_number,
+
+      confirmAction({
+        title: "Konfirmasi Regenerasi C-Order",
+        description:
+          `Apakah Anda yakin ingin meregenerasi C-Order untuk periode ` +
+          `Bulan ${values.bulan}, Tahun ${values.tahun}, Minggu ke-${values.week_number}? ` +
+          `Proses ini akan membuat record C-Order baru berdasarkan data CMO yang ada.`,
+        okText: "Ya, Proses Regenerasi",
+        onConfirm: async () => {
+          await onSubmit({
+            tahun: values.tahun,
+            bulan: values.bulan,
+            week_number: values.week_number,
+          });
+        },
       });
     } catch {
       /* validation errors surfaced inline by Ant Design */

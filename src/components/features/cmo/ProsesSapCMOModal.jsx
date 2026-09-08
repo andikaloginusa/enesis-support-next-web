@@ -19,6 +19,7 @@ import {
 } from "@ant-design/icons";
 import { useCmoSapWaitingList } from "@/hooks/queries/useCmoSapWaitingList";
 import { renderDate, renderBold } from "@/components/ui";
+import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
 
@@ -55,6 +56,8 @@ export function ProsesSapCMOModal({ open, onCancel, onSuccess }) {
     refetch,
   } = useCmoSapWaitingList({ onSuccess });
 
+  const { confirmAction } = useConfirm();
+
   // Local filter state — only triggers API call when "Tampilkan" is clicked
   const [filterTahun, setFilterTahun] = useState("");
   const [filterBulan, setFilterBulan] = useState("");
@@ -65,12 +68,25 @@ export function ProsesSapCMOModal({ open, onCancel, onSuccess }) {
     onCancel();
   };
 
+  /**
+   * Shows a contextual confirmation dialog before triggering the SAP CMO
+   * batch process (pulls XML from SFTP and updates no_sap + status).
+   */
   const handleProsesSap = async () => {
-    try {
-      await processSapCMO();
-    } catch {
-      /* error surfaced via hook notify */
-    }
+    confirmAction({
+      title: "Konfirmasi Proses SAP CMO",
+      description:
+        `Apakah Anda yakin ingin memproses ${totalCount.toLocaleString("id-ID")} data CMO yang sedang menunggu? ` +
+        "Sistem akan menarik balikan XML dari SFTP dan memperbarui No. SAP serta status setiap CMO.",
+      okText: "Ya, Proses SAP CMO",
+      onConfirm: async () => {
+        try {
+          await processSapCMO();
+        } catch {
+          /* error surfaced via hook notify */
+        }
+      },
+    });
   };
 
   const columns = [

@@ -5,6 +5,7 @@ import { Form, Modal, Select, Input, Typography, App } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 import { CMO_TIPE_TEMPLATE_OPTIONS } from "@/config/cmoConfig";
+import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
 
@@ -143,6 +144,7 @@ export function ReplaceTemplateModal({
 }) {
   const [form] = Form.useForm();
   const [selectedFile, setSelectedFile] = useState(null);
+  const { confirmAction } = useConfirm();
 
   const handleCancel = () => {
     form.resetFields();
@@ -150,6 +152,10 @@ export function ReplaceTemplateModal({
     onCancel();
   };
 
+  /**
+   * Validates form → shows contextual confirmation for template replacement →
+   * calls onSubmit only after user explicitly approves.
+   */
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
@@ -161,10 +167,20 @@ export function ReplaceTemplateModal({
         return;
       }
 
-      await onSubmit({
-        tipe_template: values.tipe_template,
-        version: values.version?.trim() ?? "",
-        file: selectedFile,
+      confirmAction({
+        title: "Konfirmasi Ganti Template CMO",
+        description:
+          `Apakah Anda yakin ingin mengganti template ${values.tipe_template || ""} ` +
+          `dengan versi ${values.version?.trim() || "-"}? ` +
+          `File template lama akan digantikan dengan file baru yang Anda unggah.`,
+        okText: "Ya, Simpan Template",
+        onConfirm: async () => {
+          await onSubmit({
+            tipe_template: values.tipe_template,
+            version: values.version?.trim() ?? "",
+            file: selectedFile,
+          });
+        },
       });
     } catch {
       /* validation errors surfaced inline by Ant Design */

@@ -4,15 +4,40 @@ import React from "react";
 import { Form, Modal, Select, Typography } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { CMO_ACTION_OPTIONS } from "@/config/cmoConfig";
+import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Confirmation copy — one object to make future text changes trivial
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ACTION_CONFIRM_COPY = {
+  reject: {
+    title: "Konfirmasi Reject CMO",
+    description: (nomorCmo) =>
+      `Apakah Anda yakin ingin me-reject CMO ${nomorCmo ? `"${nomorCmo}"` : "ini"}? ` +
+      `Status akan diubah menjadi "Rejected by Support". Tindakan ini tidak dapat dibatalkan.`,
+    okText: "Ya, Reject CMO",
+  },
+  kill: {
+    title: "Konfirmasi Kill CMO",
+    description: (nomorCmo) =>
+      `Apakah Anda yakin ingin mematikan CMO ${nomorCmo ? `"${nomorCmo}"` : "ini"}? ` +
+      `CMO akan di-set is_active = 'N' dan statusnya akan diubah menjadi "Rejected by Support". ` +
+      `Tindakan ini bersifat permanen.`,
+    okText: "Ya, Matikan CMO",
+  },
+};
 
 /**
  * RejectKillCmoModal — Reject or kill a single CMO record.
  *
- * Collects: action (reject | kill).
- * Calls onSubmit({ cmo_id, action, m_user_id }) so the parent
- * can inject the user ID.
+ * Flow: pilih action (reject | kill) → klik Konfirmasi → modal konfirmasi
+ * akhir kontekstual → OK → panggil onSubmit.
+ *
+ * Pemanggil cukup menyediakan:
+ *   onSubmit({ cmo_id, action }) — m_user_id disuntik di parent (page.jsx).
  *
  * @param {Object}   props
  * @param {boolean}  props.open
@@ -29,18 +54,34 @@ export function RejectKillCmoModal({
   cmo,
 }) {
   const [form] = Form.useForm();
+  const { confirmAction } = useConfirm();
 
   const handleCancel = () => {
     form.resetFields();
     onCancel();
   };
 
+  /**
+   * Validates form → opens context-specific confirmation dialog →
+   * only calls onSubmit when the user explicitly approves.
+   */
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
-      await onSubmit({
-        cmo_id: cmo?.cmo_id,
-        action: values.action,
+      const action = values.action; // "reject" | "kill"
+      const copy = ACTION_CONFIRM_COPY[action];
+
+      confirmAction({
+        title: copy.title,
+        description: copy.description(cmo?.nomor_cmo),
+        okText: copy.okText,
+        danger: true,
+        onConfirm: async () => {
+          await onSubmit({
+            cmo_id: cmo?.cmo_id,
+            action,
+          });
+        },
       });
     } catch {
       /* validation errors surfaced inline by Ant Design */
@@ -90,7 +131,8 @@ export function RejectKillCmoModal({
         <Text className="block text-slate-500 text-sm mb-5 leading-relaxed">
           Pilih aksi yang ingin dilakukan. <strong>Reject</strong> akan
           mengubah status CMO menjadi &ldquo;Rejected by Support&rdquo;.{" "}
-          <strong>Kill</strong> akan mematikan CMO (is_active = N).
+          <strong>Kill</strong> akan mematikan CMO (is_active = N) sekaligus
+          mereject-nya. Anda akan diminta konfirmasi sekali lagi.
         </Text>
 
         <Form
@@ -115,3 +157,4 @@ export function RejectKillCmoModal({
     </Modal>
   );
 }
+

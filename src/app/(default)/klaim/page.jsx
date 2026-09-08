@@ -13,7 +13,7 @@ import {
   ReloadOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import { useKlaim, useDebounce } from "@/hooks";
+import { useKlaim, useDebounce, useConfirm } from "@/hooks";
 import {
   DataTablePanel,
   GenericFormModal,
@@ -251,6 +251,8 @@ export default function KlaimSupportPage() {
     refetchList,
   } = useKlaim();
 
+  const { confirmAction } = useConfirm();
+
   // ── Search State ──
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 400);
@@ -278,16 +280,34 @@ export default function KlaimSupportPage() {
     setIsUpdateModalOpen(false);
   };
 
+  /**
+   * Validates the update form, then shows a contextual confirmation dialog
+   * before dispatching the status-change mutation.
+   */
   const handleUpdateStatusSubmit = async () => {
     try {
       const values = await updateForm.validateFields();
-      await updateStatusKlaim({
-        m_user_id: getUserId(),
-        klaim_id: activeClaimId,
-        kode_status_baru: values.kode_status_baru ?? "",
-        reason: values.reason?.trim() ?? "",
+      const selectedStatus = STATUS_OPTIONS.find(
+        (opt) => opt.value === values.kode_status_baru
+      );
+
+      confirmAction({
+        title: "Konfirmasi Perubahan Status Klaim",
+        description:
+          `Apakah Anda yakin ingin mengubah status klaim ini` +
+          `${selectedStatus ? ` menjadi "${selectedStatus.label}"` : ""}?` +
+          ` Perubahan akan langsung tercatat ke dalam sistem ERP.`,
+        okText: "Ya, Ubah Status",
+        onConfirm: async () => {
+          await updateStatusKlaim({
+            m_user_id: getUserId(),
+            klaim_id: activeClaimId,
+            kode_status_baru: values.kode_status_baru ?? "",
+            reason: values.reason?.trim() ?? "",
+          });
+          closeUpdateModal();
+        },
       });
-      closeUpdateModal();
     } catch {
       // Validation errors are highlighted automatically by Ant Design
     }

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Form, Space, Tooltip } from "antd";
 import { EyeOutlined, CloseCircleOutlined, ReloadOutlined, CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { useFkr, useDebounce } from "@/hooks";
+import { useFkr, useDebounce, useConfirm } from "@/hooks";
 import { getUserId } from "@/utils/storage";
 import {
   DataTablePanel,
@@ -172,6 +172,8 @@ export default function FkrSupportPage() {
     isUploadingPemusnahan,
   } = useFkr();
 
+  const { confirmAction } = useConfirm();
+
   // ── Search State ──
   const [searchValue, setSearchValue] = useState("");
   const debouncedSearch = useDebounce(searchValue, 400);
@@ -204,16 +206,31 @@ export default function FkrSupportPage() {
     setIsRejectModalOpen(false);
   };
 
+  /**
+   * Validates the reject form, then shows a contextual confirmation dialog
+   * specific to FKR rejection before dispatching the mutation.
+   */
   const handleRejectSubmit = async () => {
     try {
       const values = await rejectForm.validateFields();
-      await rejectFkr({
-        fkr_id: activeFkr.id,
-        reason: values.reason?.trim() ?? "",
-        kode_status: "RJC",
-        m_user_id: getUserId(),
+
+      confirmAction({
+        title: "Konfirmasi Reject FKR",
+        description:
+          `Apakah Anda yakin ingin me-reject FKR ${activeFkr.no ? `"${activeFkr.no}"` : "ini"}? ` +
+          `Status akan diubah menjadi REJECTED dan tindakan ini tidak dapat dibatalkan.`,
+        okText: "Ya, Reject FKR",
+        danger: true,
+        onConfirm: async () => {
+          await rejectFkr({
+            fkr_id: activeFkr.id,
+            reason: values.reason?.trim() ?? "",
+            kode_status: "RJC",
+            m_user_id: getUserId(),
+          });
+          closeRejectModal();
+        },
       });
-      closeRejectModal();
     } catch {
       // Validation errors handled by Ant Design
     }
@@ -229,10 +246,22 @@ export default function FkrSupportPage() {
     setActiveFkr({ id: null, no: "" });
   };
 
+  /**
+   * Shows a contextual confirmation dialog before re-uploading an FKR document.
+   */
   const handleReuploadSubmit = async (payload) => {
     try {
-      await reuploadDocument(payload);
-      closeReuploadModal();
+      confirmAction({
+        title: "Konfirmasi Re-Upload Dokumen FKR",
+        description:
+          `Apakah Anda yakin ingin mengganti dokumen FKR ${activeFkr.no ? `"${activeFkr.no}"` : "ini"}? ` +
+          `File dokumen yang lama akan digantikan dengan file baru yang Anda pilih.`,
+        okText: "Ya, Upload Dokumen",
+        onConfirm: async () => {
+          await reuploadDocument(payload);
+          closeReuploadModal();
+        },
+      });
     } catch {
       // Errors surfaced via useNotify in the hook
     }
@@ -243,14 +272,26 @@ export default function FkrSupportPage() {
 
   const closeUploadPemusnahanModal = () => setIsUploadPemusnahanOpen(false);
 
+  /**
+   * Shows a contextual confirmation dialog before submitting the pemusnahan upload.
+   */
   const handleUploadPemusnahanSubmit = async ({ file, reason }) => {
     try {
-      await uploadPemusnahan({
-        file,
-        m_user_id: getUserId(),
-        reason,
+      confirmAction({
+        title: "Konfirmasi Upload Pemusnahan",
+        description:
+          "Apakah Anda yakin ingin mengupload data pemusnahan FKR via file Excel ini? " +
+          "Data akan langsung diproses ke dalam sistem dan tidak dapat dikembalikan.",
+        okText: "Ya, Upload Pemusnahan",
+        onConfirm: async () => {
+          await uploadPemusnahan({
+            file,
+            m_user_id: getUserId(),
+            reason,
+          });
+          closeUploadPemusnahanModal();
+        },
       });
-      closeUploadPemusnahanModal();
     } catch {
       // Errors surfaced via useNotify in the hook
     }

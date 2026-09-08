@@ -9,6 +9,7 @@ import {
   CloseCircleOutlined,
 } from "@ant-design/icons";
 import { useCmoSapCOrderWaitingList } from "@/hooks/queries/useCmoSapCOrderWaitingList";
+import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
 
@@ -40,18 +41,38 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
     resetFilters,
   } = useCmoSapCOrderWaitingList({ onSuccess });
 
+  const { confirmAction } = useConfirm();
+
   const handleClose = () => {
     resetFilters();
     onCancel();
   };
 
+  /**
+   * Shows a contextual confirmation dialog before triggering the SAP C-Order
+   * batch process (pulls XML from SFTP and updates nomor_sap + status).
+   */
   const handleProsesSap = async () => {
     if (!canProcess) return;
-    try {
-      await processSapCOrder();
-    } catch {
-      /* error surfaced via hook notify */
-    }
+
+    const bulanLabel =
+      CMO_BULAN_OPTIONS.find((o) => o.value === filterBulan)?.label || filterBulan;
+
+    confirmAction({
+      title: "Konfirmasi Proses SAP C-Order",
+      description:
+        `Apakah Anda yakin ingin memproses sinkronisasi SAP C-Order untuk periode ` +
+        `${bulanLabel} ${filterTahun}? ` +
+        "Sistem akan menarik balikan XML dari SFTP dan memperbarui No. SAP serta status setiap C-Order.",
+      okText: "Ya, Proses SAP C-Order",
+      onConfirm: async () => {
+        try {
+          await processSapCOrder();
+        } catch {
+          /* error surfaced via hook notify */
+        }
+      },
+    });
   };
 
   // Parse result message for display

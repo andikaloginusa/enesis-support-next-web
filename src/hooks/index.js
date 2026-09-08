@@ -2,9 +2,11 @@ export * from "@/components/layout/AppProvider/hooks";
 export * from "./useAuth";
 export * from "./useDebounce";
 export * from "./useListParams";
+export * from "./useConfirm";
 export * from "./queries/useKlaim";
 export * from "./queries/useFkr";
 export * from "./queries/useProposal";
 export * from "./queries/useCmo";
 export * from "./queries/useCmoSapWaitingList";
 export * from "./queries/useCmoSapCOrderWaitingList";
+
