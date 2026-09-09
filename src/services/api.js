@@ -32,7 +32,8 @@ const createApiClient = (
   };
 
   const request = async (method, endpoint, data = null, customHeaders = {}) => {
-    const url = `${baseURL}${endpoint}`;
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint.slice(1) : endpoint;
+    const url = `${baseURL}${cleanEndpoint}`;
     
     // Inject Authorization header dynamically if requested
     const authHeader = injectAuth ? getAuthHeader() : {};

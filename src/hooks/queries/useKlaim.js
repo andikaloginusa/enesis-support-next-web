@@ -42,8 +42,12 @@ export const useKlaim = () => {
 
   // Mutation: Delete Log Submit
   const deleteMutation = useMutation({
-    mutationFn: async (nomor_klaim) => {
-      const response = await klaimService.deleteLogSubmitKlaim({ nomor_klaim });
+    mutationFn: async (payload) => {
+      const klaim_id =
+        typeof payload === "object" && payload !== null
+          ? payload.klaim_id ?? payload.id
+          : payload;
+      const response = await klaimService.deleteLogSubmitKlaim({ klaim_id });
       assertApiSuccess(response, NOTIF_MESSAGES.DELETE_LOG_ERROR);
       return response;
     },

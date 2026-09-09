@@ -18,10 +18,10 @@ export const KlaimSupportServices = (apiInstance) => {
 
   /**
    * Delete submit log for a specific claim.
-   * @param {Object} data - Payload containing `{ nomor_klaim }`
+   * @param {Object} data - Payload containing `{ klaim_id }`
    */
   const deleteLogSubmitKlaim = (data) =>
-    apiInstance.delete("proposalklaim/deleteLogSubmit", data);
+    apiInstance.delete("support/klaim/delete-log-submit", data);
 
   /**
    * Update claim status dynamically.

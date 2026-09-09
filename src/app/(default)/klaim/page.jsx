@@ -214,7 +214,7 @@ const buildColumns = ({ onEdit, onDelete }) => [
           <Popconfirm
             title="Hapus Log Submit"
             description={`Apakah Anda yakin ingin menghapus log submit klaim ${row.nomor_klaim}?`}
-            onConfirm={() => onDelete(row.nomor_klaim)}
+            onConfirm={() => onDelete(row.klaim_id)}
             okText="Ya, Hapus"
             cancelText="Batal"
             okButtonProps={{ danger: true }}
@@ -313,8 +313,8 @@ export default function KlaimSupportPage() {
     }
   };
 
-  const handleDeleteLogConfirm = async (nomorKlaim) => {
-    await deleteLogSubmit(nomorKlaim);
+  const handleDeleteLogConfirm = async (klaimId) => {
+    await deleteLogSubmit(klaimId);
   };
 
   // ── Column Definitions ──
