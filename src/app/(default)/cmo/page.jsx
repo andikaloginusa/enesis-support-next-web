@@ -113,17 +113,15 @@ const buildColumns = ({ onRejectKill }) => [
     width: 100,
     render: (row) => (
       <Space size="middle">
-        {row.no_sap === null && (
-          <Tooltip title="Reject / Kill CMO">
-            <Button
-              type="primary"
-              danger
-              shape="circle"
-              icon={<CloseCircleOutlined />}
-              onClick={() => onRejectKill(row)}
-            />
-          </Tooltip>
-        )}
+        <Tooltip title="Reject / Kill CMO">
+          <Button
+            type="primary"
+            danger
+            shape="circle"
+            icon={<CloseCircleOutlined />}
+            onClick={() => onRejectKill(row)}
+          />
+        </Tooltip>
       </Space>
     ),
   },
