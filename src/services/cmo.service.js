@@ -17,8 +17,7 @@ export const CmoSupportServices = (apiInstance) => {
    *
    * @param {Object} params - { m_user_id, searchText: "YYYY/KATEGORI/MONTH_ABBREV", currentPage, pageSize }
    */
-  const getFilteredList = (params) =>
-    apiInstance.get("cmo", params);
+  const getFilteredList = (params) => apiInstance.get("cmo", params);
 
   /**
    * Fetch paginated list of CMO records waiting for SAP response.
@@ -35,8 +34,7 @@ export const CmoSupportServices = (apiInstance) => {
    *
    * @param {Object} data - { tahun, bulan, m_user_id }
    */
-  const processSapCMO = (data) =>
-    apiInstance.put("cmo/process-sap-cmo", data);
+  const processSapCMO = (data) => apiInstance.put("cmo/process-sap-cmo", data);
 
   /**
    * Pull SAP return XML for all WAITING C-Order records in a period.
@@ -58,12 +56,12 @@ export const CmoSupportServices = (apiInstance) => {
 
   /**
    * Reject or kill a single CMO record.
-   * POST /cmo/reject-or-kill-cmo
+   * PUT /support/cmo/update/reject-or-kill
    *
    * @param {Object} data - { cmo_id, action: "reject"|"kill", m_user_id }
    */
   const rejectOrKillCMO = (data) =>
-    apiInstance.post("cmo/reject-or-kill-cmo", data);
+    apiInstance.put("support/cmo/update/reject-or-kill", data);
 
   /**
    * Upload a new Excel template and update its version in the database.

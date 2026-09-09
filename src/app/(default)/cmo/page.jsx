@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Space, Tooltip, Select, Typography } from "antd";
+import { Button, Space, Tooltip, Select, Typography, Input, Segmented } from "antd";
 import {
   ReloadOutlined,
   SyncOutlined,
   FileExcelOutlined,
   CloseCircleOutlined,
   RedoOutlined,
+  SearchOutlined,
+  CalendarOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { useCmo, useDebounce } from "@/hooks";
 import { getUserId } from "@/utils/storage";
@@ -149,18 +152,30 @@ export default function CmoSupportPage() {
     isReplacingTemplate,
   } = useCmo();
 
-  // ── Filter State — defaults: tahun & bulan saat ini, kategori CMO ──
+  // ── Filter & Search State ──
   const currentYear = new Date().getFullYear();
   const currentMonth = String(new Date().getMonth() + 1);
+  const [searchMode, setSearchMode] = useState("filter"); // "filter" | "custom"
   const [filterTahun, setFilterTahun] = useState(String(currentYear));
   const [filterBulan, setFilterBulan] = useState(currentMonth);
   const [filterKategori, setFilterKategori] = useState("CMO");
+  const [customSearchText, setCustomSearchText] = useState("");
+
   const debouncedTahun = useDebounce(filterTahun, 400);
   const debouncedBulan = useDebounce(filterBulan, 400);
   const debouncedKategori = useDebounce(filterKategori, 400);
+  const debouncedCustomSearch = useDebounce(customSearchText, 400);
 
-  // Live preview of the searchText being built
-  const previewSearchText = buildSearchText(filterTahun, filterKategori, filterBulan);
+  // Live preview of the searchText being built from dropdown filters
+  const previewFilterSearchText = buildSearchText(filterTahun, filterKategori, filterBulan);
+
+  // Active searchText displayed in UI badge
+  const activeSearchText =
+    searchMode === "custom" ? customSearchText.trim() : previewFilterSearchText;
+
+  useEffect(() => {
+    handleFilterChange("searchMode", searchMode);
+  }, [searchMode, handleFilterChange]);
 
   useEffect(() => {
     handleFilterChange("tahun", debouncedTahun);
@@ -173,6 +188,16 @@ export default function CmoSupportPage() {
   useEffect(() => {
     handleFilterChange("kategori", debouncedKategori);
   }, [debouncedKategori, handleFilterChange]);
+
+  useEffect(() => {
+    handleFilterChange("customSearchText", debouncedCustomSearch);
+  }, [debouncedCustomSearch, handleFilterChange]);
+
+  const handleCustomSearchImmediate = (value) => {
+    const val = value?.trim() ?? "";
+    setCustomSearchText(val);
+    handleFilterChange("customSearchText", val);
+  };
 
   // ── Modal State ──
   const [isReplaceTemplateOpen, setIsReplaceTemplateOpen] = useState(false);
@@ -263,57 +288,142 @@ export default function CmoSupportPage() {
         rowKey="cmo_id"
         filterBar={
           <div className="flex flex-col gap-3">
-            {/* Filter Controls */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <Text className="text-slate-500 text-sm font-medium shrink-0">Filter:</Text>
-              <Select
-                placeholder="Tahun"
-                allowClear
-                value={filterTahun || undefined}
-                onChange={setFilterTahun}
-                options={CMO_TAHUN_OPTIONS}
-                size="middle"
-                className="w-32"
-                showSearch
-                optionFilterProp="label"
-              />
-              <Select
-                placeholder="Bulan"
-                allowClear
-                value={filterBulan || undefined}
-                onChange={setFilterBulan}
-                options={CMO_BULAN_OPTIONS}
-                size="middle"
-                className="w-44"
-                showSearch
-                optionFilterProp="label"
-              />
-              <Select
-                placeholder="Kategori"
-                allowClear
-                value={filterKategori || undefined}
-                onChange={setFilterKategori}
-                options={CMO_KATEGORI_OPTIONS}
-                size="middle"
-                className="w-36"
-                showSearch
-                optionFilterProp="label"
-              />
-            </div>
-            {/* SearchText Preview */}
-            {previewSearchText ? (
+            {/* Mode Switcher & Active searchText Preview */}
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Text className="text-slate-400 text-xs">searchText:</Text>
-                <code className="bg-slate-100 text-slate-600 text-xs font-mono px-2 py-0.5 rounded border border-slate-200">
-                  {previewSearchText}
-                </code>
+                <Text className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                  Mode Pencarian:
+                </Text>
+                <Segmented
+                  value={searchMode}
+                  onChange={(val) => {
+                    setSearchMode(val);
+                    handleFilterChange("searchMode", val);
+                    if (val === "filter") {
+                      setCustomSearchText("");
+                      handleFilterChange("customSearchText", "");
+                    }
+                  }}
+                  options={[
+                    {
+                      label: "Filter Periode",
+                      value: "filter",
+                      icon: <CalendarOutlined />,
+                    },
+                    {
+                      label: "Nomor CMO / Kustom",
+                      value: "custom",
+                      icon: <SearchOutlined />,
+                    },
+                  ]}
+                  className="bg-slate-100 p-0.5 rounded-lg text-xs"
+                />
+              </div>
+
+              {/* SearchText Preview Tag */}
+              {activeSearchText ? (
+                <div className="flex items-center gap-2">
+                  <Text className="text-slate-400 text-xs font-medium">searchText:</Text>
+                  <code className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-mono px-2 py-0.5 rounded font-semibold">
+                    {activeSearchText}
+                  </code>
+                  {searchMode === "filter" && (
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={() => {
+                        setCustomSearchText(previewFilterSearchText);
+                        setSearchMode("custom");
+                        handleFilterChange("searchMode", "custom");
+                        handleFilterChange("customSearchText", previewFilterSearchText);
+                      }}
+                      className="text-emerald-600 p-0 h-auto text-xs hover:text-emerald-700"
+                    >
+                      Kustomisasi
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <Text className="text-amber-500 text-xs italic">
+                  {searchMode === "custom"
+                    ? "Ketik nomor CMO atau searchText untuk mencari data"
+                    : "Pilih tahun, bulan, dan kategori untuk memuat data"}
+                </Text>
+              )}
+            </div>
+
+            {/* Mode Controls */}
+            {searchMode === "filter" ? (
+              <div className="flex items-center gap-3 flex-wrap pt-1">
+                <Text className="text-slate-500 text-sm font-medium shrink-0">Filter:</Text>
+                <Select
+                  placeholder="Tahun"
+                  allowClear
+                  value={filterTahun || undefined}
+                  onChange={setFilterTahun}
+                  options={CMO_TAHUN_OPTIONS}
+                  size="middle"
+                  className="w-32"
+                  showSearch
+                  optionFilterProp="label"
+                />
+                <Select
+                  placeholder="Bulan"
+                  allowClear
+                  value={filterBulan || undefined}
+                  onChange={setFilterBulan}
+                  options={CMO_BULAN_OPTIONS}
+                  size="middle"
+                  className="w-44"
+                  showSearch
+                  optionFilterProp="label"
+                />
+                <Select
+                  placeholder="Kategori"
+                  allowClear
+                  value={filterKategori || undefined}
+                  onChange={setFilterKategori}
+                  options={CMO_KATEGORI_OPTIONS}
+                  size="middle"
+                  className="w-36"
+                  showSearch
+                  optionFilterProp="label"
+                />
               </div>
             ) : (
-              <Text className="text-slate-400 text-xs italic">
-                Pilih tahun, bulan, dan kategori untuk memuat data
-              </Text>
+              <div className="flex items-center gap-3 flex-wrap pt-1">
+                <Input.Search
+                  placeholder="Masukkan nomor CMO lengkap (contoh: 2026/CMO/01/0001) atau kustom searchText..."
+                  value={customSearchText}
+                  onChange={(e) => setCustomSearchText(e.target.value)}
+                  onSearch={handleCustomSearchImmediate}
+                  enterButton="Cari"
+                  allowClear
+                  size="middle"
+                  className="w-full max-w-xl"
+                />
+                <Button
+                  type="default"
+                  size="middle"
+                  onClick={() => {
+                    setCustomSearchText("");
+                    setSearchMode("filter");
+                    handleFilterChange("searchMode", "filter");
+                    handleFilterChange("customSearchText", "");
+                  }}
+                  className="rounded-xl text-slate-500 hover:text-slate-700"
+                >
+                  Kembali ke Filter Periode
+                </Button>
+              </div>
             )}
           </div>
+        }
+        emptyText={
+          searchMode === "custom" && !customSearchText.trim()
+            ? "Silakan masukkan nomor CMO lengkap atau kata kunci pencarian pada kolom pencarian di atas untuk memuat data."
+            : "Tidak ada data yang cocok dengan pencarian Anda."
         }
         pagination={{
           total: totalCount,

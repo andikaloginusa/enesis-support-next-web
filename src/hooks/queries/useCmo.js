@@ -40,11 +40,18 @@ export const useCmo = (initialParams = {}) => {
     tahun: "",
     bulan: "",
     kategori: "",
+    searchMode: "filter",
+    customSearchText: "",
     ...initialParams,
   });
 
-  // Build searchText from the three combined filters: tahun/kategori/bulan_abbrev
-  const searchText = buildSearchText(params.tahun, params.kategori, params.bulan);
+  // Determine active searchText:
+  // - "custom": uses customSearchText (e.g. full nomor CMO)
+  // - "filter" (default): generates from dropdown filters (tahun/kategori/bulan_abbrev)
+  const searchText =
+    params.searchMode === "custom"
+      ? (params.customSearchText?.trim() ?? "")
+      : buildSearchText(params.tahun, params.kategori, params.bulan);
 
   // Query: Filtered CMO List via searchText endpoint
   const {
@@ -65,7 +72,7 @@ export const useCmo = (initialParams = {}) => {
       if (response.ok) return response.data;
       return { results: [], meta: { count: 0 } };
     },
-    // Only run the query when all three filters are selected
+    // Only run the query when searchText is present
     enabled: Boolean(searchText),
     placeholderData: (prev) => prev,
   });
@@ -204,6 +211,7 @@ export const useCmo = (initialParams = {}) => {
 
     // Params & Handlers
     params,
+    searchText,
     handlePaginationChange,
     handleFilterChange,
 
