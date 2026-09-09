@@ -17,11 +17,17 @@ export const KlaimSupportServices = (apiInstance) => {
     apiInstance.get("proposalklaim/list", params);
 
   /**
-   * Delete submit log for a specific claim.
-   * @param {Object} data - Payload containing `{ klaim_id }`
+   * Delete submit log for a specific claim via query parameter.
+   * DELETE /support/klaim/delete-log-submit?klaim_id=...
+   * @param {Object|string|number} params - Query params containing `{ klaim_id }` or raw klaim_id
    */
-  const deleteLogSubmitKlaim = (data) =>
-    apiInstance.delete("support/klaim/delete-log-submit", data);
+  const deleteLogSubmitKlaim = (params) => {
+    const query =
+      typeof params === "object" && params !== null
+        ? params
+        : { klaim_id: params };
+    return apiInstance.delete("support/klaim/delete-log-submit", query);
+  };
 
   /**
    * Update claim status dynamically.

@@ -46,13 +46,13 @@ const createApiClient = (
     let fetchUrl = url;
 
     if (data) {
-      if (method === "GET") {
-        // Append query parameters for GET requests, maintaining raw slash characters and standard %20 for spaces
+      if (method === "GET" || method === "DELETE") {
+        // Append query parameters for GET and DELETE requests, maintaining raw slash characters and standard %20 for spaces
         const params = new URLSearchParams(data)
           .toString()
           .replace(/%2F/gi, "/")
           .replace(/\+/g, "%20");
-        fetchUrl = `${url}?${params}`;
+        fetchUrl = url.includes("?") ? `${url}&${params}` : `${url}?${params}`;
       } else {
         // Add JSON body for other requests
         options.body = JSON.stringify(data);
