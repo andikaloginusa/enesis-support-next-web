@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
-import { Form, Modal, Typography, App, Button } from "antd";
+import React, { useCallback, useRef, useState } from "react";
+import { Form, Modal, Typography, App, Button, Input, Upload } from "antd";
 import { InboxOutlined, DownloadOutlined } from "@ant-design/icons";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
@@ -84,13 +84,7 @@ export function buildPemusnahanFields({ onFileChange }) {
       type: "text",
       placeholder: "Masukkan nomor WO",
       rules: [
-        { required: true, message: "Nomor WO wajib diisi." },
-        {
-          validator: (_, value) =>
-            value && value.trim().length > 0
-              ? Promise.resolve()
-              : Promise.reject(new Error("Nomor WO tidak boleh kosong.")),
-        },
+        { required: true, whitespace: true, message: "Nomor WO wajib diisi." },
       ],
     },
   ];
@@ -153,9 +147,6 @@ function InboxDragger({ value, onChange, beforeUpload, placeholder, hint }) {
     />
   );
 }
-
-import { Upload } from "antd";
-import { useState } from "react";
 
 function InboxDraggerInner({ fileList, onFileListChange, beforeUpload, placeholder, hint }) {
   const [internalList, setInternalList] = useState(fileList);
@@ -357,9 +348,7 @@ export function UploadPemusnahanModal({
 
 // ─── Input Field Renderer ─────────────────────────────────────────────────────
 
-import { Input } from "antd";
-
-function InputFieldForForm({ field }) {
+function InputFieldForForm({ field, ...props }) {
   return (
     <Input
       placeholder={field.placeholder}
@@ -367,6 +356,7 @@ function InputFieldForForm({ field }) {
       className="rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors"
       maxLength={field.maxLength}
       readOnly={field.readOnly}
+      {...props}
     />
   );
 }
