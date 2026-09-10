@@ -189,7 +189,7 @@ const buildColumns = ({ onEdit, onDelete }) => [
   {
     title: "Status",
     key: "status",
-    width: 130,
+    width: 210,
     align: "center",
     render: (row) => <KlaimStatusCell status={row.status} />,
   },
@@ -342,6 +342,7 @@ export default function KlaimSupportPage() {
         dataSource={klaimList}
         loading={isListFetching}
         rowKey="klaim_id"
+        scrollX={1850}
         pagination={{
           total: totalCount,
           pageSize: params.pageSize,
