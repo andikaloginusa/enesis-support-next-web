@@ -78,7 +78,7 @@ export const ListFKRApprovalServices = (apiInstance) => {
     formData.append("excel", file);
     formData.append("m_user_id", m_user_id);
     formData.append("reason", reason);
-    return authFetch("POST", "support/fkr/upload-allowed", {
+    return authFetch("PUT", "support/fkr/update/start-pemusnahan", {
       body: formData,
     });
   };
