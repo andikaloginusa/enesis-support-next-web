@@ -5,7 +5,7 @@ import { getUserId } from "@/utils/storage";
 import { queryKeys } from "@/lib/queryKeys";
 import { assertApiSuccess, extractResponseData } from "@/utils/errorHelpers";
 import { NOTIF_MESSAGES, API_LABELS } from "@/utils/constants";
-import { useNotify, NOTIF_DURATION_MEDIUM } from "@/utils/notify";
+import { useNotify, NOTIF_DURATION_MEDIUM, NOTIF_DURATION_LONG } from "@/utils/notify";
 import { useListParams } from "@/hooks/useListParams";
 
 /**
@@ -200,10 +200,19 @@ export const useFkr = (fkrId = null) => {
       return response;
     },
     onSuccess: (response) => {
-      const count = response?.data?.updated_count ?? 0;
+      const resData = response?.data;
+      const count = Array.isArray(resData?.data)
+        ? resData.data.length
+        : (typeof resData?.updated_count === "number" ? resData.updated_count : null);
+
+      let description = resData?.message || "Data pemusnahan berhasil diproses.";
+      if (count !== null && count > 0) {
+        description = `${description} (${count} data FKR diproses)`;
+      }
+
       notifySuccess(
         NOTIF_MESSAGES.UPLOAD_PEMUSNAHAN_SUCCESS,
-        `${count} baris data berhasil diproses.`,
+        description,
         NOTIF_DURATION_LONG,
       );
       queryClient.invalidateQueries({ queryKey: queryKeys.fkr.all() });
