@@ -6,8 +6,6 @@ import {
   Modal,
   Button,
   Typography,
-  App,
-  Upload,
 } from "antd";
 import {
   DownloadOutlined,

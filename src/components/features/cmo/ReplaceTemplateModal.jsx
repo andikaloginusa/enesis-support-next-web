@@ -2,10 +2,11 @@
 
 import React, { useState, useCallback } from "react";
 import { Form, Modal, Select, Input, Typography } from "antd";
+import { ExcelUploadField } from "@/components/ui/ExcelUpload";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 import { CMO_TIPE_TEMPLATE_OPTIONS } from "@/config/cmoConfig";
 import { useConfirm } from "@/hooks/useConfirm";
-import { validateExcelFile, EXCEL_ALLOWED_EXTS } from "@/components/ui/ExcelUpload";
+import { validateExcelFile } from "@/components/ui/ExcelUpload";
 
 const { Text } = Typography;
 

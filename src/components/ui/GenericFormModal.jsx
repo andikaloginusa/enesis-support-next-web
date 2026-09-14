@@ -39,7 +39,7 @@ const inputClassName = (field) => {
  * @param {unknown} props.value   - Current field value
  * @param {Function} props.onChange - Called with the new value
  */
-function FieldRenderer({ field, value, onChange }) {
+export function FieldRenderer({ field, value, onChange }) {
   const brandStyle = { "--brand": BRAND_FOCUS_COLOR };
   const { notification } = App.useApp();
 
