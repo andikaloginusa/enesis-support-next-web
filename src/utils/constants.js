@@ -130,6 +130,12 @@ export const NOTIF_MESSAGES = {
   FETCH_PROPOSAL_ERROR: "Gagal mengambil daftar proposal",
   FETCH_PROPOSAL_DETAIL_ERROR: "Gagal mengambil detail proposal",
 
+  // Proposal SAP Mass Upload
+  SAP_MASS_UPDATE_SUCCESS: "Mass Update Proposal dari SAP Berhasil",
+  SAP_MASS_UPDATE_ERROR: "Gagal Mass Update Proposal dari SAP",
+  SAP_MASS_UPDATE_DUPLICATE_WARNING: "Terdapat data WBS_NUMBER yang duplikat",
+  SAP_MASS_UPDATE_NOT_FOUND_ERROR: "Terdapat data yang tidak ditemukan di sistem",
+
   // Generic fallbacks
   GENERIC_SUCCESS: "Operasi berhasil",
   GENERIC_ERROR: "Terjadi kesalahan. Silakan coba lagi.",

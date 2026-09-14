@@ -51,6 +51,8 @@ export const queryKeys = {
     detail: (id) => ["proposal", "detail", id],
     /** Fixed key for approval candidates list (API returns all without jabatan filter) */
     candidates: () => ["proposal", "candidates"],
+    /** Matches the SAP mass upload result */
+    sapMassUpload: () => ["proposal", "sap-mass-upload"],
   },
 
   // ─────────────────────────────────────────────

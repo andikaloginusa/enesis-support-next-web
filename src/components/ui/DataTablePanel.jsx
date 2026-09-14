@@ -3,9 +3,24 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Card, Table, Input, Typography } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { SearchOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SUBTITLE_COLOR_MAP = {
+  success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  warning:  "bg-amber-50    text-amber-700    border-amber-200",
+  error:    "bg-rose-50    text-rose-700    border-rose-200",
+  info:     "bg-blue-50    text-blue-700     border-blue-200",
+  count:    "bg-slate-100  text-slate-600    border-slate-200",
+  badge:    "bg-emerald-50 text-emerald-700  border-emerald-200",
+};
+
+const DEFAULT_SUBTITLE_CLASS = SUBTITLE_COLOR_MAP.count;
 
 /**
  * Enhanced Declarative DataTable Panel Component
@@ -32,8 +47,8 @@ const { Title, Text } = Typography;
 export const DataTablePanel = ({
   title,
   description,
-  subtitle,           // Optional badge/count next to title
-  subtitleVariant,    // "count" | "badge" | "success" | "warning" | "error"
+  subtitle,
+  subtitleVariant = "count",
   columns = [],
   dataSource = [],
   loading = false,
@@ -41,18 +56,17 @@ export const DataTablePanel = ({
   pagination = {},
   searchProps = {},
   extraHeaderActions = null,
-  filterBar = null,   // Custom filter row (e.g. tahun/bulan selects)
+  filterBar = null,
   scrollX = 1600,
   emptyText = "Tidak ada data yang cocok dengan pencarian Anda.",
 }) => {
-  const subtitleColorMap = {
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    warning: "bg-amber-50 text-amber-700 border-amber-200",
-    error: "bg-rose-50 text-rose-700 border-rose-200",
-    info: "bg-blue-50 text-blue-700 border-blue-200",
-    count: "bg-slate-100 text-slate-600 border-slate-200",
-    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  };
+  const {
+    placeholder: searchPlaceholder = "Cari data...",
+    value: searchValue,
+    onChange: onSearchChange,
+  } = searchProps;
+
+  const subtitleClass = SUBTITLE_COLOR_MAP[subtitleVariant] ?? DEFAULT_SUBTITLE_CLASS;
 
   return (
     <div className="space-y-5 max-w-full">
@@ -66,12 +80,10 @@ export const DataTablePanel = ({
             >
               {title}
             </Title>
+
             {subtitle !== undefined && (
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
-                  subtitleColorMap[subtitleVariant] ||
-                  subtitleColorMap.count
-                }`}
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${subtitleClass}`}
               >
                 {subtitleVariant === "count" ? (
                   <>
@@ -84,6 +96,7 @@ export const DataTablePanel = ({
               </span>
             )}
           </div>
+
           {description && (
             <Text className="text-slate-400 text-xs leading-relaxed">
               {description}
@@ -105,17 +118,18 @@ export const DataTablePanel = ({
 
         {/* Search + Actions Row */}
         <div className="flex items-center gap-3 flex-wrap mb-0">
-          {searchProps && searchProps.onChange && (
+          {onSearchChange && (
             <Input
-              placeholder={searchProps.placeholder || "Cari data..."}
+              placeholder={searchPlaceholder}
               prefix={<SearchOutlined className="text-slate-400" />}
               allowClear
-              value={searchProps.value}
-              onChange={(e) => searchProps.onChange(e.target.value)}
+              value={searchValue}
+              onChange={(e) => onSearchChange(e.target.value)}
               className="w-80 max-w-full rounded-xl border-slate-200 hover:border-emerald-400 focus:border-emerald-500 transition-colors"
               size="middle"
             />
           )}
+
           <div className="flex-1" />
           {extraHeaderActions}
         </div>
@@ -129,9 +143,9 @@ export const DataTablePanel = ({
           pagination={
             pagination
               ? {
-                  total: pagination.total || 0,
-                  pageSize: pagination.pageSize || 10,
-                  current: pagination.current || 1,
+                  total:          pagination.total    ?? 0,
+                  pageSize:       pagination.pageSize ?? 10,
+                  current:        pagination.current  ?? 1,
                   showSizeChanger: true,
                   pageSizeOptions: ["10", "20", "50", "100"],
                   showTotal: (total, range) =>
@@ -142,8 +156,7 @@ export const DataTablePanel = ({
               : false
           }
           onChange={(pag) =>
-            pagination.onChange &&
-            pagination.onChange(pag.current, pag.pageSize)
+            pagination.onChange?.(pag.current, pag.pageSize)
           }
           scroll={{ x: scrollX }}
           locale={{
@@ -204,18 +217,13 @@ DataTablePanel.propTypes = {
   description: PropTypes.string,
   subtitle: PropTypes.node,
   subtitleVariant: PropTypes.oneOf([
-    "count",
-    "badge",
-    "success",
-    "warning",
-    "error",
-    "info",
+    "count", "badge", "success", "warning", "error", "info",
   ]),
-  columns: PropTypes.array.isRequired,
-  dataSource: PropTypes.array,
-  loading: PropTypes.bool,
-  rowKey: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-  pagination: PropTypes.shape({
+  columns:       PropTypes.array.isRequired,
+  dataSource:    PropTypes.array,
+  loading:       PropTypes.bool,
+  rowKey:        PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+  pagination:    PropTypes.shape({
     total: PropTypes.number,
     pageSize: PropTypes.number,
     current: PropTypes.number,

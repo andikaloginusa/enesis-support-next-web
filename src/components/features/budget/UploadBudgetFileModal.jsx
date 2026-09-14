@@ -1,22 +1,37 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
-import { Modal, Button, Typography, Upload, message, Space } from "antd";
+import {
+  Modal,
+  Button,
+  Typography,
+  App,
+  Upload,
+} from "antd";
 import {
   DownloadOutlined,
-  InboxOutlined,
   FileExcelOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 import { useConfirm } from "@/hooks/useConfirm";
+import { ExcelUploadField } from "@/components/ui/ExcelUpload";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
+
+const ACCENT_COLORS = {
+  emerald: "#1aac32",
+  blue: "#2563eb",
+};
 
 /**
  * UploadBudgetFileModal
  *
  * Reusable modal for uploading Add Budget or Move Budget Excel spreadsheets.
- * Includes direct download link for the respective Excel template and useConfirm dialog.
+ * Includes a direct download link for the respective Excel template and
+ * a `useConfirm` dialog before submitting.
+ *
+ * Now uses the shared `ExcelUploadField` component for clean, DRY upload UI.
  */
 export function UploadBudgetFileModal({
   open,
@@ -29,62 +44,54 @@ export function UploadBudgetFileModal({
   isUploading = false,
   confirmDescription = "Apakah Anda yakin ingin memproses file ini?",
   actionLabel = "Upload Sekarang",
-  accentColor = "emerald", // "emerald" | "blue"
+  accentColor = "emerald",
 }) {
   const { confirmAction } = useConfirm();
-  const [fileList, setFileList] = useState([]);
+  const { notification } = App.useApp();
+  const [selectedFile, setSelectedFile] = React.useState(null);
+  const [fileError, setFileError] = React.useState("");
 
+  // Reset on close — always fresh state when reopened
   useEffect(() => {
     if (!open) {
-      setFileList([]);
+      setSelectedFile(null);
+      setFileError("");
     }
   }, [open]);
 
   const handleSubmit = () => {
-    if (fileList.length === 0) {
-      message.warning("Silakan pilih file Excel (.xlsx) terlebih dahulu!");
+    if (!selectedFile) {
+      setFileError("Silakan pilih file Excel (.xlsx) terlebih dahulu!");
       return;
     }
-
-    const file = fileList[0];
 
     confirmAction({
       title: `Konfirmasi ${title}`,
       description: confirmDescription,
       okText: `Ya, ${actionLabel}`,
       onConfirm: async () => {
-        await onUpload(file);
+        await onUpload(selectedFile);
         onClose();
       },
     });
   };
 
-  const uploadProps = {
-    accept: ".xlsx",
-    maxCount: 1,
-    beforeUpload: (file) => {
-      const isXlsx =
-        file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-        file.name.endsWith(".xlsx");
-      if (!isXlsx) {
-        message.error("Hanya file Excel .xlsx yang diperbolehkan!");
-        return Upload.LIST_IGNORE;
-      }
-      setFileList([file]);
-      return false;
-    },
-    onRemove: () => {
-      setFileList([]);
-    },
-    fileList,
+  const handleFileChange = (file) => {
+    if (!file) {
+      setSelectedFile(null);
+      setFileError("File tidak valid.");
+      return;
+    }
+    setSelectedFile(file);
+    setFileError("");
   };
 
-  const btnBg = accentColor === "blue" ? "#2563eb" : "#1aac32";
+  const btnBg = ACCENT_COLORS[accentColor] ?? ACCENT_COLORS.emerald;
 
   return (
     <Modal
       title={
-        <div className="flex items-center gap-2 text-slate-800 font-semibold text-base">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-base pb-3 border-b border-slate-100">
           <FileExcelOutlined style={{ color: btnBg }} />
           <span>{title}</span>
         </div>
@@ -98,14 +105,21 @@ export function UploadBudgetFileModal({
       destroyOnHidden
       width={500}
       okButtonProps={{
+        size: "large",
+        disabled: isUploading,
         style: {
           backgroundColor: btnBg,
           borderColor: btnBg,
         },
+        className: "rounded-lg font-medium hover:opacity-90",
       }}
+      cancelButtonProps={{ size: "large", className: "rounded-lg" }}
+      className="[&_.ant-modal-content]:rounded-xl"
     >
-      <div className="py-2 space-y-4">
-        <Text className="text-slate-500 text-sm block">
+      <div className="py-4 space-y-4">
+
+        {/* Description */}
+        <Text className="text-slate-500 text-sm block leading-relaxed">
           {description}
         </Text>
 
@@ -115,36 +129,39 @@ export function UploadBudgetFileModal({
             <div className="flex items-center gap-2.5">
               <FileExcelOutlined className="text-emerald-600 text-lg" />
               <div>
-                <Text className="text-xs text-slate-500 block">Belum punya template?</Text>
-                <Text className="text-xs font-semibold text-slate-700">{templateFilename}</Text>
+                <Text className="text-xs text-slate-500 block">
+                  Belum punya template?
+                </Text>
+                <Text className="text-xs font-semibold text-slate-700">
+                  {templateFilename}
+                </Text>
               </div>
             </div>
-            <Button
-              size="small"
-              icon={<DownloadOutlined />}
+            <a
               href={templateUrl}
               download={templateFilename}
-              className="text-xs border-slate-300 text-slate-600 hover:text-emerald-600 hover:border-emerald-600"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              Unduh Template
-            </Button>
+              <Button
+                size="small"
+                icon={<DownloadOutlined />}
+                className="text-xs border-slate-300 text-slate-600 hover:border-emerald-600 hover:text-emerald-600"
+              >
+                Unduh Template
+              </Button>
+            </a>
           </div>
         )}
 
-        {/* Drop Zone */}
-        <div>
-          <Upload.Dragger {...uploadProps} className="p-4 bg-slate-50 border-dashed border-slate-300 rounded-xl">
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined style={{ color: btnBg, fontSize: 32 }} />
-            </p>
-            <p className="ant-upload-text text-sm font-medium text-slate-700">
-              Klik atau tarik file Excel ke sini
-            </p>
-            <p className="ant-upload-hint text-xs text-slate-400">
-              Format wajib .xlsx sesuai panduan template
-            </p>
-          </Upload.Dragger>
-        </div>
+        {/* Upload Field */}
+        <ExcelUploadField
+          value={selectedFile}
+          onChange={handleFileChange}
+          error={fileError}
+          placeholder="Klik atau tarik file Excel ke sini"
+          hint="Format wajib .xlsx sesuai panduan template · Maks. 50 MB"
+        />
       </div>
     </Modal>
   );
@@ -161,5 +178,5 @@ UploadBudgetFileModal.propTypes = {
   isUploading: PropTypes.bool,
   confirmDescription: PropTypes.string,
   actionLabel: PropTypes.string,
-  accentColor: PropTypes.string,
+  accentColor: PropTypes.oneOf(["emerald", "blue"]),
 };

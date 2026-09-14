@@ -67,6 +67,21 @@ export const ProposalSupportServices = (apiInstance) => {
     return authFetch("POST", "support/proposal/upload/reversal-internasional", { body: formData });
   };
 
+  /**
+   * Mass Update Proposal from SAP — Upload Excel file with update_type and parameter_where_type.
+   * @param {File} file - Excel file selected by the user
+   * @param {Object} meta - Upload metadata: { m_user_id, reason, update_type, parameter_where_type }
+   */
+  const massUpdateProposalFromSap = async (file, meta) => {
+    const formData = new FormData();
+    formData.append("excel", file);
+    formData.append("m_user_id", meta.m_user_id);
+    formData.append("reason", meta.reason);
+    formData.append("update_type", meta.update_type);
+    formData.append("parameter_where_type", meta.parameter_where_type);
+    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap", { body: formData });
+  };
+
   return {
     getListProposal,
     getDetailProposal,
@@ -75,6 +90,7 @@ export const ProposalSupportServices = (apiInstance) => {
     getListUserApprovalProposal,
     uploadSendEmailUlang,
     uploadReversalInternasional,
+    massUpdateProposalFromSap,
   };
 };
 

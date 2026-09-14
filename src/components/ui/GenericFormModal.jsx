@@ -10,24 +10,38 @@ import { validateDocumentFile } from "@/utils/documentValidation";
 const { Text } = Typography;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Field Renderer — pure, no side effects
+// Shared Input Class Helper
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Renders the correct input component based on field type.
- * Each type maps to one Ant Design component with consistent styling.
+ * Returns the CSS class string for Ant Design inputs that need brand hover/focus.
+ * Excludes select, switch, toggle, and upload types.
+ *
+ * @param {{ type: string }} field
+ * @returns {string | undefined}
  */
-export function FieldRenderer({ field, value, onChange }) {
-  // Use CSS variable — Tailwind arbitrary values (e.g. border-[var(--brand)]) are valid
-  // but runtime template interpolation like `border-[${BRAND_FOCUS_COLOR}]` breaks PurgeCSS.
-  // Solution: use a CSS variable defined via style prop instead of a Tailwind class.
+const inputClassName = (field) => {
+  const skipTypes = new Set(["select", "switch", "toggle", "upload"]);
+  if (skipTypes.has(field.type)) return undefined;
+  return "rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors";
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Field Renderer
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Renders the correct Ant Design input based on field type.
+ * Each type maps to one component with consistent brand-aware styling.
+ *
+ * @param {Object} props
+ * @param {Object}  props.field   - Field schema definition
+ * @param {unknown} props.value   - Current field value
+ * @param {Function} props.onChange - Called with the new value
+ */
+function FieldRenderer({ field, value, onChange }) {
   const brandStyle = { "--brand": BRAND_FOCUS_COLOR };
   const { notification } = App.useApp();
-
-  const inputClassName = (field) =>
-    field.type !== "select" && field.type !== "switch" && field.type !== "toggle"
-      ? "rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors"
-      : undefined;
 
   switch (field.type) {
     case "textarea":
@@ -53,7 +67,7 @@ export function FieldRenderer({ field, value, onChange }) {
           disabled={field.disabled}
           value={value}
           onChange={onChange}
-          className="w-full rounded-lg [&_.ant-select-selector]:rounded-lg"
+          className="w-full [&_.ant-select-selector]:rounded-lg"
           size="large"
           allowClear
           showSearch
@@ -125,21 +139,24 @@ export function FieldRenderer({ field, value, onChange }) {
           maxCount={1}
           fileList={fileList}
           beforeUpload={(file) => {
-            // Resolve the document type at the moment of upload, not from a
-            // captured prop — captures go stale when the user picks the type
-            // and the file in rapid succession.
-            const type = typeof field.getDocumentType === "function"
-              ? field.getDocumentType()
-              : field.documentType;
+            // Resolve document type at the moment of upload — avoids stale closures
+            // when the user picks a type and then picks a file in quick succession.
+            const type =
+              typeof field.getDocumentType === "function"
+                ? field.getDocumentType()
+                : field.documentType;
             const result = validateDocumentFile(file, type);
             if (!result.ok) {
-              notification.error({ title: "File tidak valid", description: result.message });
+              notification.error({
+                title: "File tidak valid",
+                description: result.message,
+              });
               return Upload.LIST_IGNORE;
             }
-            return false; // Hold file in form — actual upload happens on form submit
+            return false; // hold — actual upload happens on form submit
           }}
           onChange={(info) => {
-            const next = info.fileList.slice(-1); // keep only the latest file
+            const next = info.fileList.slice(-1); // keep only latest file
             onChange(next);
             if (field.onFileChange) field.onFileChange(next);
           }}
@@ -151,9 +168,9 @@ export function FieldRenderer({ field, value, onChange }) {
           disabled={field.disabled}
         >
           <p className="ant-upload-drag-icon">
-            <InboxOutlined className="text-emerald-600" />
+            <InboxOutlined className="text-emerald-600 text-2xl" />
           </p>
-          <p className="ant-upload-text font-semibold text-slate-700">
+          <p className="ant-upload-text font-semibold text-slate-700 text-sm">
             {field.placeholder || "Klik atau seret file ke sini untuk unggah"}
           </p>
           <p className="ant-upload-hint text-slate-400 text-xs">
@@ -187,20 +204,20 @@ export function FieldRenderer({ field, value, onChange }) {
 /**
  * Generic Declarative Form Modal Component
  *
- * Manages modal display, vertical form layout, and field input mapping.
- * Field schema drives rendering — adding a new field type only requires
- * updating FieldRenderer, not this component.
+ * Renders a modal form driven entirely by a `fields` schema array.
+ * Adding a new field type only requires updating `FieldRenderer`.
  *
  * @example
  * <GenericFormModal
  *   title="Reject Item"
+ *   description="Mohon isi alasan penolakan."
  *   open={isOpen}
  *   form={rejectForm}
  *   onOk={handleSubmit}
  *   onCancel={handleClose}
  *   fields={[
  *     { name: "reason", label: "Alasan", type: "textarea", rules: [{ required: true }] },
- *     { name: "nik", label: "NIK", type: "number" },
+ *     { name: "nik",   label: "NIK",    type: "number" },
  *   ]}
  * />
  */
@@ -221,7 +238,7 @@ export const GenericFormModal = ({
   return (
     <Modal
       title={
-        <div className="text-slate-800 font-bold text-lg border-b border-slate-100 pb-3">
+        <div className="text-slate-800 font-bold text-base pb-3 border-b border-slate-100">
           {title}
         </div>
       }
@@ -231,27 +248,37 @@ export const GenericFormModal = ({
       onCancel={onCancel}
       okText={okText}
       cancelText={cancelText}
-      okButtonProps={{ size: "large", className: "rounded-lg", ...okButtonProps }}
+      okButtonProps={{ size: "large", className: "rounded-lg font-medium", ...okButtonProps }}
       cancelButtonProps={{ size: "large", className: "rounded-lg", ...cancelButtonProps }}
-      className="rounded-xl overflow-hidden"
+      className="[&_.ant-modal-content]:rounded-xl"
+      destroyOnHidden
     >
-      <div className="py-4">
+      <div className="py-4 space-y-4">
         {description && (
-          <Text className="block text-slate-500 text-sm mb-4 leading-relaxed">
+          <Text className="text-slate-500 text-sm leading-relaxed block">
             {description}
           </Text>
         )}
-        <Form form={form} layout="vertical">
+
+        <Form
+          form={form}
+          layout="vertical"
+          style={{ "--brand": BRAND_FOCUS_COLOR }}
+        >
           {fields.map((field) => (
             <Form.Item
-              key={field.name} // Stable key — field.name is unique and required
+              key={field.name}
               name={field.name}
               label={
                 field.label && (
                   <Text className="font-semibold text-slate-700">{field.label}</Text>
                 )
               }
-              valuePropName={field.type === "switch" || field.type === "toggle" ? "checked" : "value"}
+              valuePropName={
+                field.type === "switch" || field.type === "toggle"
+                  ? "checked"
+                  : "value"
+              }
               getValueFromEvent={
                 field.type === "switch" || field.type === "toggle"
                   ? (checked) => checked

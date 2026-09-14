@@ -1,120 +1,23 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
-import { Form, Modal, Select, Input, Typography, App } from "antd";
-import { InboxOutlined } from "@ant-design/icons";
+import React, { useState, useCallback } from "react";
+import { Form, Modal, Select, Input, Typography } from "antd";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 import { CMO_TIPE_TEMPLATE_OPTIONS } from "@/config/cmoConfig";
 import { useConfirm } from "@/hooks/useConfirm";
+import { validateExcelFile, EXCEL_ALLOWED_EXTS } from "@/components/ui/ExcelUpload";
 
 const { Text } = Typography;
 
-// ─── Validation constants ──────────────────────────────────────────────────────
-
-const ALLOWED_EXTS = [".xlsx"];
-const MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+const ALLOWED_EXTS = [".xlsx"]; // Template only accepts .xlsx
 
 /**
  * Validate an Excel .xlsx file for the template upload.
  * @param {File} file
  * @returns {{ ok: boolean, message?: string }}
  */
-function validateExcelFile(file) {
-  if (!file) return { ok: false, message: "File tidak ditemukan." };
-
-  const ext = (() => {
-    const idx = file.name.lastIndexOf(".");
-    return idx < 0 ? "" : file.name.slice(idx).toLowerCase();
-  })();
-
-  if (!ALLOWED_EXTS.includes(ext)) {
-    return {
-      ok: false,
-      message: `Format file tidak didukung. Hanya file ${ALLOWED_EXTS.join(", ")} yang diterima.`,
-    };
-  }
-
-  if (file.size > MAX_SIZE_BYTES) {
-    return { ok: false, message: "Ukuran file melebihi batas maksimum (50 MB)." };
-  }
-
-  return { ok: true };
-}
-
-// ─── Excel Upload Field ───────────────────────────────────────────────────────
-
-/**
- * Renders the Excel drag-and-drop upload zone using a hidden file input
- * triggered by a styled label. Mirrors the pattern established in
- * UploadPemusnahanModal for consistency.
- */
-function ExcelUploadField({ value, onChange }) {
-  const { notification } = App.useApp();
-  const inputRef = useRef(null);
-
-  const handleFile = useCallback(
-    (file) => {
-      const result = validateExcelFile(file);
-      if (!result.ok) {
-        notification.error({
-          title: "File tidak valid",
-          description: result.message,
-        });
-        return;
-      }
-      onChange(file);
-    },
-    [onChange, notification],
-  );
-
-  return (
-    <div>
-      {/* Hidden native file input — avoids Ant Upload's auto-managed fileList */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".xlsx"
-        style={{ display: "none" }}
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file) handleFile(file);
-          // Reset so the same file can be re-selected
-          e.target.value = "";
-        }}
-      />
-
-      {/* Styled label acting as the upload zone */}
-      <label
-        onClick={() => inputRef.current?.click()}
-        className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${
-          value
-            ? "border-emerald-400 bg-emerald-50 hover:border-emerald-500"
-            : "border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/40"
-        }`}
-      >
-        <InboxOutlined className="text-emerald-600 text-3xl mb-2 block" />
-        {value ? (
-          <>
-            <Text className="block font-semibold text-emerald-700">
-              {value.name}
-            </Text>
-            <Text className="block text-slate-400 text-xs mt-1">
-              Klik atau pilih file lain untuk mengganti
-            </Text>
-          </>
-        ) : (
-          <>
-            <Text className="block font-semibold text-slate-700">
-              Klik atau pilih file Excel (.xlsx)
-            </Text>
-            <Text className="block text-slate-400 text-xs mt-1">
-              Format: .xlsx · Maks. 50 MB
-            </Text>
-          </>
-        )}
-      </label>
-    </div>
-  );
+function validateTemplateFile(file) {
+  return validateExcelFile(file, { allowedExts: ALLOWED_EXTS });
 }
 
 // ─── Modal Component ──────────────────────────────────────────────────────────
@@ -125,10 +28,12 @@ function ExcelUploadField({ value, onChange }) {
  * Collects:
  *   - tipe_template  (CMO | ADD_PO)
  *   - version         (string)
- *   - document        (File .xlsx)
+ *   - file            (File .xlsx)
  *
  * Calls onSubmit({ tipe_template, version, file }) so the parent
  * can invoke the mutation.
+ *
+ * Now uses the shared `validateTemplateFile` for file validation.
  *
  * @param {Object}   props
  * @param {boolean}  props.open
@@ -144,26 +49,39 @@ export function ReplaceTemplateModal({
 }) {
   const [form] = Form.useForm();
   const [selectedFile, setSelectedFile] = useState(null);
+  const [fileError, setFileError] = useState("");
   const { confirmAction } = useConfirm();
 
+  // Reset on close
   const handleCancel = () => {
     form.resetFields();
     setSelectedFile(null);
+    setFileError("");
     onCancel();
   };
 
-  /**
-   * Validates form → shows contextual confirmation for template replacement →
-   * calls onSubmit only after user explicitly approves.
-   */
+  // Update file — validate immediately so the error shows below the drop zone
+  const handleFileChange = useCallback((file) => {
+    if (!file) {
+      setSelectedFile(null);
+      setFileError("");
+      return;
+    }
+    const result = validateTemplateFile(file);
+    if (!result.ok) {
+      setFileError(result.message);
+      return;
+    }
+    setSelectedFile(file);
+    setFileError("");
+  }, []);
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
 
       if (!selectedFile) {
-        form.setFields([
-          { name: "document", errors: ["Unggah file Excel template terlebih dahulu."] },
-        ]);
+        setFileError("Unggah file Excel template terlebih dahulu.");
         return;
       }
 
@@ -190,7 +108,13 @@ export function ReplaceTemplateModal({
   return (
     <Modal
       title={
-        <div className="text-slate-800 font-bold text-lg border-b border-slate-100 pb-3">
+        <div className="flex items-center gap-2 text-slate-800 font-bold text-base pb-3 border-b border-slate-100">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
           Ganti Template CMO
         </div>
       }
@@ -202,14 +126,15 @@ export function ReplaceTemplateModal({
       cancelText="Batal"
       okButtonProps={{
         size: "large",
-        className: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg",
+        className: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg font-medium",
       }}
       cancelButtonProps={{ size: "large", className: "rounded-lg" }}
-      className="rounded-xl overflow-hidden"
+      className="[&_.ant-modal-content]:rounded-xl"
       destroyOnHidden
     >
-      <div className="py-4">
-        <Text className="block text-slate-500 text-sm mb-5 leading-relaxed">
+      <div className="py-4 space-y-5">
+        {/* Description */}
+        <Text className="text-slate-500 text-sm leading-relaxed">
           Unggah file template Excel untuk module CMO. Pilih tipe template
           (CMO atau Add PO), masukkan nomor versi, lalu pilih file .xlsx
           yang baru.
@@ -220,33 +145,29 @@ export function ReplaceTemplateModal({
           layout="vertical"
           style={{ "--brand": BRAND_FOCUS_COLOR }}
         >
+          {/* Tipe Template */}
           <Form.Item
             name="tipe_template"
             label={<Text className="font-semibold text-slate-700">Tipe Template</Text>}
-            rules={[
-              { required: true, message: "Pilih tipe template terlebih dahulu." },
-            ]}
+            rules={[{ required: true, message: "Pilih tipe template terlebih dahulu." }]}
           >
             <Select
               placeholder="Pilih tipe template..."
               options={CMO_TIPE_TEMPLATE_OPTIONS}
               size="large"
-              className="w-full rounded-lg [&_.ant-select-selector]:rounded-lg"
+              className="[&_.ant-select-selector]:rounded-lg"
               showSearch
               optionFilterProp="label"
             />
           </Form.Item>
 
+          {/* Nomor Versi */}
           <Form.Item
             name="version"
             label={<Text className="font-semibold text-slate-700">Nomor Versi</Text>}
             rules={[
               { required: true, message: "Nomor versi wajib diisi." },
-              {
-                type: "string",
-                min: 1,
-                message: "Minimal 1 karakter.",
-              },
+              { whitespace: true, message: "Nomor versi tidak boleh kosong." },
             ]}
           >
             <Input
@@ -256,14 +177,18 @@ export function ReplaceTemplateModal({
             />
           </Form.Item>
 
+          {/* File Upload — delegated to shared component */}
           <Form.Item
-            name="document"
             label={<Text className="font-semibold text-slate-700">File Template (.xlsx)</Text>}
             required
           >
             <ExcelUploadField
               value={selectedFile}
-              onChange={setSelectedFile}
+              onChange={handleFileChange}
+              error={fileError}
+              accept=".xlsx"
+              placeholder="Klik atau tarik file Excel (.xlsx) ke sini"
+              hint="Format wajib .xlsx · Maks. 50 MB"
             />
           </Form.Item>
         </Form>

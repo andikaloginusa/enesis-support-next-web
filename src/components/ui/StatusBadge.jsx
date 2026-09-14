@@ -1,436 +1,422 @@
 "use client";
 
 import React from "react";
-import { Tag } from "antd";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared Status Configuration
+// ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Shared status configuration for consistent badge styling across all pages.
+ * Normalized status config keys (lowercase, hyphenated).
+ * Used for both `StatusBadge` rendering and `getStatusStyle` utility.
  */
-const STATUS_CONFIG = {
-  // ── Success / Completed / Approval ──
+export const STATUS_CONFIG = {
+  // ── Success / Approved ──
   approved: {
-    color: "success",
     label: "APPROVED",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "success",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
   success: {
-    color: "success",
     label: "SUCCESS",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "success",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
   apr: {
-    color: "success",
     label: "APPROVED",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "success",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
   pay: {
-    color: "success",
     label: "PAYMENT COMPLETED",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "success",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
   "payment completed": {
-    color: "success",
     label: "PAYMENT COMPLETED",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "success",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
   y: {
-    color: "success",
     label: "APPROVED",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    color: "success",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    text: "text-emerald-700",
     dot: "bg-emerald-500",
   },
+  "rsm approved": {
+    label: "RSM APPROVED",
+    color: "success",
+    bg: "bg-teal-50",
+    border: "border-teal-200",
+    text: "text-teal-700",
+    dot: "bg-teal-500",
+  },
 
-  // ── Error / Reject ──
+  // ── Error / Rejected ──
   rejected: {
-    color: "error",
     label: "REJECTED",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "error",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
     dot: "bg-rose-500",
   },
   reject: {
-    color: "error",
     label: "REJECTED",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "error",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
     dot: "bg-rose-500",
   },
   failed: {
-    color: "error",
     label: "FAILED",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "error",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
     dot: "bg-rose-500",
   },
   rjc: {
-    color: "error",
     label: "REJECTED",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "error",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
     dot: "bg-rose-500",
   },
   n: {
-    color: "error",
     label: "REJECTED",
-    className: "bg-rose-50 text-rose-700 border-rose-200",
+    color: "error",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
     dot: "bg-rose-500",
   },
 
-  // ── Klaim Specific Statuses (Distinct Color Palette) ──
-  // 1. Pengajuan - DR (Slate Gray)
+  // ── Klaim Flow Statuses ──
   dr: {
-    color: "default",
     label: "PENGAJUAN",
-    className: "bg-slate-100 text-slate-700 border-slate-300",
+    color: "default",
+    bg: "bg-slate-100",
+    border: "border-slate-300",
+    text: "text-slate-700",
     dot: "bg-slate-500",
   },
   pengajuan: {
-    color: "default",
     label: "PENGAJUAN",
-    className: "bg-slate-100 text-slate-700 border-slate-300",
+    color: "default",
+    bg: "bg-slate-100",
+    border: "border-slate-300",
+    text: "text-slate-700",
     dot: "bg-slate-500",
   },
-
-  // 2. ECC Verifikasi - ECC (Sky Blue)
   ecc: {
-    color: "processing",
     label: "ECC VERIFIKASI",
-    className: "bg-sky-50 text-sky-700 border-sky-200",
+    color: "processing",
+    bg: "bg-sky-50",
+    border: "border-sky-200",
+    text: "text-sky-700",
     dot: "bg-sky-500",
   },
   "ecc verifikasi": {
-    color: "processing",
     label: "ECC VERIFIKASI",
-    className: "bg-sky-50 text-sky-700 border-sky-200",
+    color: "processing",
+    bg: "bg-sky-50",
+    border: "border-sky-200",
+    text: "text-sky-700",
     dot: "bg-sky-500",
   },
-
-  // 3. RSM Approved - RSM (Teal)
   rsm: {
-    color: "success",
     label: "RSM APPROVED",
-    className: "bg-teal-50 text-teal-700 border-teal-200",
+    color: "success",
+    bg: "bg-teal-50",
+    border: "border-teal-200",
+    text: "text-teal-700",
     dot: "bg-teal-500",
   },
-  "rsm approved": {
-    color: "success",
-    label: "RSM APPROVED",
-    className: "bg-teal-50 text-teal-700 border-teal-200",
-    dot: "bg-teal-500",
-  },
-
-  // 4. Sales Head Approved - SHA (Purple / Violet)
   sha: {
-    color: "purple",
     label: "SALES HEAD APPROVED",
-    className: "bg-purple-50 text-purple-700 border-purple-200",
+    color: "purple",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    text: "text-purple-700",
     dot: "bg-purple-500",
   },
   "sales head approved": {
-    color: "purple",
     label: "SALES HEAD APPROVED",
-    className: "bg-purple-50 text-purple-700 border-purple-200",
+    color: "purple",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    text: "text-purple-700",
     dot: "bg-purple-500",
   },
-
-  // 5. Distributor Kirim Dokumen - SEND (Orange)
   send: {
-    color: "warning",
     label: "KIRIM DOKUMEN",
-    className: "bg-orange-50 text-orange-700 border-orange-200",
+    color: "warning",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
     dot: "bg-orange-500",
   },
   "distributor kirim dokumen": {
-    color: "warning",
     label: "DISTRIBUTOR KIRIM DOKUMEN",
-    className: "bg-orange-50 text-orange-700 border-orange-200",
+    color: "warning",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
     dot: "bg-orange-500",
   },
   "kirim dokumen": {
-    color: "warning",
     label: "KIRIM DOKUMEN",
-    className: "bg-orange-50 text-orange-700 border-orange-200",
+    color: "warning",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
     dot: "bg-orange-500",
   },
-
-  // 6. ECC Terima Dokumen - RECEIVE (Indigo)
   receive: {
-    color: "blue",
     label: "ECC TERIMA DOK.",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    color: "blue",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
     dot: "bg-indigo-500",
   },
   "ecc terima dok.": {
-    color: "blue",
     label: "ECC TERIMA DOK.",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    color: "blue",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
     dot: "bg-indigo-500",
   },
   "ecc terima dok": {
-    color: "blue",
     label: "ECC TERIMA DOK.",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    color: "blue",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
     dot: "bg-indigo-500",
   },
   "ecc terima dokumen": {
-    color: "blue",
     label: "ECC TERIMA DOKUMEN",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    color: "blue",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
     dot: "bg-indigo-500",
   },
   "terima dokumen": {
-    color: "blue",
     label: "TERIMA DOKUMEN",
-    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+    color: "blue",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
     dot: "bg-indigo-500",
   },
-
-  // 7. Plan Payment - PLAN (Warm Amber / Gold)
   plan: {
-    color: "gold",
     label: "PLAN PAYMENT",
-    className: "bg-amber-50 text-amber-800 border-amber-200",
+    color: "gold",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-800",
     dot: "bg-amber-500",
   },
   "plan payment": {
-    color: "gold",
     label: "PLAN PAYMENT",
-    className: "bg-amber-50 text-amber-800 border-amber-200",
+    color: "gold",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-800",
     dot: "bg-amber-500",
   },
 
-  // ── General / Fallback Statuses ──
+  // ── General / Fallback ──
   waiting_approval: {
-    color: "warning",
     label: "WAITING APPROVAL",
-    className: "bg-amber-50 text-amber-800 border-amber-200",
+    color: "warning",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-800",
     dot: "bg-amber-500",
   },
   draft: {
-    color: "default",
     label: "DRAFT",
-    className: "bg-slate-100 text-slate-700 border-slate-200",
+    color: "default",
+    bg: "bg-slate-100",
+    border: "border-slate-200",
+    text: "text-slate-700",
     dot: "bg-slate-400",
   },
   pending: {
-    color: "warning",
     label: "PENDING",
-    className: "bg-amber-50 text-amber-800 border-amber-200",
+    color: "warning",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-800",
     dot: "bg-amber-500",
   },
   processing: {
-    color: "processing",
     label: "PROCESSING",
-    className: "bg-blue-50 text-blue-700 border-blue-200",
+    color: "processing",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    text: "text-blue-700",
     dot: "bg-blue-500",
   },
 };
 
+// Short-code keys that should display the normalized label, not the raw value
+const SHORT_CODE_KEYS = new Set([
+  "y", "n", "apr", "rjc", "pay",
+  "dr", "ecc", "rsm", "sha",
+  "send", "receive", "plan",
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fuzzy Resolver — single source of truth for both StatusBadge and getStatusStyle
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fuzzy-match a raw status string to a STATUS_CONFIG entry.
+ * Tries exact key first, then ordered substring rules.
+ *
+ * @param {string} raw - Raw status string (will be lowercased)
+ * @returns {Object} STATUS_CONFIG entry
+ */
+export function resolveStatus(raw) {
+  const s = (raw || "").toLowerCase().trim();
+
+  // 1. Exact match
+  const exact = STATUS_CONFIG[s];
+  if (exact) return exact;
+
+  // 2. Fuzzy substring match (order: specific → generic)
+  if (s.includes("sales head") || s === "sha") {
+    return STATUS_CONFIG.sha;
+  }
+  if (s.includes("rsm")) {
+    return STATUS_CONFIG.rsm;
+  }
+  if (s.includes("plan")) {
+    return STATUS_CONFIG.plan;
+  }
+  if ((s.includes("ecc") && s.includes("terima")) || s.includes("receive")) {
+    return STATUS_CONFIG.receive;
+  }
+  if (s.includes("ecc") || s.includes("verif")) {
+    return STATUS_CONFIG.ecc;
+  }
+  if (s.includes("send") || s.includes("kirim")) {
+    return STATUS_CONFIG.send;
+  }
+  if (s.includes("terima") || s.includes("receive")) {
+    return STATUS_CONFIG.receive;
+  }
+  if (s.includes("pengajuan") || s === "dr") {
+    return STATUS_CONFIG.dr;
+  }
+  if (s.includes("pay") || s.includes("payment")) {
+    return STATUS_CONFIG.pay;
+  }
+  if (s.includes("approve") || s.includes("success")) {
+    return STATUS_CONFIG.approved;
+  }
+  if (s.includes("reject") || s.includes("failed") || s.includes("rjc")) {
+    return STATUS_CONFIG.rejected;
+  }
+  if (s.includes("wait") || s.includes("menunggu")) {
+    return STATUS_CONFIG.waiting_approval;
+  }
+  if (s.includes("proses") || s.includes("belum") || s.includes("pending")) {
+    return STATUS_CONFIG.processing;
+  }
+  if (s.includes("draft")) {
+    return STATUS_CONFIG.draft;
+  }
+
+  // 3. Unknown — dynamic fallback
+  return {
+    color: "default",
+    label: String(raw).toUpperCase(),
+    bg: "bg-slate-100",
+    border: "border-slate-200",
+    text: "text-slate-700",
+    dot: "bg-slate-400",
+  };
+}
+
+/**
+ * Determines what label to display for a given raw status.
+ * Short codes show the normalized label; descriptive statuses show the raw text.
+ */
+function resolveLabel(raw) {
+  const s = (raw || "").toLowerCase().trim();
+  return SHORT_CODE_KEYS.has(s) ? resolveStatus(raw).label : String(raw).toUpperCase();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// StatusBadge Component
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Maps a raw status string to a consistent, high-contrast StatusBadge.
- * Displays the actual status text from response with high readability and no washed-out colors.
+ * Displays the actual status text from response with good readability.
  */
 export function StatusBadge({ status, className = "" }) {
   if (!status) {
     return (
       <span
-        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide border shadow-2xs whitespace-nowrap bg-slate-100 text-slate-600 border-slate-200 ${className}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide border shadow-sm bg-slate-100 text-slate-600 border-slate-200 ${className}`}
       >
         <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-400" />
-        <span className="whitespace-nowrap">PENDING</span>
+        <span>PENDING</span>
       </span>
     );
   }
 
-  const raw = String(status).toLowerCase().trim();
-  let config = STATUS_CONFIG[raw];
-
-  // Fallback: fuzzy match on substring (order matters: specific before generic)
-  if (!config) {
-    if (raw.includes("sales head") || raw === "sha") {
-      config = STATUS_CONFIG.sha;
-    } else if (raw.includes("rsm")) {
-      config = STATUS_CONFIG.rsm;
-    } else if (raw.includes("plan")) {
-      config = STATUS_CONFIG.plan;
-    } else if (raw.includes("ecc") && (raw.includes("terima") || raw.includes("receive"))) {
-      config = STATUS_CONFIG.receive;
-    } else if (raw.includes("ecc") || raw.includes("verif")) {
-      config = STATUS_CONFIG.ecc;
-    } else if (raw.includes("send") || raw.includes("kirim")) {
-      config = STATUS_CONFIG.send;
-    } else if (raw.includes("terima") || raw.includes("receive")) {
-      config = STATUS_CONFIG.receive;
-    } else if (raw.includes("pengajuan") || raw === "dr") {
-      config = STATUS_CONFIG.dr;
-    } else if (raw.includes("pay") || raw.includes("payment")) {
-      config = STATUS_CONFIG.pay;
-    } else if (raw.includes("approve") || raw.includes("success")) {
-      config = STATUS_CONFIG.approved;
-    } else if (
-      raw.includes("reject") ||
-      raw.includes("failed") ||
-      raw.includes("rjc")
-    ) {
-      config = STATUS_CONFIG.rejected;
-    } else if (
-      raw.includes("proses") ||
-      raw.includes("wait") ||
-      raw.includes("menunggu") ||
-      raw.includes("belum") ||
-      raw.includes("pending")
-    ) {
-      config = raw.includes("wait") || raw.includes("menunggu")
-        ? STATUS_CONFIG.waiting_approval
-        : STATUS_CONFIG.processing;
-    } else if (raw.includes("draft")) {
-      config = STATUS_CONFIG.draft;
-    } else {
-      config = {
-        color: "default",
-        label: String(status).toUpperCase(),
-        className: "bg-slate-100 text-slate-700 border-slate-200",
-        dot: "bg-slate-400",
-      };
-    }
-  }
-
-  // Use the exact response status formatted to uppercase if it's descriptive,
-  // or fall back to normalized config label if raw is a known code
-  const isShortCode = [
-    "y",
-    "n",
-    "apr",
-    "rjc",
-    "pay",
-    "dr",
-    "ecc",
-    "rsm",
-    "sha",
-    "send",
-    "receive",
-    "plan",
-  ].includes(raw);
-  const displayLabel = isShortCode ? config.label : String(status).toUpperCase();
+  const config = resolveStatus(status);
+  const label = resolveLabel(status);
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide border shadow-2xs whitespace-nowrap select-none ${config.className} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide border shadow-sm whitespace-nowrap select-none ${config.bg} ${config.text} ${config.border} ${className}`}
     >
       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${config.dot}`} />
-      <span className="whitespace-nowrap">{displayLabel}</span>
+      <span>{label}</span>
     </span>
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// getStatusStyle — utility for cards / banners / step indicators
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
- * Returns a structured config object for custom styling outside Tag.
- * Useful for cards, banners, step indicators, etc.
+ * Returns a structured style config for use outside Tag/Badge components.
+ * Useful for cards, banners, and step indicator styling.
+ *
+ * @param {string} rawStatus - Raw status string
+ * @returns {{ color: string, bg: string, border: string, text: string, dot: string }}
  */
 export function getStatusStyle(rawStatus) {
-  const s = (rawStatus || "").toLowerCase().trim();
-  let cfg;
-
-  if (s.includes("sales head") || s === "sha") {
-    cfg = {
-      color: "purple",
-      bg: "bg-purple-50",
-      border: "border-purple-200",
-      text: "text-purple-700",
-      dot: "bg-purple-500",
-    };
-  } else if (s.includes("rsm")) {
-    cfg = {
-      color: "teal",
-      bg: "bg-teal-50",
-      border: "border-teal-200",
-      text: "text-teal-700",
-      dot: "bg-teal-500",
-    };
-  } else if (s.includes("plan")) {
-    cfg = {
-      color: "gold",
-      bg: "bg-amber-50",
-      border: "border-amber-200",
-      text: "text-amber-800",
-      dot: "bg-amber-500",
-    };
-  } else if (s.includes("send") || s.includes("kirim")) {
-    cfg = {
-      color: "warning",
-      bg: "bg-orange-50",
-      border: "border-orange-200",
-      text: "text-orange-700",
-      dot: "bg-orange-500",
-    };
-  } else if (s.includes("terima") || s.includes("receive")) {
-    cfg = {
-      color: "processing",
-      bg: "bg-indigo-50",
-      border: "border-indigo-200",
-      text: "text-indigo-700",
-      dot: "bg-indigo-500",
-    };
-  } else if (s.includes("ecc") || s.includes("verif")) {
-    cfg = {
-      color: "processing",
-      bg: "bg-sky-50",
-      border: "border-sky-200",
-      text: "text-sky-700",
-      dot: "bg-sky-500",
-    };
-  } else if (s.includes("pengajuan") || s === "dr") {
-    cfg = {
-      color: "default",
-      bg: "bg-slate-100",
-      border: "border-slate-300",
-      text: "text-slate-700",
-      dot: "bg-slate-500",
-    };
-  } else if (s.includes("approve") || s === "apr" || s === "y" || s === "success" || s.includes("pay") || s === "pay") {
-    cfg = {
-      color: "success",
-      bg: "bg-emerald-50",
-      border: "border-emerald-200",
-      text: "text-emerald-700",
-      dot: "bg-emerald-500",
-    };
-  } else if (
-    s.includes("reject") ||
-    s === "failed" ||
-    s === "rjc" ||
-    s === "n"
-  ) {
-    cfg = {
-      color: "error",
-      bg: "bg-rose-50",
-      border: "border-rose-200",
-      text: "text-rose-700",
-      dot: "bg-rose-500",
-    };
-  } else if (
-    s.includes("proses") ||
-    s.includes("wait") ||
-    s.includes("menunggu") ||
-    s.includes("belum")
-  ) {
-    cfg = {
-      color: "processing",
-      bg: "bg-amber-50",
-      border: "border-amber-200",
-      text: "text-amber-700",
-      dot: "bg-amber-400",
-    };
-  } else {
-    cfg = {
-      color: "default",
-      bg: "bg-slate-50",
-      border: "border-slate-200",
-      text: "text-slate-600",
-      dot: "bg-slate-400",
-    };
-  }
-
-  return cfg;
+  return resolveStatus(rawStatus);
 }

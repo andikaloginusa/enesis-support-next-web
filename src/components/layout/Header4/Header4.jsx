@@ -83,7 +83,7 @@ const Header4 = () => {
                     allowClear
                   />
                   <Select defaultValue="Apps">
-                    <Select.Option value="Produts">Products</Select.Option>
+                    <Select.Option value="Products">Products</Select.Option>
                     <Select.Option value="Apps">Apps</Select.Option>
                     <Select.Option value="Blogs">Blogs</Select.Option>
                   </Select>

@@ -89,54 +89,44 @@ export function ProsesSapCMOModal({ open, onCancel, onSuccess }) {
     });
   };
 
-  const columns = [
-    {
-      title: "Nomor CMO",
-      dataIndex: "nomor_cmo",
-      key: "nomor_cmo",
-      width: 260,
-      render: (text) => renderBold(text),
+const MONTHS = [
+  "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+];
+
+const columns = [
+  {
+    title: "Nomor CMO",
+    dataIndex: "nomor_cmo",
+    key: "nomor_cmo",
+    width: 260,
+    render: (text) => renderBold(text),
+  },
+  {
+    title: "Tahun",
+    dataIndex: "tahun",
+    key: "tahun",
+    width: 80,
+    align: "center",
+    render: (text) => (
+      <Text className="font-semibold text-slate-700">{text || "—"}</Text>
+    ),
+  },
+  {
+    title: "Bulan",
+    dataIndex: "bulan",
+    key: "bulan",
+    width: 80,
+    align: "center",
+    render: (val) => {
+      const idx = parseInt(val, 10);
+      return (
+        <Text className="font-semibold text-slate-700">
+          {MONTHS[idx] || val || "—"}
+        </Text>
+      );
     },
-    {
-      title: "Tahun",
-      dataIndex: "tahun",
-      key: "tahun",
-      width: 80,
-      align: "center",
-      render: (text) => (
-        <Text className="font-semibold text-slate-700">{text || "—"}</Text>
-      ),
-    },
-    {
-      title: "Bulan",
-      dataIndex: "bulan",
-      key: "bulan",
-      width: 80,
-      align: "center",
-      render: (val) => {
-        const MONTHS = [
-          "",
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "Mei",
-          "Jun",
-          "Jul",
-          "Agu",
-          "Sep",
-          "Okt",
-          "Nov",
-          "Des",
-        ];
-        const idx = parseInt(val, 10);
-        return (
-          <Text className="font-semibold text-slate-700">
-            {MONTHS[idx] || val || "—"}
-          </Text>
-        );
-      },
-    },
+  },
     {
       title: "No. SAP",
       dataIndex: "no_sap",
