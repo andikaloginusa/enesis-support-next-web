@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Form, Modal, Typography } from "antd";
+import { App, Form, Modal, Typography } from "antd";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 import { FieldRenderer } from "@/components/ui/GenericFormModal";
 import {
@@ -22,8 +22,8 @@ const { Text } = Typography;
  *   - `document_type` and `document` fields to share state: changing the type
  *     must clear any previously picked file because the accept-list changes.
  *
- * Despite not using GenericFormModal, it reuses the same FieldRenderer so
- * each input still gets the same styling and validation as everywhere else.
+ * Reuses the same FieldRenderer so each input still gets the same styling
+ * and validation as everywhere else.
  *
  * @param {Object}   props
  * @param {boolean}  props.open
@@ -43,6 +43,7 @@ export function ReuploadDocumentModal({
 }) {
   const [form] = Form.useForm();
   const [selectedType, setSelectedType] = useState(null);
+  const { notification } = App.useApp();
 
   const acceptAttr = useMemo(
     () => (selectedType ? buildAcceptAttrFor(selectedType) : ""),
@@ -143,17 +144,17 @@ export function ReuploadDocumentModal({
         <Form
           form={form}
           layout="vertical"
-          // CSS variable trick — see GenericFormModal for the explanation.
           style={{ "--brand": BRAND_FOCUS_COLOR }}
+          destroyOnHidden
         >
           {fields.map((field) => (
             <Form.Item
               key={field.name}
               name={field.name}
               label={
-                field.label && (
+                field.label ? (
                   <Text className="font-semibold text-slate-700">{field.label}</Text>
-                )
+                ) : null
               }
               valuePropName={field.type === "switch" || field.type === "toggle" ? "checked" : "value"}
               getValueFromEvent={
@@ -164,7 +165,7 @@ export function ReuploadDocumentModal({
               rules={field.rules}
               extra={field.extra}
             >
-              <FieldRenderer field={field} />
+              <FieldRenderer field={field} notification={notification} />
             </Form.Item>
           ))}
         </Form>

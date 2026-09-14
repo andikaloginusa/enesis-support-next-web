@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useEffect, useId, useRef } from "react";
 import PropTypes from "prop-types";
 import { App, Modal, Form, Input, Select, DatePicker, InputNumber, Switch, Upload, Typography } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
@@ -10,38 +10,114 @@ import { validateDocumentFile } from "@/utils/documentValidation";
 const { Text } = Typography;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared Input Class Helper
+// Constants — module-level to avoid Set recreation on every call
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Field types that should skip the standard input styling class. */
+const SKIP_STYLE_TYPES = new Set(["select", "switch", "toggle", "upload"]);
+
+/** Field types that use `checked` as valuePropName instead of `value`. */
+const TOGGLE_TYPES = new Set(["switch", "toggle"]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Field Schema Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Returns the Ant Design `valuePropName` for a given field type.
+ *
+ * @param {string} type - Field type string
+ * @returns {"checked" | "value"}
+ */
+export function getFieldValuePropName(type) {
+  return TOGGLE_TYPES.has(type) ? "checked" : "value";
+}
+
+/**
+ * Returns the Ant Design `getValueFromEvent` normalizer for a given field type.
+ * Toggle fields normalize to the boolean `checked` value directly.
+ *
+ * @param {string} type - Field type string
+ * @returns {((checked: boolean) => boolean) | undefined}
+ */
+export function getFieldValueFromEvent(type) {
+  if (TOGGLE_TYPES.has(type)) {
+    return (checked) => checked;
+  }
+  return undefined;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Input Class Helper
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Returns the CSS class string for Ant Design inputs that need brand hover/focus.
- * Excludes select, switch, toggle, and upload types.
+ * Returns `undefined` for types that have their own custom styling (select, switch, etc.).
  *
  * @param {{ type: string }} field
  * @returns {string | undefined}
  */
 const inputClassName = (field) => {
-  const skipTypes = new Set(["select", "switch", "toggle", "upload"]);
-  if (skipTypes.has(field.type)) return undefined;
-  return "rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors";
+  if (SKIP_STYLE_TYPES.has(field.type)) return undefined;
+  return (
+    "rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] " +
+    "focus:ring-1 focus:ring-[var(--brand)] transition-colors"
+  );
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Field Renderer
+// FieldRenderer
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Renders the correct Ant Design input based on field type.
  * Each type maps to one component with consistent brand-aware styling.
  *
- * @param {Object} props
- * @param {Object}  props.field   - Field schema definition
- * @param {unknown} props.value   - Current field value
- * @param {Function} props.onChange - Called with the new value
+ * Callers pass `notification` as a prop so this component stays free of
+ * context reads — reducing the number of App.Provider subscribers in the tree.
+ *
+ * @param {Object}  props
+ * @param {Object}  props.field        - Field schema definition
+ * @param {unknown} props.value        - Current field value
+ * @param {Function} props.onChange    - Called with the new value
+ * @param {Object}  [props.notification] - Ant App notification API (optional)
  */
-export function FieldRenderer({ field, value, onChange }) {
+export function FieldRenderer({ field, value, onChange, notification }) {
   const brandStyle = { "--brand": BRAND_FOCUS_COLOR };
-  const { notification } = App.useApp();
+  const uploadId = useId();
+
+  const handleBeforeUpload = useCallback(
+    (file) => {
+      if (!notification) return Upload.LIST_IGNORE;
+
+      const type =
+        typeof field.getDocumentType === "function"
+          ? field.getDocumentType()
+          : field.documentType;
+
+      const result = validateDocumentFile(file, type);
+      if (!result.ok) {
+        notification.error({
+          title: "File tidak valid",
+          description: result.message,
+          key: uploadId,
+        });
+        return Upload.LIST_IGNORE;
+      }
+
+      onChange?.(file);
+      return false; // hold — actual upload happens on form submit
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [field, notification, onChange, uploadId],
+  );
+
+  const handleRemove = useCallback(() => {
+    onChange?.([]);
+    field.onFileChange?.([]);
+    return true;
+  }, [field, onChange]);
 
   switch (field.type) {
     case "textarea":
@@ -138,33 +214,8 @@ export function FieldRenderer({ field, value, onChange }) {
           multiple={false}
           maxCount={1}
           fileList={fileList}
-          beforeUpload={(file) => {
-            // Resolve document type at the moment of upload — avoids stale closures
-            // when the user picks a type and then picks a file in quick succession.
-            const type =
-              typeof field.getDocumentType === "function"
-                ? field.getDocumentType()
-                : field.documentType;
-            const result = validateDocumentFile(file, type);
-            if (!result.ok) {
-              notification.error({
-                title: "File tidak valid",
-                description: result.message,
-              });
-              return Upload.LIST_IGNORE;
-            }
-            return false; // hold — actual upload happens on form submit
-          }}
-          onChange={(info) => {
-            const next = info.fileList.slice(-1); // keep only latest file
-            onChange(next);
-            if (field.onFileChange) field.onFileChange(next);
-          }}
-          onRemove={() => {
-            onChange([]);
-            if (field.onFileChange) field.onFileChange([]);
-            return true;
-          }}
+          beforeUpload={handleBeforeUpload}
+          onRemove={handleRemove}
           disabled={field.disabled}
         >
           <p className="ant-upload-drag-icon">
@@ -197,31 +248,97 @@ export function FieldRenderer({ field, value, onChange }) {
   }
 }
 
+FieldRenderer.propTypes = {
+  field: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    placeholder: PropTypes.string,
+    rows: PropTypes.number,
+    disabled: PropTypes.bool,
+    readOnly: PropTypes.bool,
+    maxLength: PropTypes.number,
+    options: PropTypes.array,
+    min: PropTypes.number,
+    max: PropTypes.number,
+    precision: PropTypes.number,
+    checkedChildren: PropTypes.node,
+    unCheckedChildren: PropTypes.node,
+    accept: PropTypes.string,
+    documentType: PropTypes.string,
+    getDocumentType: PropTypes.func,
+    hint: PropTypes.node,
+    onFileChange: PropTypes.func,
+  }).isRequired,
+  value: PropTypes.any,
+  onChange: PropTypes.func,
+  notification: PropTypes.object,
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Main Component
+// GenericFormModal
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * Generic Declarative Form Modal Component
  *
  * Renders a modal form driven entirely by a `fields` schema array.
- * Adding a new field type only requires updating `FieldRenderer`.
+ * The modal auto-resets its form state each time it opens to guarantee
+ * a clean slate on every open.
  *
  * @example
+ * // ── Define fields schema (can be stored in a separate file) ──
+ * const REJECT_FIELDS = [
+ *   { name: "reason", label: "Alasan Penolakan", type: "textarea",
+ *     rules: [{ required: true, message: "Alasan wajib diisi." }] },
+ * ];
+ *
+ * // ── Use the modal ──
  * <GenericFormModal
- *   title="Reject Item"
+ *   title="Tolak Item"
  *   description="Mohon isi alasan penolakan."
  *   open={isOpen}
  *   form={rejectForm}
  *   onOk={handleSubmit}
  *   onCancel={handleClose}
- *   fields={[
- *     { name: "reason", label: "Alasan", type: "textarea", rules: [{ required: true }] },
- *     { name: "nik",   label: "NIK",    type: "number" },
- *   ]}
+ *   fields={REJECT_FIELDS}
  * />
+ *
+ * @param {Object}  props
+ * @param {React.ReactNode} props.title
+ * @param {React.ReactNode} [props.description]
+ * @param {boolean} props.open
+ * @param {Function} props.onOk
+ * @param {Function} props.onCancel
+ * @param {boolean} [props.confirmLoading]
+ * @param {string} [props.okText]
+ * @param {string} [props.cancelText]
+ * @param {Object} [props.okButtonProps]
+ * @param {Object} [props.cancelButtonProps]
+ * @param {Object} props.form - Ant Design Form instance
+ * @param {Object[]} props.fields - Field schema array
+ *
+ * @typedef {Object} FieldSchema
+ * @property {string|string[]} name - Form field name (unique key)
+ * @property {React.ReactNode} [label] - Field label text
+ * @property {"textarea"|"select"|"date"|"datepicker"|"number"|"password"|"switch"|"toggle"|"upload"|"text"} type - Input type
+ * @property {string} [placeholder]
+ * @property {Array} [rules] - Ant Design validation rules
+ * @property {Array<{label: React.ReactNode, value: any}>} [options] - Select options
+ * @property {boolean} [disabled]
+ * @property {boolean} [readOnly]
+ * @property {number} [maxLength]
+ * @property {number} [min]
+ * @property {number} [max]
+ * @property {number} [precision]
+ * @property {React.ReactNode} [extra]
+ * @property {React.ReactNode} [checkedChildren]
+ * @property {React.ReactNode} [unCheckedChildren]
+ * @property {string} [accept] - Upload accepted file types
+ * @property {string} [documentType] - Document type for file validation
+ * @property {Function} [getDocumentType] - Dynamic document type getter
+ * @property {React.ReactNode} [hint] - Upload hint text
+ * @property {Function} [onFileChange] - Called when upload file changes
  */
-export const GenericFormModal = ({
+export function GenericFormModal({
   title,
   description,
   open,
@@ -234,7 +351,34 @@ export const GenericFormModal = ({
   cancelButtonProps = {},
   form,
   fields = [],
-}) => {
+}) {
+  const { notification } = App.useApp();
+  const firstRenderRef = useRef(true);
+
+  // ── Reset form state every time modal opens ──────────────────────────────────
+  useEffect(() => {
+    if (open) {
+      // Skip reset on initial mount (form already has its own defaultValues)
+      if (firstRenderRef.current) {
+        firstRenderRef.current = false;
+        return;
+      }
+      form.resetFields();
+    }
+  }, [open, form]);
+
+  // ── Stable per-field renderers ──────────────────────────────────────────────
+  const renderField = useCallback(
+    (field) => (
+      <FieldRenderer
+        key={field.name}
+        field={field}
+        notification={notification}
+      />
+    ),
+    [notification],
+  );
+
   return (
     <Modal
       title={
@@ -248,53 +392,56 @@ export const GenericFormModal = ({
       onCancel={onCancel}
       okText={okText}
       cancelText={cancelText}
-      okButtonProps={{ size: "large", className: "rounded-lg font-medium", ...okButtonProps }}
-      cancelButtonProps={{ size: "large", className: "rounded-lg", ...cancelButtonProps }}
+      okButtonProps={{
+        size: "large",
+        className: "rounded-lg font-medium",
+        ...okButtonProps,
+      }}
+      cancelButtonProps={{
+        size: "large",
+        className: "rounded-lg",
+        ...cancelButtonProps,
+      }}
       className="[&_.ant-modal-content]:rounded-xl"
       destroyOnHidden
     >
       <div className="py-4 space-y-4">
         {description && (
-          <Text className="text-slate-500 text-sm leading-relaxed block">
-            {description}
-          </Text>
+          <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+            <Text className="text-slate-500 text-sm leading-relaxed">
+              {description}
+            </Text>
+          </div>
         )}
 
         <Form
           form={form}
           layout="vertical"
           style={{ "--brand": BRAND_FOCUS_COLOR }}
+          destroyOnHidden
         >
           {fields.map((field) => (
             <Form.Item
               key={field.name}
               name={field.name}
               label={
-                field.label && (
+                field.label ? (
                   <Text className="font-semibold text-slate-700">{field.label}</Text>
-                )
+                ) : null
               }
-              valuePropName={
-                field.type === "switch" || field.type === "toggle"
-                  ? "checked"
-                  : "value"
-              }
-              getValueFromEvent={
-                field.type === "switch" || field.type === "toggle"
-                  ? (checked) => checked
-                  : undefined
-              }
+              valuePropName={getFieldValuePropName(field.type)}
+              getValueFromEvent={getFieldValueFromEvent(field.type)}
               rules={field.rules}
               extra={field.extra}
             >
-              <FieldRenderer field={field} />
+              {renderField(field)}
             </Form.Item>
           ))}
         </Form>
       </div>
     </Modal>
   );
-};
+}
 
 GenericFormModal.propTypes = {
   title: PropTypes.node.isRequired,
@@ -328,7 +475,6 @@ GenericFormModal.propTypes = {
       extra: PropTypes.node,
       checkedChildren: PropTypes.node,
       unCheckedChildren: PropTypes.node,
-      // Upload-specific
       accept: PropTypes.string,
       documentType: PropTypes.string,
       getDocumentType: PropTypes.func,
