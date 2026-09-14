@@ -6,8 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "npx approve-scripts sharp --allow 2>/dev/null || true"
+    "lint": "next lint"
+  },
+  "approveScripts": {
+    "sharp": true,
+    "unrs-resolver": true
   },
   "dependencies": {
     "@ant-design/icons": "^6.2.3",
