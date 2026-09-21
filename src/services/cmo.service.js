@@ -26,7 +26,7 @@ export const CmoSupportServices = (apiInstance) => {
    * @param {Object} params - { bulan, tahun, currentPage, pageSize }
    */
   const getSapWaitingList = (params) =>
-    apiInstance.get("cmo/list-get-sap-cmo", params);
+    apiInstance.get("support/cmo/list-cmo-sap", params);
 
   /**
    * Pull SAP return XML for all WAITING CMO records in a period.
@@ -34,7 +34,8 @@ export const CmoSupportServices = (apiInstance) => {
    *
    * @param {Object} data - { tahun, bulan, m_user_id }
    */
-  const processSapCMO = (data) => apiInstance.put("cmo/process-sap-cmo", data);
+  const processSapCMO = (data) =>
+    apiInstance.put("support/cmo/update/cmo-sap", data);
 
   /**
    * Pull SAP return XML for all WAITING C-Order records in a period.
@@ -43,7 +44,7 @@ export const CmoSupportServices = (apiInstance) => {
    * @param {Object} data - { tahun, bulan }
    */
   const processSapCOrder = (data) =>
-    apiInstance.put("cmo/process-sap-c-order", data);
+    apiInstance.put("support/cmo/update/c-order-sap", data);
 
   /**
    * Generate C-Order records from CMO data for a specific week.
@@ -52,7 +53,7 @@ export const CmoSupportServices = (apiInstance) => {
    * @param {Object} data - { tahun, bulan, week_number }
    */
   const regenerateCOrder = (data) =>
-    apiInstance.post("cmo/regenerate-c-order", data);
+    apiInstance.post("support/cmo/regenerate-c-order", data);
 
   /**
    * Reject or kill a single CMO record.
