@@ -26,7 +26,7 @@ export const CmoSupportServices = (apiInstance) => {
    * @param {Object} params - { bulan, tahun, currentPage, pageSize }
    */
   const getSapWaitingList = (params) =>
-    apiInstance.get("support/cmo/list-cmo-sap", params);
+    apiInstance.get("support/cmo/get/list-cmo-sap", params);
 
   /**
    * Pull SAP return XML for all WAITING CMO records in a period.
