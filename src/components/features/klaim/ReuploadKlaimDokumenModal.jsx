@@ -181,12 +181,14 @@ export function ReuploadKlaimDokumenModal({
   const selectedFileRef = useRef(null);
   const { notification } = App.useApp();
   const [fileError, setFileError] = useState("");
+  const [docTypeSelected, setDocTypeSelected] = useState(false);
 
   // ── Reset on close — always fresh state when reopened ─────────────────────────
   const handleClose = useCallback(() => {
     form.resetFields();
     selectedFileRef.current = null;
     setFileError("");
+    setDocTypeSelected(false);
     onCancel();
   }, [form, onCancel]);
 
@@ -312,6 +314,7 @@ export function ReuploadKlaimDokumenModal({
                 // Clear file when doc type changes
                 selectedFileRef.current = null;
                 setFileError("");
+                setDocTypeSelected(true);
               }}
             />
           </Form.Item>
@@ -353,7 +356,7 @@ export function ReuploadKlaimDokumenModal({
               fileList={fileList}
               beforeUpload={handleBeforeUpload}
               onRemove={handleRemove}
-              disabled={!form.getFieldValue("document_type")}
+              disabled={!docTypeSelected}
               showUploadList={{
                 showRemoveIcon: true,
                 removeIcon: (
@@ -389,7 +392,7 @@ export function ReuploadKlaimDokumenModal({
                 <FilePdfOutlined className="text-3xl text-blue-400" />
               </p>
               <p className="text-sm font-medium ant-upload-text text-slate-600">
-                {form.getFieldValue("document_type")
+                {docTypeSelected
                   ? "Klik atau tarik file PDF ke sini"
                   : "Pilih tipe dokumen terlebih dahulu"}
               </p>
