@@ -49,8 +49,9 @@ export const KlaimSupportServices = (apiInstance) => {
    * @param {string}   payload.reason       - Nomor Work Order (WO) as audit log
    * @param {File}     payload.document    - The new file to upload
    */
-  const reuploadDokumenKlaim = ({ klaim_id, document_type, reason, document }) => {
+  const reuploadDokumenKlaim = ({ klaim_id, document_type, reason, document, m_user_id }) => {
     const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
     formData.append("klaim_id", klaim_id);
     formData.append("document_type", document_type);
     formData.append("reason", reason);
