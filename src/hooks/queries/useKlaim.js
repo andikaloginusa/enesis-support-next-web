@@ -86,8 +86,11 @@ export const useKlaim = () => {
 
   // Mutation: Re-upload Klaim Document
   const reuploadDokumenMutation = useMutation({
-    mutationFn: async (payload) => {
-      const response = await klaimService.reuploadDokumenKlaim(payload);
+    mutationFn: async ({ file, ...rest }) => {
+      const response = await klaimService.reuploadDokumenKlaim({
+        ...rest,
+        document: file,
+      });
       if (!response.ok) {
         throw new Error(response.data?.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_ERROR);
       }
