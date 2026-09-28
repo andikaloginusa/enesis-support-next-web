@@ -39,15 +39,25 @@ export const KlaimSupportServices = (apiInstance) => {
 
   /**
    * Re-upload a single document for an existing klaim record.
-   * Sends FormData so the file is transmitted as multipart/form-data.
+   * Sends multipart/form-data; field name "document" must match the BE Skipper upload key.
+   * Pattern reference: `fkr.service.js` → reuploadDocument, uploadFkrPemusnahan.
    *
    * PUT /support/klaim/reupload-dokumen-klaim
    *
-   * @param {Object} payload
-   * @param {string}   payload.klaim_id     - Target klaim record ID
-   * @param {string}   payload.document_type - Document type key (e.g. "faktur_pajak")
-   * @param {string}   payload.reason       - Nomor Work Order (WO) as audit log
-   * @param {File}     payload.document    - The new file to upload
+   * FormData fields (semua wajib):
+   *   - m_user_id      : ID user yang melakukan aksi (dari storage/getUserId)
+   *   - klaim_id       : ID record klaim target
+   *   - document_type  : Tipe dokumen — salah satu key di KLAIM_DOC_CONFIG
+   *                      (e.g. "faktur_pajak", "e_proposal", "ktp", "invoice", dll.)
+   *   - reason         : Nomor Work Order (WO) sebagai alasan/justifikasi audit log
+   *   - document       : File PDF baru (sudah divalidasi FE — tipe & ukuran)
+   *
+   * @param {Object}  payload
+   * @param {string}  payload.m_user_id       - ID user terautentikasi
+   * @param {string}  payload.klaim_id       - Target klaim record ID
+   * @param {string}  payload.document_type  - Salah satu key di KLAIM_DOC_CONFIG
+   * @param {string}  payload.reason         - Nomor Work Order (WO)
+   * @param {File}    payload.document       - File PDF yang sudah divalidasi FE-side
    */
   const reuploadDokumenKlaim = ({ klaim_id, document_type, reason, document, m_user_id }) => {
     const formData = new FormData();
