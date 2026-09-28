@@ -2,7 +2,11 @@
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { App, Form, Input, Modal, Select, Typography, Upload } from "antd";
-import { CloudUploadOutlined, FilePdfOutlined, CloseCircleFilled } from "@ant-design/icons";
+import {
+  CloudUploadOutlined,
+  FilePdfOutlined,
+  CloseCircleFilled,
+} from "@ant-design/icons";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
 const { Text } = Typography;
@@ -112,9 +116,10 @@ export function validateKlaimPdf(file) {
     return { ok: false, message: "File tidak ditemukan." };
   }
 
-  const ext = file.name.lastIndexOf(".") < 0
-    ? ""
-    : file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+  const ext =
+    file.name.lastIndexOf(".") < 0
+      ? ""
+      : file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
 
   if (!ALLOWED_PDF_EXTS.includes(ext)) {
     return {
@@ -241,7 +246,7 @@ export function ReuploadKlaimDokumenModal({
   return (
     <Modal
       title={
-        <div className="flex items-center gap-2 text-slate-800 font-bold text-base pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-2 pb-3 text-base font-bold border-b text-slate-800 border-slate-100">
           <CloudUploadOutlined className="text-blue-500" />
           <span>Re-upload Dokumen Klaim</span>
         </div>
@@ -268,10 +273,13 @@ export function ReuploadKlaimDokumenModal({
       <div className="py-4 space-y-4">
         {/* Klaim info banner */}
         {klaimNo && (
-          <div className="bg-blue-50/70 border border-blue-100 rounded-xl px-4 py-3">
-            <p className="text-slate-600 text-sm leading-relaxed m-0">
+          <div className="px-4 py-3 border border-blue-100 bg-blue-50/70 rounded-xl">
+            <p className="m-0 text-sm leading-relaxed text-slate-600">
               Mengunggah ulang dokumen untuk klaim nomor{" "}
-              <Text strong className="text-slate-800">{klaimNo}</Text>.
+              <Text strong className="text-slate-800">
+                {klaimNo}
+              </Text>
+              .
             </p>
           </div>
         )}
@@ -285,9 +293,14 @@ export function ReuploadKlaimDokumenModal({
           {/* Document Type */}
           <Form.Item
             name="document_type"
-            label={<Text className="font-semibold text-slate-700">Tipe Dokumen</Text>}
+            label={
+              <Text className="font-semibold text-slate-700">Tipe Dokumen</Text>
+            }
             rules={[
-              { required: true, message: "Pilih tipe dokumen yang akan diunggah ulang." },
+              {
+                required: true,
+                message: "Pilih tipe dokumen yang akan diunggah ulang.",
+              },
             ]}
           >
             <Select
@@ -306,13 +319,21 @@ export function ReuploadKlaimDokumenModal({
           {/* Reason / Nomor WO */}
           <Form.Item
             name="reason"
-            label={<Text className="font-semibold text-slate-700">Nomor Work Order (WO)</Text>}
+            label={
+              <Text className="font-semibold text-slate-700">
+                Nomor Work Order (WO)
+              </Text>
+            }
             rules={[
-              { required: true, whitespace: true, message: "Nomor WO wajib diisi." },
+              {
+                required: true,
+                whitespace: true,
+                message: "Nomor WO wajib diisi.",
+              },
             ]}
           >
             <Input
-              placeholder="Contoh: WO-2024-00123"
+              placeholder="Contoh: WO/IT BUSINESS APPLICATION/26/0056736"
               size="large"
               className="rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors"
               maxLength={100}
@@ -321,7 +342,9 @@ export function ReuploadKlaimDokumenModal({
 
           {/* File Upload */}
           <Form.Item
-            label={<Text className="font-semibold text-slate-700">File PDF</Text>}
+            label={
+              <Text className="font-semibold text-slate-700">File PDF</Text>
+            }
             required
           >
             <Upload.Dragger
@@ -334,18 +357,18 @@ export function ReuploadKlaimDokumenModal({
               showUploadList={{
                 showRemoveIcon: true,
                 removeIcon: (
-                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-50 hover:bg-red-100 transition-colors">
-                    <CloseCircleFilled className="text-red-400 text-xs" />
+                  <span className="flex items-center justify-center w-5 h-5 transition-colors rounded-full bg-red-50 hover:bg-red-100">
+                    <CloseCircleFilled className="text-xs text-red-400" />
                   </span>
                 ),
               }}
               itemRender={(_origin, file) => (
-                <div className="flex items-center gap-3 w-full px-4 py-3 bg-red-50 border border-red-200 rounded-xl my-2">
-                  <FilePdfOutlined className="text-red-500 text-lg flex-shrink-0" />
-                  <span className="text-red-700 text-sm font-medium truncate flex-1">
+                <div className="flex items-center w-full gap-3 px-4 py-3 my-2 border border-red-200 bg-red-50 rounded-xl">
+                  <FilePdfOutlined className="flex-shrink-0 text-lg text-red-500" />
+                  <span className="flex-1 text-sm font-medium text-red-700 truncate">
                     {file.name}
                   </span>
-                  <span className="text-red-400 text-xs flex-shrink-0">
+                  <span className="flex-shrink-0 text-xs text-red-400">
                     {((file.size ?? 0) / 1024).toFixed(0)} KB
                   </span>
                 </div>
@@ -362,16 +385,17 @@ export function ReuploadKlaimDokumenModal({
                 "[&_.ant-upload-disabled]:opacity-50",
               ].join(" ")}
             >
-              <p className="ant-upload-drag-icon mb-3">
-                <FilePdfOutlined className="text-blue-400 text-3xl" />
+              <p className="mb-3 ant-upload-drag-icon">
+                <FilePdfOutlined className="text-3xl text-blue-400" />
               </p>
-              <p className="ant-upload-text font-medium text-slate-600 text-sm">
+              <p className="text-sm font-medium ant-upload-text text-slate-600">
                 {form.getFieldValue("document_type")
                   ? "Klik atau tarik file PDF ke sini"
                   : "Pilih tipe dokumen terlebih dahulu"}
               </p>
-              <p className="ant-upload-hint text-slate-400 text-xs mt-1">
-                Format wajib .pdf &nbsp;&middot;&nbsp; Maks. {PDF_MAX_SIZE_MB} MB
+              <p className="mt-1 text-xs ant-upload-hint text-slate-400">
+                Format wajib .pdf &nbsp;&middot;&nbsp; Maks. {PDF_MAX_SIZE_MB}{" "}
+                MB
               </p>
             </Upload.Dragger>
 
