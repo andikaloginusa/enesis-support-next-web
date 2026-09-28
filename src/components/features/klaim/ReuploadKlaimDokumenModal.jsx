@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { App, Form, Modal, Select, Typography, Upload } from "antd";
+import { App, Form, Input, Modal, Select, Typography, Upload } from "antd";
 import { CloudUploadOutlined, FilePdfOutlined, CloseCircleFilled } from "@ant-design/icons";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
@@ -222,6 +222,7 @@ export function ReuploadKlaimDokumenModal({
       onSubmit({
         klaim_id: klaimId,
         document_type: values.document_type,
+        reason: values.reason?.trim() ?? "",
         file,
       });
     } catch {
@@ -299,6 +300,22 @@ export function ReuploadKlaimDokumenModal({
                 selectedFileRef.current = null;
                 setFileError("");
               }}
+            />
+          </Form.Item>
+
+          {/* Reason / Nomor WO */}
+          <Form.Item
+            name="reason"
+            label={<Text className="font-semibold text-slate-700">Nomor Work Order (WO)</Text>}
+            rules={[
+              { required: true, whitespace: true, message: "Nomor WO wajib diisi." },
+            ]}
+          >
+            <Input
+              placeholder="Contoh: WO-2024-00123"
+              size="large"
+              className="rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors"
+              maxLength={100}
             />
           </Form.Item>
 

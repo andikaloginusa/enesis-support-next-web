@@ -46,12 +46,14 @@ export const KlaimSupportServices = (apiInstance) => {
    * @param {Object} payload
    * @param {string}   payload.klaim_id     - Target klaim record ID
    * @param {string}   payload.document_type - Document type key (e.g. "faktur_pajak")
+   * @param {string}   payload.reason       - Nomor Work Order (WO) as audit log
    * @param {File}     payload.document    - The new file to upload
    */
-  const reuploadDokumenKlaim = ({ klaim_id, document_type, document }) => {
+  const reuploadDokumenKlaim = ({ klaim_id, document_type, reason, document }) => {
     const formData = new FormData();
     formData.append("klaim_id", klaim_id);
     formData.append("document_type", document_type);
+    formData.append("reason", reason);
     formData.append("document", document);
     return authFetch("PUT", "support/klaim/reupload-dokumen-klaim", { body: formData });
   };

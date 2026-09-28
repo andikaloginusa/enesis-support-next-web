@@ -345,7 +345,7 @@ export default function KlaimSupportPage() {
     setIsReuploadModalOpen(false);
   };
 
-  const handleReuploadSubmit = async ({ klaim_id, document_type, file }) => {
+  const handleReuploadSubmit = async ({ klaim_id, document_type, reason, file }) => {
     confirmAction({
       title: "Konfirmasi Upload Ulang Dokumen Klaim",
       description:
@@ -357,6 +357,7 @@ export default function KlaimSupportPage() {
           m_user_id: getUserId(),
           klaim_id,
           document_type,
+          reason,
           file,
         });
         closeReuploadModal();
