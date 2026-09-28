@@ -84,6 +84,28 @@ export const useKlaim = () => {
     },
   });
 
+  // Mutation: Re-upload Klaim Document
+  const reuploadDokumenMutation = useMutation({
+    mutationFn: async (payload) => {
+      const response = await klaimService.reuploadDokumenKlaim(payload);
+      if (!response.ok) {
+        throw new Error(response.data?.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_ERROR);
+      }
+      return response;
+    },
+    onSuccess: (response) => {
+      notifySuccess(
+        NOTIF_MESSAGES.SUCCESS,
+        response.data?.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_SUCCESS,
+        NOTIF_DURATION_SHORT,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.klaim.all() });
+    },
+    onError: (err) => {
+      notifyError(NOTIF_MESSAGES.ERROR, err.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_ERROR, NOTIF_DURATION_MEDIUM);
+    },
+  });
+
   return {
     // List Query
     klaimList: data?.results || [],
@@ -104,5 +126,9 @@ export const useKlaim = () => {
     // Pagination & Search controls
     handlePaginationChange,
     handleSearchChange,
+
+    // Mutation: Re-upload Dokumen
+    reuploadDokumenKlaim: reuploadDokumenMutation.mutateAsync,
+    loadingReupload: reuploadDokumenMutation.isPending,
   };
 };

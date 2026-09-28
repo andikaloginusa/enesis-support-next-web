@@ -86,6 +86,8 @@ export const NOTIF_MESSAGES = {
   UPDATE_STATUS_SUCCESS: "Status Klaim Berhasil Diperbarui",
   UPDATE_STATUS_ERROR: "Gagal Memperbarui Status Klaim",
   FETCH_CLAIMS_ERROR: "Gagal mengambil daftar klaim",
+  REUPLOAD_KLAIM_SUCCESS: "Dokumen Klaim Berhasil Diunggah Ulang",
+  REUPLOAD_KLAIM_ERROR: "Gagal Mengunggah Ulang Dokumen Klaim",
 
   // FKR
   REJECT_SUCCESS: "Reject Berhasil",

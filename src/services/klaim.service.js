@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { authFetch } from "@/utils/authFetch";
 
 /**
  * Higher-order factory function to instantiate Klaim Support Services.
@@ -36,10 +37,30 @@ export const KlaimSupportServices = (apiInstance) => {
   const updateStatusKlaim = (data) =>
     apiInstance.put("support/klaim/update-status", data);
 
+  /**
+   * Re-upload a single document for an existing klaim record.
+   * Sends FormData so the file is transmitted as multipart/form-data.
+   *
+   * PUT /support/klaim/reupload-dokumen-klaim
+   *
+   * @param {Object} payload
+   * @param {string}   payload.klaim_id     - Target klaim record ID
+   * @param {string}   payload.document_type - Document type key (e.g. "faktur_pajak")
+   * @param {File}     payload.document    - The new file to upload
+   */
+  const reuploadDokumenKlaim = ({ klaim_id, document_type, document }) => {
+    const formData = new FormData();
+    formData.append("klaim_id", klaim_id);
+    formData.append("document_type", document_type);
+    formData.append("document", document);
+    return authFetch("PUT", "support/klaim/reupload-dokumen-klaim", { body: formData });
+  };
+
   return {
     getListKlaim,
     deleteLogSubmitKlaim,
     updateStatusKlaim,
+    reuploadDokumenKlaim,
   };
 };
 

@@ -12,6 +12,7 @@ import {
   DeleteOutlined,
   ReloadOutlined,
   EditOutlined,
+  CloudUploadOutlined,
 } from "@ant-design/icons";
 import { useKlaim, useDebounce, useConfirm } from "@/hooks";
 import {
@@ -24,6 +25,7 @@ import {
   renderBold,
   renderTag,
 } from "@/components/ui";
+import { ReuploadKlaimDokumenModal } from "@/components/features/klaim/ReuploadKlaimDokumenModal";
 import { getUserId } from "@/utils/storage";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
@@ -101,7 +103,7 @@ function buildUpdateModalConfig({
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-const buildColumns = ({ onEdit, onDelete }) => [
+const buildColumns = ({ onEdit, onDelete, onReupload }) => [
   {
     title: "Nomor Klaim",
     dataIndex: "nomor_klaim",
@@ -184,7 +186,7 @@ const buildColumns = ({ onEdit, onDelete }) => [
     key: "sales_approve_amount",
     width: 180,
     align: "right",
-    render: (row) => renderCurrency(row.sales_approve_amount, { color: "emerald" }),
+    render: (row) => renderCurrency(row.sales_approve_amount),
   },
   {
     title: "Status",
@@ -198,9 +200,21 @@ const buildColumns = ({ onEdit, onDelete }) => [
     key: "action",
     align: "center",
     fixed: "right",
-    width: 160,
+    width: 230,
     render: (row) => (
       <Space size="middle">
+        <Tooltip title="Re-upload Dokumen Klaim">
+          <Button
+            type="primary"
+            shape="circle"
+            icon={<CloudUploadOutlined />}
+            onClick={() => onReupload(row)}
+            style={{
+              backgroundColor: "#2563eb",
+              borderColor: "#2563eb",
+            }}
+          />
+        </Tooltip>
         <Tooltip title="Update Status Klaim">
           <Button
             type="primary"
@@ -248,6 +262,8 @@ export default function KlaimSupportPage() {
     deleteLogSubmit,
     updateStatusKlaim,
     loadingUpdateStatus,
+    loadingReupload,
+    reuploadDokumenKlaim,
     refetchList,
   } = useKlaim();
 
@@ -261,12 +277,16 @@ export default function KlaimSupportPage() {
     handleSearchChange(debouncedSearch);
   }, [debouncedSearch, handleSearchChange]);
 
-  // ── Modal State ──
+  // ── Modal State: Update Status ──
   const [updateForm] = Form.useForm();
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [activeClaimId, setActiveClaimId] = useState(null);
 
-  // ── Action Handlers ──
+  // ── Modal State: Re-upload Dokumen ──
+  const [isReuploadModalOpen, setIsReuploadModalOpen] = useState(false);
+  const [activeKlaim, setActiveKlaim] = useState(null); // { klaim_id, nomor_klaim }
+
+  // ── Action Handlers: Update Status ──
 
   const openUpdateModal = (claim) => {
     setActiveClaimId(claim.klaim_id);
@@ -280,10 +300,6 @@ export default function KlaimSupportPage() {
     setIsUpdateModalOpen(false);
   };
 
-  /**
-   * Validates the update form, then shows a contextual confirmation dialog
-   * before dispatching the status-change mutation.
-   */
   const handleUpdateStatusSubmit = async () => {
     try {
       const values = await updateForm.validateFields();
@@ -317,10 +333,42 @@ export default function KlaimSupportPage() {
     await deleteLogSubmit(klaimId);
   };
 
+  // ── Action Handlers: Re-upload Dokumen ──
+
+  const openReuploadModal = (claim) => {
+    setActiveKlaim({ klaim_id: claim.klaim_id, nomor_klaim: claim.nomor_klaim });
+    setIsReuploadModalOpen(true);
+  };
+
+  const closeReuploadModal = () => {
+    setActiveKlaim(null);
+    setIsReuploadModalOpen(false);
+  };
+
+  const handleReuploadSubmit = async ({ klaim_id, document_type, file }) => {
+    confirmAction({
+      title: "Konfirmasi Upload Ulang Dokumen Klaim",
+      description:
+        `Apakah Anda yakin ingin mengunggah ulang dokumen "${document_type}" untuk klaim ini? ` +
+        `File sebelumnya akan diganti dengan yang baru.`,
+      okText: "Ya, Upload Sekarang",
+      onConfirm: async () => {
+        await reuploadDokumenKlaim({
+          m_user_id: getUserId(),
+          klaim_id,
+          document_type,
+          file,
+        });
+        closeReuploadModal();
+      },
+    });
+  };
+
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
     onEdit: openUpdateModal,
     onDelete: handleDeleteLogConfirm,
+    onReupload: openReuploadModal,
   });
 
   const updateModalConfig = buildUpdateModalConfig({
@@ -371,7 +419,18 @@ export default function KlaimSupportPage() {
         }
       />
 
+      {/* Update Status Modal */}
       <GenericFormModal {...updateModalConfig} />
+
+      {/* Re-upload Dokumen Modal */}
+      <ReuploadKlaimDokumenModal
+        open={isReuploadModalOpen}
+        onCancel={closeReuploadModal}
+        onSubmit={handleReuploadSubmit}
+        confirmLoading={loadingReupload}
+        klaimId={activeKlaim?.klaim_id}
+        klaimNo={activeKlaim?.nomor_klaim}
+      />
     </>
   );
 }

@@ -37,6 +37,8 @@ export const queryKeys = {
     list: (params) => ["klaim", "list", params],
     /** Matches a single klaim detail by ID */
     detail: (id) => ["klaim", "detail", id],
+    /** Matches klaim document reupload result */
+    reupload: () => ["klaim", "reupload"],
   },
 
   // ─────────────────────────────────────────────
