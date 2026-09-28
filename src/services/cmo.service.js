@@ -67,7 +67,7 @@ export const CmoSupportServices = (apiInstance) => {
   /**
    * Upload a new Excel template and update its version in the database.
    * Uses FormData (authFetch) because the payload includes a binary file.
-   * POST /cmo/replace-template
+   * PUT /support/cmo/replace/template
    *
    * @param {Object} payload - { tipe_template, version, file }
    */
@@ -76,7 +76,7 @@ export const CmoSupportServices = (apiInstance) => {
     formData.append("tipe_template", tipe_template);
     formData.append("version", version);
     formData.append("document", file); // Key "document" is required by backend
-    return authFetch("POST", "cmo/replace-template", { body: formData });
+    return authFetch("PUT", "support/cmo/replace/template", { body: formData });
   };
 
   return {

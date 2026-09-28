@@ -178,6 +178,7 @@ export function ReuploadKlaimDokumenModal({
   klaimNo,
 }) {
   const [form] = Form.useForm();
+  const [selectedFile, setSelectedFile] = useState(null);
   const selectedFileRef = useRef(null);
   const { notification } = App.useApp();
   const [fileError, setFileError] = useState("");
@@ -186,6 +187,7 @@ export function ReuploadKlaimDokumenModal({
   // ── Reset on close — always fresh state when reopened ─────────────────────────
   const handleClose = useCallback(() => {
     form.resetFields();
+    setSelectedFile(null);
     selectedFileRef.current = null;
     setFileError("");
     setDocTypeSelected(false);
@@ -203,6 +205,7 @@ export function ReuploadKlaimDokumenModal({
         });
         return Upload.LIST_IGNORE;
       }
+      setSelectedFile(file);
       selectedFileRef.current = file;
       setFileError("");
       return false; // hold — actual upload happens on submit
@@ -211,6 +214,7 @@ export function ReuploadKlaimDokumenModal({
   );
 
   const handleRemove = () => {
+    setSelectedFile(null);
     selectedFileRef.current = null;
     setFileError("");
   };
@@ -237,13 +241,9 @@ export function ReuploadKlaimDokumenModal({
     }
   };
 
-  const fileList = selectedFileRef.current
-    ? [{ uid: "-1", name: selectedFileRef.current.name, status: "done" }]
+  const fileList = selectedFile
+    ? [{ uid: "-1", name: selectedFile.name, status: "done", size: selectedFile.size }]
     : [];
-
-  const docMeta = selectedFileRef.current
-    ? KLAIM_DOC_CONFIG[form.getFieldValue("document_type")]
-    : null;
 
   return (
     <Modal
@@ -312,6 +312,7 @@ export function ReuploadKlaimDokumenModal({
               className="[&_.ant-select-selector]:rounded-lg"
               onChange={() => {
                 // Clear file when doc type changes
+                setSelectedFile(null);
                 selectedFileRef.current = null;
                 setFileError("");
                 setDocTypeSelected(true);
