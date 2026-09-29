@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { proposalService } from "@services/proposal.service";
 import { useState } from "react";
-import { getUserCredentials } from "@/utils/storage";
+import { getUserCredentials, getUserId } from "@/utils/storage";
 import { queryKeys } from "@/lib/queryKeys";
 import { assertApiSuccess, extractResponseData } from "@/utils/errorHelpers";
 import { NOTIF_MESSAGES, API_LABELS } from "@/utils/constants";
@@ -12,6 +12,21 @@ import {
   NOTIF_DURATION_LONG,
 } from "@/utils/notify";
 import { useListParams } from "@/hooks/useListParams";
+
+/**
+ * Generate a reason code with format {PREFIX}-{YYYYMMDDHHmm}.
+ * @param {string} prefix - e.g. "PROPSAP", "PROPSAPIMP", "PROPSAPAMOUNT"
+ * @returns {string}
+ */
+export function generateReasonCode(prefix) {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  const hh = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  return `${prefix}-${yyyy}${mm}${dd}${hh}${min}`;
+}
 
 /**
  * useProposal — Custom React Query Hook for the Proposal Module
@@ -217,6 +232,90 @@ export const useProposal = (proposalId = null) => {
     },
   });
 
+  // Mutation: Upload Proposal SAP Klaim Detail & Budget ID
+  const uploadProposalSapKlaimMutation = useMutation({
+    mutationFn: async ({ excel, reason }) => {
+      const response = await proposalService.uploadProposalSapKlaimDetail({
+        m_user_id: getUserId(),
+        excel,
+        reason,
+      });
+      assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_KLAIM_ERROR);
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notifySuccess(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_KLAIM_SUCCESS,
+        res?.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_KLAIM_SUCCESS,
+        NOTIF_DURATION_LONG,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.proposal.all() });
+    },
+    onError: (err) => {
+      notifyError(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_KLAIM_ERROR,
+        err.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_KLAIM_ERROR,
+        NOTIF_DURATION_LONG,
+      );
+    },
+  });
+
+  // Mutation: Upload Proposal SAP Import
+  const uploadProposalSapImportMutation = useMutation({
+    mutationFn: async ({ excel, reason }) => {
+      const response = await proposalService.uploadProposalSapImport({
+        m_user_id: getUserId(),
+        excel,
+        reason,
+      });
+      assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_IMPORT_ERROR);
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notifySuccess(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_IMPORT_SUCCESS,
+        res?.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_IMPORT_SUCCESS,
+        NOTIF_DURATION_LONG,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.proposal.all() });
+    },
+    onError: (err) => {
+      notifyError(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_IMPORT_ERROR,
+        err.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_IMPORT_ERROR,
+        NOTIF_DURATION_LONG,
+      );
+    },
+  });
+
+  // Mutation: Upload Proposal SAP Amount
+  const uploadProposalSapAmountMutation = useMutation({
+    mutationFn: async ({ excel, reason }) => {
+      const response = await proposalService.uploadProposalSapAmount({
+        m_user_id: getUserId(),
+        excel,
+        reason,
+      });
+      assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR);
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notifySuccess(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_AMOUNT_SUCCESS,
+        res?.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_AMOUNT_SUCCESS,
+        NOTIF_DURATION_LONG,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.proposal.all() });
+    },
+    onError: (err) => {
+      notifyError(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR,
+        err.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR,
+        NOTIF_DURATION_LONG,
+      );
+    },
+  });
+
   return {
     // List Query
     proposalList: listData?.results || [],
@@ -255,5 +354,20 @@ export const useProposal = (proposalId = null) => {
     uploadReversalInternasional: uploadReversalMutation.mutateAsync,
     isUploadingReversal: uploadReversalMutation.isPending,
     uploadReversalResult: uploadReversalMutation.data,
+
+    // Mutation: Upload Proposal SAP Klaim Detail & Budget ID
+    uploadProposalSapKlaimDetail: uploadProposalSapKlaimMutation.mutateAsync,
+    isUploadingProposalSapKlaim: uploadProposalSapKlaimMutation.isPending,
+    uploadProposalSapKlaimResult: uploadProposalSapKlaimMutation.data,
+
+    // Mutation: Upload Proposal SAP Import
+    uploadProposalSapImport: uploadProposalSapImportMutation.mutateAsync,
+    isUploadingProposalSapImport: uploadProposalSapImportMutation.isPending,
+    uploadProposalSapImportResult: uploadProposalSapImportMutation.data,
+
+    // Mutation: Upload Proposal SAP Amount
+    uploadProposalSapAmount: uploadProposalSapAmountMutation.mutateAsync,
+    isUploadingProposalSapAmount: uploadProposalSapAmountMutation.isPending,
+    uploadProposalSapAmountResult: uploadProposalSapAmountMutation.data,
   };
 };

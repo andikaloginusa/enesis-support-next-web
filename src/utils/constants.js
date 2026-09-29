@@ -130,6 +130,12 @@ export const NOTIF_MESSAGES = {
   UPLOAD_EMAIL_ERROR: "Upload Gagal",
   REVERSAL_SUCCESS: "Reversal Internasional Berhasil",
   REVERSAL_ERROR: "Gagal Memproses Reversal Internasional",
+  UPLOAD_PROPOSAL_SAP_KLAIM_SUCCESS: "Upload Klaim Detail & Budget ID Berhasil",
+  UPLOAD_PROPOSAL_SAP_KLAIM_ERROR: "Gagal Upload Klaim Detail & Budget ID",
+  UPLOAD_PROPOSAL_SAP_IMPORT_SUCCESS: "Upload Proposal SAP Import Berhasil",
+  UPLOAD_PROPOSAL_SAP_IMPORT_ERROR: "Gagal Upload Proposal SAP Import",
+  UPLOAD_PROPOSAL_SAP_AMOUNT_SUCCESS: "Upload Proposal SAP Amount Berhasil",
+  UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR: "Gagal Upload Proposal SAP Amount",
   FETCH_PROPOSAL_ERROR: "Gagal mengambil daftar proposal",
   FETCH_PROPOSAL_DETAIL_ERROR: "Gagal mengambil detail proposal",
 

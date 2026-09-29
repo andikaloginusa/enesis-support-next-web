@@ -13,6 +13,9 @@ import {
   CloseCircleOutlined,
   FileExcelOutlined,
   SyncOutlined,
+  CloudUploadOutlined,
+  DatabaseOutlined,
+  DollarOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useProposal, useDebounce } from "@/hooks";
@@ -26,6 +29,7 @@ import {
   renderTruncated,
 } from "@/components/ui";
 import { CekProposalFromSapModal } from "@/components/features/proposal/CekProposalFromSapModal";
+import { UploadProposalSapModal } from "@/components/features/proposal/UploadProposalSapModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Upload Result Display Sub-component
@@ -178,6 +182,7 @@ function UploadModal({
       styles={{ body: { padding: 0 } }}
       className="rounded-2xl overflow-hidden"
       closable={false}
+      destroyOnHidden
     >
       {/* Gradient Header */}
       <div className={`bg-gradient-to-r ${ac.header} px-6 py-5 flex items-center gap-3`}>
@@ -269,32 +274,29 @@ function UploadModal({
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <button
+              <Button
+                block
+                size="large"
                 onClick={onClose}
-                className="flex-1 h-10 rounded-xl border border-slate-200 text-slate-500 text-sm font-semibold hover:bg-slate-50 transition-all"
+                className="rounded-xl"
               >
                 Batal
-              </button>
-              <button
+              </Button>
+              <Button
+                block
+                type="primary"
+                size="large"
+                icon={<UploadOutlined />}
                 onClick={handleUpload}
-                disabled={!selectedFile || isUploading}
-                className={`flex-1 h-10 rounded-xl text-white text-sm font-bold transition-all
-                  ${selectedFile && !isUploading
-                    ? `${ac.btn} shadow-sm`
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"}`}
+                loading={isUploading}
+                disabled={!selectedFile}
+                style={{
+                  backgroundColor: selectedFile && !isUploading ? ac.btn.replace("hover:", "").split(" ")[0] : undefined,
+                }}
+                className="rounded-xl font-semibold"
               >
-                {isUploading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin inline-block" />
-                    Memproses...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <UploadOutlined />
-                    Upload & Proses
-                  </span>
-                )}
-              </button>
+                Upload &amp; Proses
+              </Button>
             </div>
           </>
         )}
@@ -304,12 +306,19 @@ function UploadModal({
           <div className="space-y-4">
             {successRows.length > 0 && <ResultPanel rows={successRows} type="success" />}
             {errorRows.length > 0 && <ResultPanel rows={errorRows} type="error" />}
-            <button
+            <Button
+              block
+              type="primary"
+              size="large"
               onClick={onClose}
-              className={`w-full h-10 rounded-xl text-white text-sm font-bold ${ac.btn} transition-all shadow-sm`}
+              style={{
+                backgroundColor: ac.btn.includes("bg-blue") ? "#2563eb" : "#7c3aed",
+                borderColor: ac.btn.includes("bg-blue") ? "#2563eb" : "#7c3aed",
+              }}
+              className="rounded-xl font-semibold"
             >
               Tutup
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -437,6 +446,15 @@ export default function ProposalSupportPage() {
     uploadReversalInternasional,
     isUploadingReversal,
     uploadReversalResult,
+    uploadProposalSapKlaimDetail,
+    isUploadingProposalSapKlaim,
+    uploadProposalSapKlaimResult,
+    uploadProposalSapImport,
+    isUploadingProposalSapImport,
+    uploadProposalSapImportResult,
+    uploadProposalSapAmount,
+    isUploadingProposalSapAmount,
+    uploadProposalSapAmountResult,
   } = useProposal();
 
   // ── Search State ──
@@ -451,6 +469,9 @@ export default function ProposalSupportPage() {
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [reversalModalOpen, setReversalModalOpen] = useState(false);
   const [cekSapModalOpen, setCekSapModalOpen] = useState(false);
+  const [sapKlaimModalOpen, setSapKlaimModalOpen] = useState(false);
+  const [sapImportModalOpen, setSapImportModalOpen] = useState(false);
+  const [sapAmountModalOpen, setSapAmountModalOpen] = useState(false);
 
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
@@ -496,6 +517,36 @@ export default function ProposalSupportPage() {
               options={STATUS_OPTIONS}
               className="font-medium"
             />
+
+            <span className="w-px h-5 bg-slate-200 self-center mx-1" />
+
+            {/* Upload SAP Actions */}
+            <Button
+              icon={<CloudUploadOutlined />}
+              onClick={() => setSapKlaimModalOpen(true)}
+              loading={isUploadingProposalSapKlaim}
+              className="h-9 px-4 rounded-lg border-orange-200 text-orange-600 hover:text-white hover:border-orange-500 hover:bg-orange-500 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Klaim &amp; Budget ID
+            </Button>
+
+            <Button
+              icon={<DatabaseOutlined />}
+              onClick={() => setSapImportModalOpen(true)}
+              loading={isUploadingProposalSapImport}
+              className="h-9 px-4 rounded-lg border-blue-200 text-blue-600 hover:text-white hover:border-blue-500 hover:bg-blue-500 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Import
+            </Button>
+
+            <Button
+              icon={<DollarOutlined />}
+              onClick={() => setSapAmountModalOpen(true)}
+              loading={isUploadingProposalSapAmount}
+              className="h-9 px-4 rounded-lg border-emerald-200 text-emerald-600 hover:text-white hover:border-emerald-500 hover:bg-emerald-500 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Amount
+            </Button>
 
             <span className="w-px h-5 bg-slate-200 self-center mx-1" />
 
@@ -569,6 +620,36 @@ export default function ProposalSupportPage() {
       <CekProposalFromSapModal
         open={cekSapModalOpen}
         onClose={() => setCekSapModalOpen(false)}
+      />
+
+      {/* Upload Proposal SAP — Klaim Detail & Budget ID */}
+      <UploadProposalSapModal
+        open={sapKlaimModalOpen}
+        onClose={() => setSapKlaimModalOpen(false)}
+        variant="klaim"
+        onUpload={uploadProposalSapKlaimDetail}
+        isUploading={isUploadingProposalSapKlaim}
+        result={uploadProposalSapKlaimResult}
+      />
+
+      {/* Upload Proposal SAP — Import */}
+      <UploadProposalSapModal
+        open={sapImportModalOpen}
+        onClose={() => setSapImportModalOpen(false)}
+        variant="import"
+        onUpload={uploadProposalSapImport}
+        isUploading={isUploadingProposalSapImport}
+        result={uploadProposalSapImportResult}
+      />
+
+      {/* Upload Proposal SAP — Amount */}
+      <UploadProposalSapModal
+        open={sapAmountModalOpen}
+        onClose={() => setSapAmountModalOpen(false)}
+        variant="amount"
+        onUpload={uploadProposalSapAmount}
+        isUploading={isUploadingProposalSapAmount}
+        result={uploadProposalSapAmountResult}
       />
     </>
   );

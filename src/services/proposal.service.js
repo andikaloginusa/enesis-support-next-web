@@ -94,6 +94,48 @@ export const ProposalSupportServices = (apiInstance) => {
   const getProposalFromSapBudget = (params) =>
     apiInstance.get("support/proposal/get/proposal-from-sap/budget", params);
 
+  /**
+   * Upload Update Proposal From SAP — Klaim Detail and Budget ID.
+   * PUT /support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id
+   *
+   * @param {Object} payload - { m_user_id, excel: File, reason }
+   */
+  const uploadProposalSapKlaimDetail = ({ m_user_id, excel, reason }) => {
+    const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
+    formData.append("excel", excel);
+    formData.append("reason", reason);
+    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id", { body: formData });
+  };
+
+  /**
+   * Upload Proposal From SAP — Import.
+   * PUT /support/proposal/upload/update-proposal-from-sap/import
+   *
+   * @param {Object} payload - { m_user_id, excel: File, reason }
+   */
+  const uploadProposalSapImport = ({ m_user_id, excel, reason }) => {
+    const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
+    formData.append("excel", excel);
+    formData.append("reason", reason);
+    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/import", { body: formData });
+  };
+
+  /**
+   * Upload Proposal From SAP — Amount.
+   * PUT /support/proposal/upload/update-proposal-from-sap/amount
+   *
+   * @param {Object} payload - { m_user_id, excel: File, reason }
+   */
+  const uploadProposalSapAmount = ({ m_user_id, excel, reason }) => {
+    const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
+    formData.append("excel", excel);
+    formData.append("reason", reason);
+    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/amount", { body: formData });
+  };
+
   return {
     getListProposal,
     getDetailProposal,
@@ -104,6 +146,9 @@ export const ProposalSupportServices = (apiInstance) => {
     uploadReversalInternasional,
     massUpdateProposalFromSap,
     getProposalFromSapBudget,
+    uploadProposalSapKlaimDetail,
+    uploadProposalSapImport,
+    uploadProposalSapAmount,
   };
 };
 
