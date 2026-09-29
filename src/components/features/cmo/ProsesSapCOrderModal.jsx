@@ -266,7 +266,7 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
             <Table
               columns={columns}
               dataSource={sapList}
-              rowKey="corder_id"
+              rowKey="c_order_id"
               loading={isFetching}
               pagination={{
                 total: totalCount,
