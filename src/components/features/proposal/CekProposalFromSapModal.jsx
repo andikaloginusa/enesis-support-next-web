@@ -129,7 +129,8 @@ export function CekProposalFromSapModal({ open, onClose }) {
       });
 
       if (response.ok) {
-        setData(response.data);
+        // API returns { status, error, message, data: { budget_fields... } }
+        setData(response.data?.data ?? null);
       } else {
         setError(response.data?.message || "Gagal mengambil data budget proposal.");
       }
