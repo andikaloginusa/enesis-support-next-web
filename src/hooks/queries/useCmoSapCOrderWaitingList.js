@@ -50,11 +50,11 @@ export const useCmoSapCOrderWaitingList = (options = {}) => {
         pageSize: activeParams.pageSize,
       });
       if (response.ok) {
-        // Support both wrapped { data, meta } and direct array response
-        if (Array.isArray(response.data)) {
-          return { data: response.data, meta: { count: response.data.length } };
-        }
-        return response.data;
+        // API returns { error, message, results: [...] }
+        const results = Array.isArray(response.data)
+          ? response.data
+          : response.data?.results || [];
+        return { data: results, meta: { count: results.length } };
       }
       return { data: [], meta: { count: 0 } };
     },

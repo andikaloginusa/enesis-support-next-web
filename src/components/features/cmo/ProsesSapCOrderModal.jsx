@@ -18,7 +18,6 @@ import {
   FileSearchOutlined,
 } from "@ant-design/icons";
 import { useCmoSapCOrderWaitingList } from "@/hooks/queries/useCmoSapCOrderWaitingList";
-import { renderDate, renderBold } from "@/components/ui";
 import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
@@ -89,49 +88,22 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
     });
   };
 
-  const MONTHS = [
-    "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-    "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
-  ];
-
   const columns = [
     {
-      title: "Nomor C-Order",
-      dataIndex: "nomor_corder",
-      key: "nomor_corder",
-      width: 260,
-      render: (text) => renderBold(text),
-    },
-    {
-      title: "Tahun",
-      dataIndex: "tahun",
-      key: "tahun",
-      width: 80,
-      align: "center",
+      title: "ID C-Order",
+      dataIndex: "c_order_id",
+      key: "c_order_id",
+      width: 300,
+      ellipsis: true,
       render: (text) => (
-        <Text className="font-semibold text-slate-700">{text || "—"}</Text>
+        <Text className="text-xs text-slate-500 font-mono">{text || "—"}</Text>
       ),
-    },
-    {
-      title: "Bulan",
-      dataIndex: "bulan",
-      key: "bulan",
-      width: 80,
-      align: "center",
-      render: (val) => {
-        const idx = parseInt(val, 10);
-        return (
-          <Text className="font-semibold text-slate-700">
-            {MONTHS[idx] || val || "—"}
-          </Text>
-        );
-      },
     },
     {
       title: "No. SAP",
       dataIndex: "no_sap",
       key: "no_sap",
-      width: 120,
+      width: 140,
       align: "center",
       render: (text) => (
         <span className="text-amber-500 text-xs font-semibold italic">
@@ -140,21 +112,14 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
       ),
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      width: 160,
+      title: "Week Number",
+      dataIndex: "week_number",
+      key: "week_number",
+      width: 120,
       align: "center",
       render: (text) => (
-        <Text className="text-slate-600 text-xs">{text || "—"}</Text>
+        <Text className="font-semibold text-slate-700">{text ?? "—"}</Text>
       ),
-    },
-    {
-      title: "Dibuat",
-      dataIndex: "created",
-      key: "created",
-      width: 150,
-      render: (val) => renderDate(val),
     },
   ];
 
@@ -278,7 +243,7 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
                 showTotal: (total, range) =>
                   `Menampilkan ${range[0]}–${range[1]} dari ${total.toLocaleString("id-ID")} data`,
               }}
-              scroll={{ x: 800 }}
+              scroll={{ x: 560 }}
               size="middle"
               className="[&_.ant-table]:rounded-xl [&_.ant-table]:overflow-hidden"
             />
