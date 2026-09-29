@@ -82,6 +82,15 @@ export const ProposalSupportServices = (apiInstance) => {
     return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap", { body: formData });
   };
 
+  /**
+   * Fetch Proposal budget summary from SAP.
+   * GET /support/proposal/get/proposal-from-sap/budget
+   *
+   * Returns: { total_nominal_budget, total_tolerance, total_klaim_eprop, sisa_budget }
+   */
+  const getProposalFromSapBudget = () =>
+    apiInstance.get("support/proposal/get/proposal-from-sap/budget");
+
   return {
     getListProposal,
     getDetailProposal,
@@ -91,6 +100,7 @@ export const ProposalSupportServices = (apiInstance) => {
     uploadSendEmailUlang,
     uploadReversalInternasional,
     massUpdateProposalFromSap,
+    getProposalFromSapBudget,
   };
 };
 

@@ -12,6 +12,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   FileExcelOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useProposal, useDebounce } from "@/hooks";
@@ -24,6 +25,7 @@ import {
   renderMedium,
   renderTruncated,
 } from "@/components/ui";
+import { CekProposalFromSapModal } from "@/components/features/proposal/CekProposalFromSapModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Upload Result Display Sub-component
@@ -448,6 +450,7 @@ export default function ProposalSupportPage() {
   // ── Upload Modal State ──
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [reversalModalOpen, setReversalModalOpen] = useState(false);
+  const [cekSapModalOpen, setCekSapModalOpen] = useState(false);
 
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
@@ -515,6 +518,14 @@ export default function ProposalSupportPage() {
               Reversal Internasional
             </Button>
 
+            <Button
+              icon={<SyncOutlined />}
+              onClick={() => setCekSapModalOpen(true)}
+              className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-400 hover:bg-emerald-50 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Cek Proposal From SAP
+            </Button>
+
             {/* Reload */}
             <Button
               shape="circle"
@@ -552,6 +563,12 @@ export default function ProposalSupportPage() {
         isUploading={isUploadingReversal}
         result={uploadReversalResult}
         templateUrl="/templates/proposal/Template Reverse Internasional.xlsx"
+      />
+
+      {/* Cek Proposal From SAP Modal */}
+      <CekProposalFromSapModal
+        open={cekSapModalOpen}
+        onClose={() => setCekSapModalOpen(false)}
       />
     </>
   );
