@@ -301,7 +301,7 @@ function DelegasiModal({
       className="rounded-2xl overflow-hidden"
       styles={{ body: { padding: 0 } }}
       closable={false}
-      destroyOnClose
+      destroyOnHidden
     >
       {/* ── Header ── */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-5 flex items-center gap-3">
@@ -490,7 +490,7 @@ function SingleFieldEditModal({
       className="rounded-2xl overflow-hidden"
       styles={{ body: { padding: 0 } }}
       closable={false}
-      destroyOnClose
+      destroyOnHidden
     >
       {/* ── Header ── */}
       <div className="bg-gradient-to-r from-slate-800 to-slate-700 px-6 py-4 flex items-center gap-3">

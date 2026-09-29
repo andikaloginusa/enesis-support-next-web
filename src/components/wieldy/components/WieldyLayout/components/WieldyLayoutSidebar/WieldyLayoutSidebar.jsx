@@ -62,7 +62,7 @@ export function WieldyLayoutSidebar({
           footer={null}
           size={sidebarOptions?.width}
           onClose={() => setSidebarOptions({ collapsed: true })}
-          destroyOnClose={true}
+          destroyOnHidden={true}
         >
           {children}
         </Drawer>
