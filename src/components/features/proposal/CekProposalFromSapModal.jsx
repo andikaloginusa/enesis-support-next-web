@@ -289,7 +289,7 @@ export function CekProposalFromSapModal({ open, onClose }) {
               <SearchOutlined className="text-slate-300 text-2xl" />
             </div>
             <Text className="text-slate-400 text-sm font-medium text-center">
-              Masukkan kode e-proposal SAP lalu klik "Cek"
+              Masukkan kode e-proposal SAP lalu klik &quot;Cek&quot;
             </Text>
           </div>
         )}
