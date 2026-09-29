@@ -29,6 +29,15 @@ export const CmoSupportServices = (apiInstance) => {
     apiInstance.get("support/cmo/get/list-cmo-sap", params);
 
   /**
+   * Fetch paginated list of C-Order records waiting for SAP response.
+   * GET /support/cmo/get/list-corder-sap
+   *
+   * @param {Object} params - { bulan, tahun, currentPage, pageSize }
+   */
+  const getSapCOrderWaitingList = (params) =>
+    apiInstance.get("support/cmo/get/list-corder-sap", params);
+
+  /**
    * Pull SAP return XML for all WAITING CMO records in a period.
    * PUT /cmo/process-sap-cmo
    *
@@ -82,6 +91,7 @@ export const CmoSupportServices = (apiInstance) => {
   return {
     getFilteredList,
     getSapWaitingList,
+    getSapCOrderWaitingList,
     processSapCMO,
     processSapCOrder,
     regenerateCOrder,

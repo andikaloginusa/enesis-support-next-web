@@ -1,25 +1,38 @@
 "use client";
 
 import React from "react";
-import { Modal, Select, Button, Typography, Space, Alert } from "antd";
+import {
+  Modal,
+  Table,
+  Select,
+  Button,
+  Typography,
+  Space,
+  Alert,
+  Spin,
+} from "antd";
 import {
   SyncOutlined,
+  ReloadOutlined,
   FilterOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
+  FileSearchOutlined,
 } from "@ant-design/icons";
 import { useCmoSapCOrderWaitingList } from "@/hooks/queries/useCmoSapCOrderWaitingList";
+import { renderDate, renderBold } from "@/components/ui";
 import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
 
 /**
- * ProsesSapCOrderModal — Modal for processing SAP C-Order batch.
+ * ProsesSapCOrderModal — Modal for viewing & processing SAP-waiting C-Order records.
  *
  * Features:
- * - Filter by Tahun & Bulan
- * - Batch process PUT /cmo/process-sap-c-order
- * - Shows result alert after processing
+ * - Filter by Tahun & Bulan — triggered automatically when both filters are selected
+ * - Paginated table of waiting C-Order records (from GET /support/cmo/get/list-corder-sap)
+ * - "Proses SAP C-Order" batch button (PUT /cmo/process-sap-c-order)
+ * - Auto-refresh list after processing
+ *
+ * Mirrors the pattern of ProsesSapCMOModal.
  *
  * @param {Object}   props
  * @param {boolean}  props.open
@@ -34,10 +47,17 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
     filterBulan,
     handleTahunChange,
     handleBulanChange,
-    canProcess,
+    hasActiveParams,
+    sapList,
+    totalCount,
+    currentPage,
+    pageSize,
+    handlePageChange,
+    isLoading,
+    isFetching,
     isProcessing,
-    result,
     processSapCOrder,
+    refetch,
     resetFilters,
   } = useCmoSapCOrderWaitingList({ onSuccess });
 
@@ -53,16 +73,10 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
    * batch process (pulls XML from SFTP and updates nomor_sap + status).
    */
   const handleProsesSap = async () => {
-    if (!canProcess) return;
-
-    const bulanLabel =
-      CMO_BULAN_OPTIONS.find((o) => o.value === filterBulan)?.label || filterBulan;
-
     confirmAction({
       title: "Konfirmasi Proses SAP C-Order",
       description:
-        `Apakah Anda yakin ingin memproses sinkronisasi SAP C-Order untuk periode ` +
-        `${bulanLabel} ${filterTahun}? ` +
+        `Apakah Anda yakin ingin memproses ${totalCount.toLocaleString("id-ID")} data C-Order yang sedang menunggu? ` +
         "Sistem akan menarik balikan XML dari SFTP dan memperbarui No. SAP serta status setiap C-Order.",
       okText: "Ya, Proses SAP C-Order",
       onConfirm: async () => {
@@ -75,9 +89,74 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
     });
   };
 
-  // Parse result message for display
-  const resultMessage = result?.data?.message;
-  const hasResult = result !== undefined;
+  const MONTHS = [
+    "", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+    "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+  ];
+
+  const columns = [
+    {
+      title: "Nomor C-Order",
+      dataIndex: "nomor_corder",
+      key: "nomor_corder",
+      width: 260,
+      render: (text) => renderBold(text),
+    },
+    {
+      title: "Tahun",
+      dataIndex: "tahun",
+      key: "tahun",
+      width: 80,
+      align: "center",
+      render: (text) => (
+        <Text className="font-semibold text-slate-700">{text || "—"}</Text>
+      ),
+    },
+    {
+      title: "Bulan",
+      dataIndex: "bulan",
+      key: "bulan",
+      width: 80,
+      align: "center",
+      render: (val) => {
+        const idx = parseInt(val, 10);
+        return (
+          <Text className="font-semibold text-slate-700">
+            {MONTHS[idx] || val || "—"}
+          </Text>
+        );
+      },
+    },
+    {
+      title: "No. SAP",
+      dataIndex: "no_sap",
+      key: "no_sap",
+      width: 120,
+      align: "center",
+      render: (text) => (
+        <span className="text-amber-500 text-xs font-semibold italic">
+          {text || "—"}
+        </span>
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      width: 160,
+      align: "center",
+      render: (text) => (
+        <Text className="text-slate-600 text-xs">{text || "—"}</Text>
+      ),
+    },
+    {
+      title: "Dibuat",
+      dataIndex: "created",
+      key: "created",
+      width: 150,
+      render: (val) => renderDate(val),
+    },
+  ];
 
   return (
     <Modal
@@ -92,17 +171,25 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
       footer={
         <div className="flex items-center justify-between gap-3">
           <Text className="text-slate-500 text-xs">
-            {canProcess
-              ? `Periode: ${CMO_BULAN_OPTIONS.find((o) => o.value === filterBulan)?.label || ""} ${filterTahun || ""}`
-              : "Pilih periode untuk memproses"}
+            {hasActiveParams
+              ? `${totalCount.toLocaleString("id-ID")} data menunggu`
+              : "Pilih periode untuk melihat data"}
           </Text>
           <Space size="middle">
+            <Button
+              onClick={refetch}
+              icon={<ReloadOutlined />}
+              loading={isFetching}
+              disabled={!hasActiveParams}
+            >
+              Refresh
+            </Button>
             <Button
               type="primary"
               icon={<SyncOutlined />}
               onClick={handleProsesSap}
               loading={isProcessing}
-              disabled={!canProcess}
+              disabled={!hasActiveParams || totalCount === 0}
               style={{
                 backgroundColor: "#1aac32",
                 borderColor: "#1aac32",
@@ -114,7 +201,7 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
           </Space>
         </div>
       }
-      width={560}
+      width={960}
       className="rounded-xl overflow-hidden"
       destroyOnHidden
     >
@@ -147,25 +234,55 @@ export function ProsesSapCOrderModal({ open, onCancel, onSuccess }) {
           />
         </div>
 
-        {/* Info Alert */}
-        <Alert
-          title="Tentang Proses SAP C-Order"
-          description="Proses ini akan menarik balikan XML dari SFTP untuk semua data C-Order yang masih berstatus WAITING pada periode yang dipilih. Pastikan periode sudah benar sebelum melanjutkan."
-          type="info"
-          showIcon
-          className="rounded-lg"
-        />
+        {/* Empty State */}
+        {!hasActiveParams && (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
+              <FileSearchOutlined className="text-slate-300 text-3xl" />
+            </div>
+            <Text className="text-slate-400 text-sm font-medium text-center max-w-xs">
+              Pilih tahun dan bulan untuk menampilkan data C-Order yang menunggu
+              balasan SAP.
+            </Text>
+          </div>
+        )}
 
-        {/* Result Alert */}
-        {hasResult && !isProcessing && (
-          <Alert
-            type="success"
-            showIcon
-            icon={<CheckCircleOutlined />}
-            title="Proses Selesai"
-            description={resultMessage || "Sinkronisasi SAP C-Order telah selesai diproses."}
-            className="rounded-lg"
-          />
+        {/* Loading */}
+        {hasActiveParams && isLoading && (
+          <div className="flex items-center justify-center py-16">
+            <Spin description="Memuat data..." />
+          </div>
+        )}
+
+        {/* Table */}
+        {hasActiveParams && !isLoading && (
+          <>
+            <Alert
+              title={`Menampilkan data C-Order Waiting SAP untuk periode ${filterBulan ? CMO_BULAN_OPTIONS.find((o) => o.value === filterBulan)?.label : ""} ${filterTahun || ""}`}
+              type="info"
+              showIcon
+              className="rounded-lg"
+            />
+            <Table
+              columns={columns}
+              dataSource={sapList}
+              rowKey="corder_id"
+              loading={isFetching}
+              pagination={{
+                total: totalCount,
+                pageSize,
+                current: currentPage,
+                onChange: handlePageChange,
+                showSizeChanger: true,
+                pageSizeOptions: ["10", "20", "50"],
+                showTotal: (total, range) =>
+                  `Menampilkan ${range[0]}–${range[1]} dari ${total.toLocaleString("id-ID")} data`,
+              }}
+              scroll={{ x: 800 }}
+              size="middle"
+              className="[&_.ant-table]:rounded-xl [&_.ant-table]:overflow-hidden"
+            />
+          </>
         )}
       </div>
     </Modal>
