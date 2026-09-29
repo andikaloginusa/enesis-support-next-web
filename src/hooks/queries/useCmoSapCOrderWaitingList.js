@@ -50,11 +50,12 @@ export const useCmoSapCOrderWaitingList = (options = {}) => {
         pageSize: activeParams.pageSize,
       });
       if (response.ok) {
-        // API returns { error, message, results: [...] }
+        // API returns { error, message, results: [...], meta: { currentPage, pageCount, pageSize, count } }
         const results = Array.isArray(response.data)
           ? response.data
           : response.data?.results || [];
-        return { data: results, meta: { count: results.length } };
+        const meta = response.data?.meta || { count: results.length };
+        return { data: results, meta };
       }
       return { data: [], meta: { count: 0 } };
     },
