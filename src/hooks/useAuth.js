@@ -10,6 +10,7 @@ import {
   setUserCredentials,
   clearUserCredentials,
   setChangeCredentials,
+  hasRole,
 } from "@/utils/storage";
 import { USER_ROLES, ROUTES, SESSION_COOKIE_NAME, SESSION_COOKIE_MAX_AGE, HTTP_STATUS } from "@/utils/constants";
 import {
@@ -90,14 +91,33 @@ export function useAuth() {
           return;
         }
 
-        // Case 3: Persist session — localStorage + secure cookie
+        // Case 3: IT SUPPORT role gate — reject non-IT SUPPORT users before storing session
+        const userRoles = result.roles || result.data?.roles || [];
+        const isItSupportUser = Array.isArray(userRoles)
+          ? userRoles.some((r) => r.nama === USER_ROLES.IT_SUPPORT)
+          : false;
+
+        if (!isItSupportUser) {
+          modal.error({
+            ...buildLoginErrorModal(
+              "Anda tidak memiliki akses ke portal ini. Fitur IT Support hanya dapat digunakan oleh user dengan role IT SUPPORT."
+            ),
+            onOk() {
+              router.push(ROUTES.LOGIN);
+            },
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Case 4: Persist session — localStorage + secure cookie
         setUserCredentials({
           ...result.data,
           logintime: moment().format("YYYY-MM-DD HH:mm:ss"),
         });
         document.cookie = `${SESSION_COOKIE_NAME}=${accessToken}; path=/; max-age=${SESSION_COOKIE_MAX_AGE}; SameSite=Lax`;
 
-        // Case 4: Role-based redirection
+        // Case 5: Role-based redirection
         const roleName = result.roles?.[0]?.nama || result.roles?.[0]?.name || "";
         if (roleName === USER_ROLES.DISTRIBUTOR) {
           router.push(ROUTES.DISTRIBUTOR_HOME);
@@ -109,7 +129,7 @@ export function useAuth() {
           router.push(ROUTES.HOME);
         }
       } else {
-        // Case 5: API-level failure — lockout or credential error
+        // Case 6: API-level failure — lockout or credential error
         const resData = response?.data || {};
         const remainingAttempt = resData.result?.remaining_attempt;
         const lockoutSeconds = resData.result?.lockout_seconds;

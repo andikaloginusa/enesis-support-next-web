@@ -1,11 +1,13 @@
 "use client";
 import { config } from "@/config";
 import { WieldyTheme } from "@wieldy/components";
-import React from "react";
+import React, { useEffect } from "react";
 import { AppContext } from "./AppContext";
 import { appReducer } from "./appReducer";
 import { ACTIONS } from "./constants";
 import { useRouter } from "next/navigation";
+import { isItSupport, clearUserCredentials } from "@/utils/storage";
+import { ROUTES } from "@/utils/constants";
 
 const initialAppState = {
   direction: "ltr",
@@ -14,6 +16,17 @@ const initialAppState = {
 export function AppProvider({ children, translation, locale }) {
   const router = useRouter();
   const [appState, dispatch] = React.useReducer(appReducer, initialAppState);
+
+  // ── IT SUPPORT Role Guard ─────────────────────────────────────────────────
+  // If user somehow bypassed login guard (e.g. direct URL access, stale session)
+  // and their credentials lack IT SUPPORT role → clear session & redirect.
+  useEffect(() => {
+    if (!isItSupport()) {
+      clearUserCredentials();
+      document.cookie = `user_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      router.replace(ROUTES.LOGIN);
+    }
+  }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setDirection = React.useCallback((value) => {
     dispatch({ type: ACTIONS.SET_DIRECTION, payload: { direction: value } });

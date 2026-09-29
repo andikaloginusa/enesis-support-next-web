@@ -56,6 +56,37 @@ export const getUserToken = () => {
 };
 
 /**
+ * Retrieve the roles array from stored credentials.
+ * Supports roles stored at `roles` or nested under `data`.
+ * @returns {Array<{ nama: string, nama_alias?: string }> | null}
+ */
+export const getUserRoles = () => {
+  const creds = getUserCredentials();
+  if (!creds) return null;
+  if (Array.isArray(creds.roles)) return creds.roles;
+  if (Array.isArray(creds.data?.roles)) return creds.data.roles;
+  return null;
+};
+
+/**
+ * Check if stored credentials include a specific role by `nama`.
+ * @param {string} roleName - The role name to check (e.g. "IT SUPPORT")
+ * @returns {boolean}
+ */
+export const hasRole = (roleName) => {
+  const roles = getUserRoles();
+  if (!roles || !Array.isArray(roles)) return false;
+  return roles.some((r) => r.nama === roleName);
+};
+
+/**
+ * Check if stored credentials belong to an IT SUPPORT user.
+ * Used as the primary gate for all IT Support dashboard features.
+ * @returns {boolean}
+ */
+export const isItSupport = () => hasRole("IT SUPPORT");
+
+/**
  * Persist user credentials to localStorage.
  * @param {Object} data - Credentials object to serialize and store
  */

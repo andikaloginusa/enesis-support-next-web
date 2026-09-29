@@ -33,6 +33,7 @@ export const USER_ROLES = {
   DISTRIBUTOR: "DISTRIBUTOR",
   TRANSPORTER: "TRANSPORTER",
   VENDOR: "VENDOR",
+  IT_SUPPORT: "IT SUPPORT",
 };
 
 // ─────────────────────────────────────────────
