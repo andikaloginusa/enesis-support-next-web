@@ -86,10 +86,13 @@ export const ProposalSupportServices = (apiInstance) => {
    * Fetch Proposal budget summary from SAP.
    * GET /support/proposal/get/proposal-from-sap/budget
    *
+   * @param {Object} params
+   * @param {string} params.kodeEpropSap - SAP E-Proposal code (e.g. "L/007109/MT/11/26")
+   *
    * Returns: { total_nominal_budget, total_tolerance, total_klaim_eprop, sisa_budget }
    */
-  const getProposalFromSapBudget = () =>
-    apiInstance.get("support/proposal/get/proposal-from-sap/budget");
+  const getProposalFromSapBudget = (params) =>
+    apiInstance.get("support/proposal/get/proposal-from-sap/budget", params);
 
   return {
     getListProposal,
