@@ -405,11 +405,16 @@ function LogSubmitTab({ data }) {
       align: "center",
       render: (_, row) => (
         <Button
-          type="text"
+          type="primary"
           size="small"
           icon={isExpanded(row.submit_klaim_id) ? <DownOutlined /> : <RightOutlined />}
           onClick={() => toggleRow(row.submit_klaim_id)}
-          className="text-slate-400 hover:text-blue-500 cursor-pointer"
+          className="rounded-lg flex items-center justify-center"
+          style={{
+            backgroundColor: isExpanded(row.submit_klaim_id) ? "#1aac32" : "#1aac32",
+            borderColor: "#1aac32",
+            color: "#ffffff",
+          }}
         />
       ),
     },
