@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   Button,
@@ -24,7 +24,9 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   SyncOutlined,
-  FileXmlOutlined,
+  EyeOutlined,
+  RightOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { useKlaimDetail } from "@/hooks/queries/useKlaimDetail";
 import {
@@ -37,18 +39,22 @@ import {
 const { Text, Title } = Typography;
 
 /**
- * Download raw XML string as a .xml file.
+ * Download raw content as a .txt file (safe fallback — XML may be malformed).
  */
-function downloadXml(content, filename) {
-  const blob = new Blob([content], { type: "application/xml" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+function downloadLog(content, filename) {
+  try {
+    const blob = new Blob([content ?? ""], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch {
+    /* silently fail — avoid crashing the modal */
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -381,8 +387,32 @@ function TimelineTab({ data }) {
 
 function LogSubmitTab({ data }) {
   const logs = data?.logSubmit || [];
+  const [expandedRows, setExpandedRows] = useState([]);
 
-  const columns = [
+  const toggleRow = (id) => {
+    setExpandedRows((prev) =>
+      prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id],
+    );
+  };
+
+  const isExpanded = (id) => expandedRows.includes(id);
+
+  const baseColumns = [
+    {
+      title: "",
+      key: "expand",
+      width: 48,
+      align: "center",
+      render: (_, row) => (
+        <Button
+          type="text"
+          size="small"
+          icon={isExpanded(row.submit_klaim_id) ? <DownOutlined /> : <RightOutlined />}
+          onClick={() => toggleRow(row.submit_klaim_id)}
+          className="text-slate-400 hover:text-blue-500 cursor-pointer"
+        />
+      ),
+    },
     {
       title: "No",
       key: "no",
@@ -407,56 +437,120 @@ function LogSubmitTab({ data }) {
       title: "Nomor Klaim",
       dataIndex: "nomor_klaim",
       key: "nomor_klaim",
-      width: 200,
+      ellipsis: true,
       render: (text) => (
-        <Text className="text-xs font-mono text-slate-700">{text || "—"}</Text>
-      ),
-    },
-    {
-      title: "Aksi",
-      key: "action",
-      align: "center",
-      width: 180,
-      render: (_, row) => (
-        <Space size="small">
-          {row.log_header && (
-            <Tooltip title="Download Log Header (.xml)">
-              <Button
-                size="small"
-                icon={<FileXmlOutlined />}
-                onClick={() =>
-                  downloadXml(
-                    row.log_header,
-                    `log-header-${row.nomor_klaim || "submit"}.xml`,
-                  )
-                }
-                className="rounded-lg text-xs border-blue-200 text-blue-600 hover:!bg-blue-50 hover:!border-blue-400"
-              >
-                Header
-              </Button>
-            </Tooltip>
-          )}
-          {row.log_detail && (
-            <Tooltip title="Download Log Detail (.xml)">
-              <Button
-                size="small"
-                icon={<FileXmlOutlined />}
-                onClick={() =>
-                  downloadXml(
-                    row.log_detail,
-                    `log-detail-${row.nomor_klaim || "submit"}.xml`,
-                  )
-                }
-                className="rounded-lg text-xs border-emerald-200 text-emerald-600 hover:!bg-emerald-50 hover:!border-emerald-400"
-              >
-                Detail
-              </Button>
-            </Tooltip>
-          )}
-        </Space>
+        <Tooltip title={text}>
+          <Text className="text-xs font-mono text-slate-700">{text || "—"}</Text>
+        </Tooltip>
       ),
     },
   ];
+
+  const expandedRowRender = (row) => {
+    const baseName = row.nomor_klaim
+      ? row.nomor_klaim.replace(/[^a-zA-Z0-9]/g, "_")
+      : "submit";
+
+    return (
+      <div className="space-y-4 pl-2 pr-2 pb-2">
+        {/* ── Log Header ── */}
+        {row.log_header && (
+          <section>
+            <div className="flex items-center justify-between mb-1">
+              <Text className="text-xs font-bold text-blue-600 uppercase tracking-wide">
+                Log Header (Request)
+              </Text>
+              <Space size="small">
+                <Tooltip title="Lihat detail">
+                  <Button
+                    size="small"
+                    icon={<EyeOutlined />}
+                    onClick={() => toggleRow(row.submit_klaim_id)}
+                    className="rounded-lg text-xs border-slate-200"
+                  >
+                    Tutup
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Download sebagai .txt">
+                  <Button
+                    size="small"
+                    icon={<DownloadOutlined />}
+                    onClick={() =>
+                      downloadLog(row.log_header, `log-header-${baseName}.txt`)
+                    }
+                    className="rounded-lg text-xs border-blue-200 text-blue-600 hover:!bg-blue-50 hover:!border-blue-400"
+                  >
+                    Download .txt
+                  </Button>
+                </Tooltip>
+              </Space>
+            </div>
+            <div className="bg-slate-900 rounded-xl p-4 max-h-48 overflow-auto">
+              <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-all m-0 leading-relaxed">
+                {row.log_header}
+              </pre>
+            </div>
+          </section>
+        )}
+
+        {/* ── Log Detail ── */}
+        {row.log_detail && (
+          <section>
+            <div className="flex items-center justify-between mb-1">
+              <Text className="text-xs font-bold text-emerald-600 uppercase tracking-wide">
+                Log Detail (Detail)
+              </Text>
+              <Tooltip title="Download sebagai .txt">
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() =>
+                    downloadLog(row.log_detail, `log-detail-${baseName}.txt`)
+                  }
+                  className="rounded-lg text-xs border-emerald-200 text-emerald-600 hover:!bg-emerald-50 hover:!border-emerald-400"
+                >
+                  Download .txt
+                </Button>
+              </Tooltip>
+            </div>
+            <div className="bg-slate-900 rounded-xl p-4 max-h-64 overflow-auto">
+              <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-all m-0 leading-relaxed">
+                {row.log_detail}
+              </pre>
+            </div>
+          </section>
+        )}
+
+        {/* ── Log Response ── */}
+        {row.log_response && (
+          <section>
+            <div className="flex items-center justify-between mb-1">
+              <Text className="text-xs font-bold text-amber-500 uppercase tracking-wide">
+                Log Response (Return)
+              </Text>
+              <Tooltip title="Download sebagai .txt">
+                <Button
+                  size="small"
+                  icon={<DownloadOutlined />}
+                  onClick={() =>
+                    downloadLog(row.log_response, `log-response-${baseName}.txt`)
+                  }
+                  className="rounded-lg text-xs border-amber-200 text-amber-600 hover:!bg-amber-50 hover:!border-amber-400"
+                >
+                  Download .txt
+                </Button>
+              </Tooltip>
+            </div>
+            <div className="bg-slate-900 rounded-xl p-4 max-h-64 overflow-auto">
+              <pre className="text-xs text-green-400 font-mono whitespace-pre-wrap break-all m-0 leading-relaxed">
+                {row.log_response}
+              </pre>
+            </div>
+          </section>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -469,15 +563,20 @@ function LogSubmitTab({ data }) {
         <>
           <Alert
             message={`${logs.length} log submit ditemukan`}
-            description="Klik tombol Header atau Detail untuk mengunduh XML log."
+            description="Klik baris untuk melihat isi log · Gunakan tombol Download .txt untuk menyimpan."
             type="info"
             showIcon
             className="rounded-xl mb-4 [&_.ant-alert-info]:bg-blue-50/70 [&_.ant-alert-info]:border-blue-100"
           />
           <Table
             dataSource={logs}
-            columns={columns}
+            columns={baseColumns}
             rowKey="submit_klaim_id"
+            expandable={{
+              expandedRowRender,
+              expandedRowKeys: expandedRows,
+              showExpandColumn: false,
+            }}
             pagination={false}
             size="middle"
             className="[&_.ant-table]:rounded-xl [&_.ant-table]:overflow-hidden"
