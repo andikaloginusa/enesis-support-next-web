@@ -13,6 +13,7 @@ import {
   ReloadOutlined,
   EditOutlined,
   CloudUploadOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { useKlaim, useDebounce, useConfirm } from "@/hooks";
 import {
@@ -26,6 +27,7 @@ import {
   renderTag,
 } from "@/components/ui";
 import { ReuploadKlaimDokumenModal } from "@/components/features/klaim/ReuploadKlaimDokumenModal";
+import { KlaimDetailModal } from "@/components/features/klaim/KlaimDetailModal";
 import { getUserId } from "@/utils/storage";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
@@ -103,7 +105,7 @@ function buildUpdateModalConfig({
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
 
-const buildColumns = ({ onEdit, onDelete, onReupload }) => [
+const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
   {
     title: "Nomor Klaim",
     dataIndex: "nomor_klaim",
@@ -203,6 +205,15 @@ const buildColumns = ({ onEdit, onDelete, onReupload }) => [
     width: 230,
     render: (row) => (
       <Space size="middle">
+        <Tooltip title="Lihat Detail Klaim">
+          <Button
+            type="default"
+            shape="circle"
+            icon={<EyeOutlined />}
+            onClick={() => onDetail(row)}
+            className="text-slate-600 border-slate-300 hover:!border-blue-400 hover:!text-blue-600 hover:!bg-blue-50"
+          />
+        </Tooltip>
         <Tooltip title="Re-upload Dokumen Klaim">
           <Button
             type="primary"
@@ -286,6 +297,10 @@ export default function KlaimSupportPage() {
   const [isReuploadModalOpen, setIsReuploadModalOpen] = useState(false);
   const [activeKlaim, setActiveKlaim] = useState(null); // { klaim_id, nomor_klaim }
 
+  // ── Modal State: Detail Klaim ──
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [activeDetailKlaimId, setActiveDetailKlaimId] = useState(null);
+
   // ── Action Handlers: Update Status ──
 
   const openUpdateModal = (claim) => {
@@ -365,11 +380,22 @@ export default function KlaimSupportPage() {
     });
   };
 
+  const openDetailModal = (claim) => {
+    setActiveDetailKlaimId(claim.klaim_id);
+    setIsDetailModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setActiveDetailKlaimId(null);
+    setIsDetailModalOpen(false);
+  };
+
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
     onEdit: openUpdateModal,
     onDelete: handleDeleteLogConfirm,
     onReupload: openReuploadModal,
+    onDetail: openDetailModal,
   });
 
   const updateModalConfig = buildUpdateModalConfig({
@@ -431,6 +457,13 @@ export default function KlaimSupportPage() {
         confirmLoading={loadingReupload}
         klaimId={activeKlaim?.klaim_id}
         klaimNo={activeKlaim?.nomor_klaim}
+      />
+
+      {/* Detail Klaim Modal */}
+      <KlaimDetailModal
+        open={isDetailModalOpen}
+        klaimId={activeDetailKlaimId}
+        onClose={closeDetailModal}
       />
     </>
   );

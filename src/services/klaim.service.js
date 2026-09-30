@@ -69,11 +69,24 @@ export const KlaimSupportServices = (apiInstance) => {
     return authFetch("PUT", "support/klaim/reupload-dokumen-klaim", { body: formData });
   };
 
+  /**
+   * Fetch full detail of a single klaim record.
+   * GET /support/klaim/get-detail?klaim_id=...
+   *
+   * Returns: { result: { klaim_v_id, details[], logSubmit[], lines[], ... } }
+   *
+   * @param {Object} params
+   * @param {string} params.klaim_id - Target klaim record ID
+   */
+  const getKlaimDetail = (params) =>
+    apiInstance.get("support/klaim/get-detail", params);
+
   return {
     getListKlaim,
     deleteLogSubmitKlaim,
     updateStatusKlaim,
     reuploadDokumenKlaim,
+    getKlaimDetail,
   };
 };
 
