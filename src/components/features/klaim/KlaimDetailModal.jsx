@@ -461,12 +461,17 @@ function LogSubmitTab({ data }) {
                 Log Header (Request)
               </Text>
               <Space size="small">
-                <Tooltip title="Lihat detail">
+                <Tooltip title="Tutup">
                   <Button
                     size="small"
                     icon={<EyeOutlined />}
                     onClick={() => toggleRow(row.submit_klaim_id)}
-                    className="rounded-lg text-xs border-slate-200"
+                    className="rounded-lg text-xs"
+                    style={{
+                      backgroundColor: "#94a3b8",
+                      borderColor: "#94a3b8",
+                      color: "#ffffff",
+                    }}
                   >
                     Tutup
                   </Button>
@@ -474,11 +479,16 @@ function LogSubmitTab({ data }) {
                 <Tooltip title="Download sebagai .txt">
                   <Button
                     size="small"
-                    icon={<DownloadOutlined />}
+                    icon={<DownloadOutlined style={{ color: "#ffffff" }} />}
                     onClick={() =>
                       downloadLog(row.log_header, `log-header-${baseName}.txt`)
                     }
-                    className="rounded-lg text-xs border-blue-200 text-blue-600 hover:!bg-blue-50 hover:!border-blue-400"
+                    className="rounded-lg text-xs"
+                    style={{
+                      backgroundColor: "#1aac32",
+                      borderColor: "#1aac32",
+                      color: "#ffffff",
+                    }}
                   >
                     Download .txt
                   </Button>
@@ -503,11 +513,16 @@ function LogSubmitTab({ data }) {
               <Tooltip title="Download sebagai .txt">
                 <Button
                   size="small"
-                  icon={<DownloadOutlined />}
+                  icon={<DownloadOutlined style={{ color: "#ffffff" }} />}
                   onClick={() =>
                     downloadLog(row.log_detail, `log-detail-${baseName}.txt`)
                   }
-                  className="rounded-lg text-xs border-emerald-200 text-emerald-600 hover:!bg-emerald-50 hover:!border-emerald-400"
+                  className="rounded-lg text-xs"
+                  style={{
+                    backgroundColor: "#1aac32",
+                    borderColor: "#1aac32",
+                    color: "#ffffff",
+                  }}
                 >
                   Download .txt
                 </Button>
@@ -531,11 +546,16 @@ function LogSubmitTab({ data }) {
               <Tooltip title="Download sebagai .txt">
                 <Button
                   size="small"
-                  icon={<DownloadOutlined />}
+                  icon={<DownloadOutlined style={{ color: "#ffffff" }} />}
                   onClick={() =>
                     downloadLog(row.log_response, `log-response-${baseName}.txt`)
                   }
-                  className="rounded-lg text-xs border-amber-200 text-amber-600 hover:!bg-amber-50 hover:!border-amber-400"
+                  className="rounded-lg text-xs"
+                  style={{
+                    backgroundColor: "#1aac32",
+                    borderColor: "#1aac32",
+                    color: "#ffffff",
+                  }}
                 >
                   Download .txt
                 </Button>
