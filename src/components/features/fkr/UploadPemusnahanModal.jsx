@@ -51,6 +51,7 @@ function ExcelUploadFieldWrapper({ field, form }) {
 
   const handleRemove = () => {
     field.onFileChange?.(null);
+    form.setFieldValue(field.name, []);
   };
 
   return (
@@ -168,15 +169,18 @@ export function UploadPemusnahanModal({
   const [form] = Form.useForm();
   const selectedFileRef = useRef(null);
 
-  // ── File change — store in ref to avoid stale closure ──────────────────────
+  // ── File change — store in ref AND sync to form state so Upload.Dragger re-renders ──
   const handleFileChange = useCallback((file) => {
     selectedFileRef.current = file;
-  }, []);
+    // Sync to form so Upload.Dragger's fileList prop becomes reactive
+    form.setFieldValue("excel", file ? [file] : []);
+  }, [form]);
 
   // ── Cancel — reset form + clear file ref ──────────────────────────────────
   const handleCancel = () => {
     form.resetFields();
     selectedFileRef.current = null;
+    form.setFieldValue("excel", []);
     onCancel();
   };
 
@@ -194,6 +198,7 @@ export function UploadPemusnahanModal({
       }
 
       onSubmit({ file, reason: values.reason?.trim() ?? "" });
+      form.setFields([{ name: "excel", errors: [] }]);
     } catch {
       /* validation errors surfaced inline by Ant Design */
     }
