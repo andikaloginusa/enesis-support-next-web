@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { App, Form, Modal, Typography, Input, Button, Upload } from "antd";
 import {
   DownloadOutlined,
@@ -17,19 +17,29 @@ const TEMPLATE_URL = "/templates/Template Upload Open FKR Pemusnahan.xlsx";
 const ALLOWED_EXTS = [".xlsx", ".xls"];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ExcelUploadFieldWrapper — bridges shared ExcelUploadField to Form.Item pattern
+// UploadPemusnahanModal
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Thin wrapper that bridges `validateExcelFile` to Ant's `Form.Item` pattern
- * used in UploadPemusnahanModal.
+ * UploadPemusnahanModal — Bulk upload FKR Pemusnahan via Excel.
  *
- * Keeps the file in `selectedFileRef.current` (via `handleFileChange`)
- * and the form field synchronized.
+ * Collects an Excel file and a Work Order (WO) number from the user,
+ * then calls `onSubmit({ file, reason })` so the parent can invoke the
+ * mutation with the current user's m_user_id injected.
  */
-function ExcelUploadFieldWrapper({ field, form }) {
+export function UploadPemusnahanModal({
+  open,
+  onCancel,
+  onSubmit,
+  confirmLoading = false,
+}) {
+  const [form] = Form.useForm();
+  const selectedFileRef = useRef(null);
+  // selectedFile state drives the Upload.Dragger fileList reactively
+  const [selectedFile, setSelectedFile] = useState(null);
   const { notification } = App.useApp();
 
+  // ── File change — store in ref AND state ──────────────────────────────────
   const handleBeforeUpload = useCallback(
     (file) => {
       const result = validateExcelFile(file);
@@ -40,147 +50,25 @@ function ExcelUploadFieldWrapper({ field, form }) {
         });
         return Upload.LIST_IGNORE;
       }
-      field.onFileChange?.(file);
+      // Store in both ref (for submit) and state (for re-render)
+      selectedFileRef.current = file;
+      setSelectedFile(file);
       return false; // hold — no auto-upload
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [field, notification],
+    [notification],
   );
 
-  const fileList = form.getFieldValue(field.name) ?? [];
-
+  // ── File remove ────────────────────────────────────────────────────────────
   const handleRemove = () => {
-    field.onFileChange?.(null);
-    form.setFieldValue(field.name, []);
+    selectedFileRef.current = null;
+    setSelectedFile(null);
   };
 
-  return (
-    <Upload.Dragger
-      accept={ALLOWED_EXTS.join(",")}
-      maxCount={1}
-      fileList={fileList}
-      beforeUpload={handleBeforeUpload}
-      onRemove={handleRemove}
-      showUploadList={{
-        showRemoveIcon: true,
-        removeIcon: (
-          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-50 hover:bg-red-100 transition-colors">
-            <CloseCircleFilled className="text-red-400 text-xs" />
-          </span>
-        ),
-      }}
-      itemRender={(_origin, file) => (
-        <div className="flex items-center gap-3 w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl my-2">
-          <FileExcelOutlined className="text-emerald-600 text-lg flex-shrink-0" />
-          <span className="text-emerald-700 text-sm font-medium truncate flex-1">
-            {file.name}
-          </span>
-        </div>
-      )}
-      className="[&_.ant-upload-drag]:border-dashed [&_.ant-upload-drag]:border-slate-200 [&_.ant-upload-drag:hover]:border-emerald-400 [&_.ant-upload-drag]:rounded-xl [&_.ant-upload-drag]:bg-slate-50/60 [&_.ant-upload-drag]:py-6"
-    >
-      <p className="ant-upload-drag-icon mb-3">
-        <InboxOutlined className="text-emerald-600 text-3xl" />
-      </p>
-      <p className="ant-upload-text font-semibold text-slate-700">
-        {field.placeholder || "Klik atau seret file Excel ke sini"}
-      </p>
-      <p className="ant-upload-hint text-slate-400 text-xs">{field.hint}</p>
-    </Upload.Dragger>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Field Schema Builder
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Field schema builder for the Pemusnahan upload form.
- * Pure function — can be tested in isolation.
- *
- * @param {{ onFileChange: (file: File | null) => void }} handlers
- * @returns {Array<Object>}
- */
-export function buildPemusnahanFields({ onFileChange }) {
-  return [
-    {
-      name: "excel",
-      label: "File Excel",
-      type: "excel-upload",
-      placeholder: "Klik atau seret file Excel ke sini",
-      hint: (
-        <span className="text-slate-400 text-xs">
-          Format: .xls, .xlsx &nbsp;&middot;&nbsp; Maks. 50 MB
-        </span>
-      ),
-      onFileChange,
-    },
-    {
-      name: "reason",
-      label: "Nomor Work Order (WO)",
-      type: "text",
-      placeholder: "Masukkan nomor WO",
-      rules: [
-        { required: true, whitespace: true, message: "Nomor WO wajib diisi." },
-      ],
-    },
-  ];
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TextField — plain input renderer
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Input renderer for plain text fields used inside the upload form.
- */
-function TextField({ field }) {
-  return (
-    <Input
-      placeholder={field.placeholder}
-      size="large"
-      className="rounded-lg hover:border-[var(--brand)] focus:border-[var(--brand)] focus:ring-1 focus:ring-[var(--brand)] transition-colors"
-      maxLength={field.maxLength}
-      readOnly={field.readOnly}
-    />
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// UploadPemusnahanModal
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * UploadPemusnahanModal — Bulk upload FKR Pemusnahan via Excel.
- *
- * Collects an Excel file and a Work Order (WO) number from the user,
- * then calls `onSubmit({ file, reason })` so the parent can invoke the
- * mutation with the current user's m_user_id injected.
- *
- * The file is stored in a `useRef` to avoid stale closures between the
- * drag event and the submit button click.
- */
-export function UploadPemusnahanModal({
-  open,
-  onCancel,
-  onSubmit,
-  confirmLoading = false,
-}) {
-  const [form] = Form.useForm();
-  const selectedFileRef = useRef(null);
-
-  // ── File change — store in ref AND sync to form state so Upload.Dragger re-renders ──
-  const handleFileChange = useCallback((file) => {
-    selectedFileRef.current = file;
-    // Sync to form so Upload.Dragger's fileList prop becomes reactive
-    form.setFieldValue("excel", file ? [file] : []);
-  }, [form]);
-
-  // ── Cancel — reset form + clear file ref ──────────────────────────────────
+  // ── Cancel — reset everything ─────────────────────────────────────────────
   const handleCancel = () => {
     form.resetFields();
     selectedFileRef.current = null;
-    form.setFieldValue("excel", []);
+    setSelectedFile(null);
     onCancel();
   };
 
@@ -198,13 +86,13 @@ export function UploadPemusnahanModal({
       }
 
       onSubmit({ file, reason: values.reason?.trim() ?? "" });
-      form.setFields([{ name: "excel", errors: [] }]);
     } catch {
       /* validation errors surfaced inline by Ant Design */
     }
   };
 
-  const fields = buildPemusnahanFields({ onFileChange: handleFileChange });
+  // Build fileList from state for Upload.Dragger
+  const fileList = selectedFile ? [{ uid: "-1", name: selectedFile.name, status: "done", originFileObj: selectedFile }] : [];
 
   return (
     <Modal
@@ -222,7 +110,7 @@ export function UploadPemusnahanModal({
       okButtonProps={{
         size: "large",
         className:
-          "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg font-medium",
+          "bg-emerald-600 hover:bg-emerald-700 border-emerald-700 rounded-lg font-medium",
       }}
       cancelButtonProps={{ size: "large", className: "rounded-lg" }}
       className="[&_.ant-modal-content]:rounded-xl"
@@ -265,39 +153,67 @@ export function UploadPemusnahanModal({
           layout="vertical"
           style={{ "--brand": BRAND_FOCUS_COLOR }}
         >
-          {fields.map((field) => (
-            <Form.Item
-              key={field.name}
-              name={field.name}
-              label={
-                field.label && (
-                  <Text className="font-semibold text-slate-700">
-                    {field.label}
-                  </Text>
-                )
-              }
-              rules={field.rules}
-              extra={field.extra}
-            >
-              {field.type === "text" ? (
-                <TextField field={field} />
-              ) : (
-                <Form.Item
-                  noStyle
-                  shouldUpdate={(prev, curr) =>
-                    prev[field.name] !== curr[field.name]
-                  }
-                >
-                  {() => (
-                    <ExcelUploadFieldWrapper
-                      field={field}
-                      form={form}
-                    />
-                  )}
-                </Form.Item>
+          {/* File Excel Field */}
+          <Form.Item
+            name="excel"
+            label={
+              <Text className="font-semibold text-slate-700">File Excel</Text>
+            }
+          >
+            <Upload.Dragger
+              accept={ALLOWED_EXTS.join(",")}
+              maxCount={1}
+              fileList={fileList}
+              beforeUpload={handleBeforeUpload}
+              onRemove={handleRemove}
+              showUploadList={{
+                showRemoveIcon: true,
+                removeIcon: (
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-50 hover:bg-red-100 transition-colors">
+                    <CloseCircleFilled className="text-red-400 text-xs" />
+                  </span>
+                ),
+              }}
+              itemRender={(_origin, file) => (
+                <div className="flex items-center gap-3 w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl my-2">
+                  <FileExcelOutlined className="text-emerald-600 text-lg flex-shrink-0" />
+                  <span className="text-emerald-700 text-sm font-medium truncate flex-1">
+                    {file.name}
+                  </span>
+                </div>
               )}
-            </Form.Item>
-          ))}
+              className="[&_.ant-upload-drag]:border-dashed [&_.ant-upload-drag]:border-slate-200 [&_.ant-upload-drag:hover]:border-emerald-400 [&_.ant-upload-drag]:rounded-xl [&_.ant-upload-drag]:bg-slate-50/60 [&_.ant-upload-drag]:py-6"
+            >
+              <p className="ant-upload-drag-icon mb-3">
+                <InboxOutlined className="text-emerald-600 text-3xl" />
+              </p>
+              <p className="ant-upload-text font-semibold text-slate-700">
+                Klik atau seret file Excel ke sini
+              </p>
+              <p className="ant-upload-hint text-slate-400 text-xs">
+                Format: .xls, .xlsx &nbsp;&middot;&nbsp; Maks. 50 MB
+              </p>
+            </Upload.Dragger>
+          </Form.Item>
+
+          {/* Work Order Field */}
+          <Form.Item
+            name="reason"
+            label={
+              <Text className="font-semibold text-slate-700">
+                Nomor Work Order (WO)
+              </Text>
+            }
+            rules={[
+              { required: true, whitespace: true, message: "Nomor WO wajib diisi." },
+            ]}
+          >
+            <Input
+              placeholder="Masukkan nomor WO"
+              size="large"
+              className="rounded-lg"
+            />
+          </Form.Item>
         </Form>
       </div>
     </Modal>
