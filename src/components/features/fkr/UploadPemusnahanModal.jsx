@@ -114,7 +114,6 @@ export function UploadPemusnahanModal({
       }}
       cancelButtonProps={{ size: "large", className: "rounded-lg" }}
       className="[&_.ant-modal-content]:rounded-xl"
-      destroyOnHidden
     >
       <div className="py-4 space-y-4">
         {/* Template download card */}
@@ -205,13 +204,14 @@ export function UploadPemusnahanModal({
               </Text>
             }
             rules={[
-              { required: true, whitespace: true, message: "Nomor WO wajib diisi." },
+              { required: true, message: "Nomor WO wajib diisi." },
             ]}
           >
             <Input
               placeholder="Masukkan nomor WO"
               size="large"
               className="rounded-lg"
+              onChange={(e) => form.setFieldValue("reason", e.target.value)}
             />
           </Form.Item>
         </Form>
