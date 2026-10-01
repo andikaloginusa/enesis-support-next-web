@@ -1,12 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import dayjs from "dayjs";
 import {
   Button,
   Form,
   Space,
   Popconfirm,
   Tooltip,
+  Select,
+  DatePicker,
 } from "antd";
 import {
   DeleteOutlined,
@@ -22,7 +25,7 @@ import {
   StatusBadge,
   renderCurrency,
   renderDate,
-  renderTruncated,
+  renderDateTime,
   renderBold,
   renderTag,
 } from "@/components/ui";
@@ -119,21 +122,65 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
     dataIndex: "created",
     key: "created",
     width: 150,
-    render: (val) => renderDate(val),
+    render: (val) => renderDateTime(val),
   },
   {
-    title: "Leadtime",
-    dataIndex: "leadTime",
-    key: "leadTime",
-    width: 150,
-    render: (val) => renderDate(val),
+    title: "Company",
+    dataIndex: "company",
+    key: "company",
+    width: 110,
+    render: (text) => (text ? renderBold(text) : "-"),
   },
   {
-    title: "Distributor",
-    dataIndex: "nama",
-    key: "nama",
-    width: 180,
-    render: (text) => renderTruncated(text, 170),
+    title: "Region",
+    dataIndex: "region",
+    key: "region",
+    width: 100,
+    render: (text) =>
+      text ? (
+        <span className="capitalize text-xs font-medium text-slate-600">
+          {text.toLowerCase()}
+        </span>
+      ) : (
+        "-"
+      ),
+  },
+  {
+    title: "Divisi",
+    dataIndex: "divisi",
+    key: "divisi",
+    width: 120,
+    render: (text) => text || "-",
+  },
+  {
+    title: "Jenis Klaim",
+    dataIndex: "jenis_klaim",
+    key: "jenis_klaim",
+    width: 130,
+    render: (text) =>
+      text ? renderTag(text, "purple") : "-",
+  },
+  {
+    title: "Periode Klaim",
+    dataIndex: "periode_klaim",
+    key: "periode_klaim",
+    width: 200,
+    render: (text) => text || "-",
+  },
+  {
+    title: "Vendor (NPWP)",
+    key: "vendor",
+    width: 220,
+    render: (row) => (
+      <div className="flex flex-col gap-0.5">
+        <span className="font-semibold text-slate-700 text-xs truncate">
+          {row.nama_npwp || "-"}
+        </span>
+        <span className="text-slate-400 text-[10px] truncate">
+          {row.nomor_npwp || ""}
+        </span>
+      </div>
+    ),
   },
   {
     title: "Total (Excl. PPN)",
@@ -163,37 +210,32 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
     ),
   },
   {
+    title: "Disetujui (Sales)",
+    dataIndex: "sales_approve_amount",
+    key: "sales_approve_amount",
+    width: 170,
+    align: "right",
+    render: (val) => renderCurrency(val),
+  },
+  {
+    title: "Tgl Posting",
+    dataIndex: "tanggal_posting",
+    key: "tanggal_posting",
+    width: 130,
+    render: (val) => renderDate(val),
+  },
+  {
     title: "Doc SAP",
     dataIndex: "accounting_document_number",
     key: "accounting_document_number",
-    width: 130,
+    width: 160,
     render: (text) => (text ? renderTag(text, "blue") : "-"),
   },
   {
-    title: "Region",
-    dataIndex: "region",
-    key: "region",
-    width: 120,
-    render: (text) =>
-      text ? (
-        <span className="capitalize text-xs font-medium text-slate-600">
-          {text.toLowerCase()}
-        </span>
-      ) : (
-        "-"
-      ),
-  },
-  {
-    title: "Total Disetujui (Excl. PPN)",
-    key: "sales_approve_amount",
-    width: 180,
-    align: "right",
-    render: (row) => renderCurrency(row.sales_approve_amount),
-  },
-  {
     title: "Status",
+    dataIndex: "status",
     key: "status",
-    width: 210,
+    width: 220,
     align: "center",
     render: (row) => <KlaimStatusCell status={row.status} />,
   },
@@ -270,6 +312,8 @@ export default function KlaimSupportPage() {
     params,
     handlePaginationChange,
     handleSearchChange,
+    handleFilterChange,
+    resetParams,
     deleteLogSubmit,
     updateStatusKlaim,
     loadingUpdateStatus,
@@ -410,6 +454,103 @@ export default function KlaimSupportPage() {
   // ── Render ──
   return (
     <>
+      {/* Filter Toolbar */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Kode Status
+            </label>
+            <Select
+              allowClear
+              placeholder="Semua Status"
+              className="w-full"
+              value={params.kode_status || undefined}
+              onChange={(v) => handleFilterChange("kode_status", v ?? "")}
+              options={STATUS_OPTIONS.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              }))}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Jenis Klaim
+            </label>
+            <Select
+              allowClear
+              placeholder="Semua Jenis"
+              className="w-full"
+              value={params.jenis_klaim || undefined}
+              onChange={(v) => handleFilterChange("jenis_klaim", v ?? "")}
+              options={[
+                { value: "INFRA", label: "INFRA" },
+                { value: "NON INFRA", label: "NON INFRA" },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Fiscal Year
+            </label>
+            <Select
+              allowClear
+              placeholder="Semua Tahun"
+              className="w-full"
+              value={params.fiscal_year || undefined}
+              onChange={(v) => handleFilterChange("fiscal_year", v ?? "")}
+              options={[
+                { value: "2024", label: "2024" },
+                { value: "2025", label: "2025" },
+                { value: "2026", label: "2026" },
+                { value: "2027", label: "2027" },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Tanggal Klaim (Dari)
+            </label>
+            <DatePicker
+              format="YYYY-MM-DD"
+              placeholder="YYYY-MM-DD"
+              className="w-full"
+              value={params.dateFrom ? dayjs(params.dateFrom) : null}
+              onChange={(d) =>
+                handleFilterChange("dateFrom", d ? d.format("YYYY-MM-DD") : "")
+              }
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Tanggal Klaim (Sampai)
+            </label>
+            <DatePicker
+              format="YYYY-MM-DD"
+              placeholder="YYYY-MM-DD"
+              className="w-full"
+              value={params.dateTo ? dayjs(params.dateTo) : null}
+              onChange={(d) =>
+                handleFilterChange("dateTo", d ? d.format("YYYY-MM-DD") : "")
+              }
+            />
+          </div>
+          <div className="flex items-end">
+            <Tooltip title="Reset semua filter">
+              <Button
+                block
+                onClick={() => {
+                  resetParams();
+                  setSearchValue("");
+                }}
+              >
+                Reset Filter
+              </Button>
+            </Tooltip>
+          </div>
+        </div>
+      </div>
+
       <DataTablePanel
         title="Proposal Klaim Support"
         description="Kelola pengajuan proposal klaim, persetujuan SAP, dan tindakan reject log."
@@ -417,7 +558,7 @@ export default function KlaimSupportPage() {
         dataSource={klaimList}
         loading={isListFetching}
         rowKey="klaim_id"
-        scrollX={1850}
+        scrollX={2400}
         pagination={{
           total: totalCount,
           pageSize: params.pageSize,

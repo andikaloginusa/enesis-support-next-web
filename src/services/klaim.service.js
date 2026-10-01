@@ -12,10 +12,28 @@ import { authFetch } from "@/utils/authFetch";
 export const KlaimSupportServices = (apiInstance) => {
   /**
    * Fetch the list of proposal claims with pagination, search, and filter queries.
-   * @param {Object} params - Query filters (e.g., currentPage, pageSize, searchText)
+   *
+   * GET /support/klaim/get-all
+   *
+   * Supported query params (all optional, send empty string to skip):
+   *   currentPage, pageSize, searchText,
+   *   kode_status, m_distributor_id, nomor_proposal, nomor_klaim,
+   *   accounting_document_number, fiscal_year, jenis_klaim,
+   *   dateFrom, dateTo,
+   *   sortBy, sortDir
+   *
+   * Response shape (new endpoint):
+   *   {
+   *     status, error,
+   *     message,
+   *     results: KlaimRow[],
+   *     meta: { currentPage, pageCount, pageSize, count }
+   *   }
+   *
+   * @param {Object} params - Query filters (currentPage, pageSize, searchText, etc.)
    */
   const getListKlaim = (params) =>
-    apiInstance.get("proposalklaim/list", params);
+    apiInstance.get("support/klaim/get-all", params);
 
   /**
    * Delete submit log for a specific claim via query parameter.

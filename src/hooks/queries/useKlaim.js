@@ -21,8 +21,26 @@ export const useKlaim = () => {
   const queryClient = useQueryClient();
   const { notifySuccess, notifyError } = useNotify();
 
-  // Shared pagination + search state
-  const { params, handlePaginationChange, handleSearchChange } = useListParams();
+  // Shared pagination + search + filter state
+  const {
+    params,
+    handlePaginationChange,
+    handleSearchChange,
+    handleFilterChange,
+    resetParams,
+  } = useListParams({
+    kode_status: "",
+    m_distributor_id: "",
+    nomor_proposal: "",
+    nomor_klaim: "",
+    accounting_document_number: "",
+    fiscal_year: "",
+    jenis_klaim: "",
+    dateFrom: "",
+    dateTo: "",
+    sortBy: "",
+    sortDir: "",
+  });
 
   // Query: Paginated Klaim List
   const { data, isLoading, isFetching, error, refetch } = useQuery({
@@ -32,6 +50,17 @@ export const useKlaim = () => {
         currentPage: params.currentPage,
         pageSize: params.pageSize,
         searchText: params.searchText,
+        kode_status: params.kode_status,
+        m_distributor_id: params.m_distributor_id,
+        nomor_proposal: params.nomor_proposal,
+        nomor_klaim: params.nomor_klaim,
+        accounting_document_number: params.accounting_document_number,
+        fiscal_year: params.fiscal_year,
+        jenis_klaim: params.jenis_klaim,
+        dateFrom: params.dateFrom,
+        dateTo: params.dateTo,
+        sortBy: params.sortBy,
+        sortDir: params.sortDir,
       });
 
       assertApiSuccess(response, NOTIF_MESSAGES.FETCH_CLAIMS_ERROR);
@@ -129,6 +158,8 @@ export const useKlaim = () => {
     // Pagination & Search controls
     handlePaginationChange,
     handleSearchChange,
+    handleFilterChange,
+    resetParams,
 
     // Mutation: Re-upload Dokumen
     reuploadDokumenKlaim: reuploadDokumenMutation.mutateAsync,
