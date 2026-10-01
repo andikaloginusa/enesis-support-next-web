@@ -98,13 +98,13 @@ export const ProposalSupportServices = (apiInstance) => {
    * Upload Update Proposal From SAP — Klaim Detail and Budget ID.
    * PUT /support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id
    *
-   * @param {Object} payload - { m_user_id, excel: File, reason }
+   * @param {Object} payload - { m_user_id, excel: File, kode_proses }
    */
-  const uploadProposalSapKlaimDetail = ({ m_user_id, excel, reason }) => {
+  const uploadProposalSapKlaimDetail = ({ m_user_id, excel, kode_proses }) => {
     const formData = new FormData();
     formData.append("m_user_id", m_user_id);
     formData.append("excel", excel);
-    formData.append("reason", reason);
+    formData.append("kode_proses", kode_proses);
     return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id", { body: formData });
   };
 
@@ -112,13 +112,13 @@ export const ProposalSupportServices = (apiInstance) => {
    * Upload Proposal From SAP — Import.
    * PUT /support/proposal/upload/update-proposal-from-sap/import
    *
-   * @param {Object} payload - { m_user_id, excel: File, reason }
+   * @param {Object} payload - { m_user_id, excel: File, kode_proses }
    */
-  const uploadProposalSapImport = ({ m_user_id, excel, reason }) => {
+  const uploadProposalSapImport = ({ m_user_id, excel, kode_proses }) => {
     const formData = new FormData();
     formData.append("m_user_id", m_user_id);
     formData.append("excel", excel);
-    formData.append("reason", reason);
+    formData.append("kode_proses", kode_proses);
     return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/import", { body: formData });
   };
 
@@ -126,13 +126,13 @@ export const ProposalSupportServices = (apiInstance) => {
    * Upload Proposal From SAP — Amount.
    * PUT /support/proposal/upload/update-proposal-from-sap/amount
    *
-   * @param {Object} payload - { m_user_id, excel: File, reason }
+   * @param {Object} payload - { m_user_id, excel: File, kode_proses }
    */
-  const uploadProposalSapAmount = ({ m_user_id, excel, reason }) => {
+  const uploadProposalSapAmount = ({ m_user_id, excel, kode_proses }) => {
     const formData = new FormData();
     formData.append("m_user_id", m_user_id);
     formData.append("excel", excel);
-    formData.append("reason", reason);
+    formData.append("kode_proses", kode_proses);
     return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/amount", { body: formData });
   };
 

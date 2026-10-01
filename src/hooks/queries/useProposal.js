@@ -234,11 +234,11 @@ export const useProposal = (proposalId = null) => {
 
   // Mutation: Upload Proposal SAP Klaim Detail & Budget ID
   const uploadProposalSapKlaimMutation = useMutation({
-    mutationFn: async ({ excel, reason }) => {
+    mutationFn: async ({ excel, kode_proses }) => {
       const response = await proposalService.uploadProposalSapKlaimDetail({
         m_user_id: getUserId(),
         excel,
-        reason,
+        kode_proses,
       });
       assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_KLAIM_ERROR);
       return response.data;
@@ -262,11 +262,11 @@ export const useProposal = (proposalId = null) => {
 
   // Mutation: Upload Proposal SAP Import
   const uploadProposalSapImportMutation = useMutation({
-    mutationFn: async ({ excel, reason }) => {
+    mutationFn: async ({ excel, kode_proses }) => {
       const response = await proposalService.uploadProposalSapImport({
         m_user_id: getUserId(),
         excel,
-        reason,
+        kode_proses,
       });
       assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_IMPORT_ERROR);
       return response.data;
@@ -290,11 +290,11 @@ export const useProposal = (proposalId = null) => {
 
   // Mutation: Upload Proposal SAP Amount
   const uploadProposalSapAmountMutation = useMutation({
-    mutationFn: async ({ excel, reason }) => {
+    mutationFn: async ({ excel, kode_proses }) => {
       const response = await proposalService.uploadProposalSapAmount({
         m_user_id: getUserId(),
         excel,
-        reason,
+        kode_proses,
       });
       assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR);
       return response.data;

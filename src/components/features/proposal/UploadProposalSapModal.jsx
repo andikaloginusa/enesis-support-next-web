@@ -201,7 +201,7 @@ function UploadResultPanel({ result, variant }) {
  * @param {boolean}  props.open
  * @param {Function} props.onClose
  * @param {"klaim"|"import"|"amount"} props.variant
- * @param {Function} props.onUpload   - Mutation: ({ excel, reason }) => Promise
+ * @param {Function} props.onUpload   - Mutation: ({ excel, kode_proses }) => Promise
  * @param {boolean}  props.isUploading
  * @param {Object}   [props.result]    - Mutation result data
  */
@@ -264,7 +264,7 @@ export function UploadProposalSapModal({
       description: `Apakah Anda yakin ingin mengunggah file "${selectedFile.name}"? Aksi ini akan memperbarui data proposal dari SAP.`,
       okText: "Ya, Upload Sekarang",
       onConfirm: async () => {
-        await onUpload({ excel: selectedFile, reason: reason.trim() });
+        await onUpload({ excel: selectedFile, kode_proses: reason.trim() });
         setShowResult(true);
       },
     });
@@ -321,11 +321,11 @@ export function UploadProposalSapModal({
 
         {!showResult && (
           <>
-            {/* Reason Input */}
+            {/* Kode Proses Input */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Text className="text-slate-700 text-sm font-semibold">
-                  Kode Reason
+                  Kode Proses
                 </Text>
                 <Button
                   type="link"
