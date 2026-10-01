@@ -103,8 +103,8 @@ export const ProposalSupportServices = (apiInstance) => {
   const uploadProposalSapKlaimDetail = ({ m_user_id, excel, kode_proses }) => {
     const formData = new FormData();
     formData.append("m_user_id", m_user_id);
-    formData.append("excel", excel);
     formData.append("kode_proses", kode_proses);
+    formData.append("excel", excel);
     return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id", { body: formData });
   };
 
@@ -131,8 +131,8 @@ export const ProposalSupportServices = (apiInstance) => {
   const uploadProposalSapAmount = ({ m_user_id, excel, kode_proses }) => {
     const formData = new FormData();
     formData.append("m_user_id", m_user_id);
-    formData.append("excel", excel);
     formData.append("kode_proses", kode_proses);
+    formData.append("excel", excel);
     return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/amount", { body: formData });
   };
 

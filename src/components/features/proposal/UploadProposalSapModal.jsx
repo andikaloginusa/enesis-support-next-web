@@ -25,7 +25,7 @@ const VARIANT_CONFIG = {
     subtitle: "Klaim Detail & Budget ID",
     description:
       "Upload file Excel untuk mengupdate klaim detail dan budget ID proposal dari data SAP.",
-    reasonPrefix: "PROPSAP",
+    reasonPrefix: "PROPSAPKLDT",
     headerBg: "from-orange-500 to-orange-600",
     btnType: "primary",
     btnColor: "#f97316",
