@@ -46,7 +46,7 @@ function KlaimStatusCell({ status }) {
 //  Modal Config Builder
 // ─────────────────────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = [
+const DISTRIBUTOR_STATUS_OPTIONS = [
   { label: "Pengajuan - DR", value: "DR" },
   { label: "ECC Verifikasi - ECC", value: "ECC" },
   { label: "RSM Approved - RSM", value: "RSM" },
@@ -55,7 +55,20 @@ const STATUS_OPTIONS = [
   { label: "ECC terima dok. - RECEIVE", value: "RECEIVE" },
   { label: "Plan Payment - PLAN", value: "PLAN" },
   { label: "Payment Completed - PAY", value: "PAY" },
+  { label: "Submit to SAP - SKP", value: "SKP" },
   { label: "Reject - RJC", value: "RJC" },
+];
+
+const DIRECT_STATUS_OPTIONS = [
+  { label: "Pengajuan - DIRC1", value: "DIRC1" },
+  { label: "KAM Approved - DIRC2", value: "DIRC2" },
+  { label: "Sales Head Approved - DIRC3", value: "DIRC3" },
+  { label: "Sales kirim dok. - DAD", value: "DAD" },
+  { label: "ECC terima dok. - TDF", value: "TDF" },
+  { label: "Plan Payment - APF", value: "APF" },
+  { label: "Payment Completed - PAY", value: "PAY" },
+  { label: "Submit to SAP - SKP", value: "SKP" },
+  { label: "Reject - RJF", value: "RJF" },
 ];
 
 function buildUpdateModalConfig({
@@ -64,8 +77,10 @@ function buildUpdateModalConfig({
   onCancel,
   onOk,
   confirmLoading,
-  activeClaimId,
+  isDirect,
 }) {
+  const statusOptions = isDirect ? DIRECT_STATUS_OPTIONS : DISTRIBUTOR_STATUS_OPTIONS;
+
   return {
     title: "Update Status Proposal Klaim",
     description:
@@ -88,7 +103,7 @@ function buildUpdateModalConfig({
         rules: [
           { required: true, message: "Harap pilih kode status baru!" },
         ],
-        options: STATUS_OPTIONS,
+        options: statusOptions,
       },
       {
         name: "reason",
@@ -268,15 +283,17 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
             }}
           />
         </Tooltip>
-        <Tooltip title="Update Status Klaim">
-          <Button
-            type="primary"
-            shape="circle"
-            icon={<EditOutlined />}
-            onClick={() => onEdit(row)}
-            style={{ backgroundColor: BRAND_FOCUS_COLOR, borderColor: BRAND_FOCUS_COLOR }}
-          />
-        </Tooltip>
+        {row.is_direct_outlet && (
+          <Tooltip title="Update Status Klaim">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(row)}
+              style={{ backgroundColor: BRAND_FOCUS_COLOR, borderColor: BRAND_FOCUS_COLOR }}
+            />
+          </Tooltip>
+        )}
         <Tooltip title="Hapus Log Submit">
           <Popconfirm
             title="Hapus Log Submit"
@@ -336,6 +353,7 @@ export default function KlaimSupportPage() {
   const [updateForm] = Form.useForm();
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [activeClaimId, setActiveClaimId] = useState(null);
+  const [isDirectClaim, setIsDirectClaim] = useState(false);
 
   // ── Modal State: Re-upload Dokumen ──
   const [isReuploadModalOpen, setIsReuploadModalOpen] = useState(false);
@@ -349,6 +367,7 @@ export default function KlaimSupportPage() {
 
   const openUpdateModal = (claim) => {
     setActiveClaimId(claim.klaim_id);
+    setIsDirectClaim(Boolean(claim.is_direct_outlet));
     updateForm.resetFields();
     setIsUpdateModalOpen(true);
   };
@@ -356,13 +375,15 @@ export default function KlaimSupportPage() {
   const closeUpdateModal = () => {
     updateForm.resetFields();
     setActiveClaimId(null);
+    setIsDirectClaim(false);
     setIsUpdateModalOpen(false);
   };
 
   const handleUpdateStatusSubmit = async () => {
     try {
       const values = await updateForm.validateFields();
-      const selectedStatus = STATUS_OPTIONS.find(
+      const statusOptions = isDirectClaim ? DIRECT_STATUS_OPTIONS : DISTRIBUTOR_STATUS_OPTIONS;
+      const selectedStatus = statusOptions.find(
         (opt) => opt.value === values.kode_status_baru
       );
 
@@ -448,7 +469,7 @@ export default function KlaimSupportPage() {
     onCancel: closeUpdateModal,
     onOk: handleUpdateStatusSubmit,
     confirmLoading: loadingUpdateStatus,
-    activeClaimId,
+    isDirect: isDirectClaim,
   });
 
   // ── Render ──
