@@ -283,17 +283,15 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
             }}
           />
         </Tooltip>
-        {row.is_direct_outlet && (
-          <Tooltip title="Update Status Klaim">
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<EditOutlined />}
-              onClick={() => onEdit(row)}
-              style={{ backgroundColor: BRAND_FOCUS_COLOR, borderColor: BRAND_FOCUS_COLOR }}
-            />
-          </Tooltip>
-        )}
+        <Tooltip title="Update Status Klaim">
+          <Button
+            type="primary"
+            shape="circle"
+            icon={<EditOutlined />}
+            onClick={() => onEdit(row)}
+            style={{ backgroundColor: BRAND_FOCUS_COLOR, borderColor: BRAND_FOCUS_COLOR }}
+          />
+        </Tooltip>
         <Tooltip title="Hapus Log Submit">
           <Popconfirm
             title="Hapus Log Submit"
@@ -367,7 +365,9 @@ export default function KlaimSupportPage() {
 
   const openUpdateModal = (claim) => {
     setActiveClaimId(claim.klaim_id);
-    setIsDirectClaim(Boolean(claim.is_direct_outlet));
+    // Handle both boolean true and string "true"
+    const isDirect = claim.is_direct_outlet === true || claim.is_direct_outlet === "true";
+    setIsDirectClaim(isDirect);
     updateForm.resetFields();
     setIsUpdateModalOpen(true);
   };
