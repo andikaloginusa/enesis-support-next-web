@@ -488,7 +488,7 @@ export default function KlaimSupportPage() {
               className="w-full"
               value={params.kode_status || undefined}
               onChange={(v) => handleFilterChange("kode_status", v ?? "")}
-              options={STATUS_OPTIONS.map((opt) => ({
+              options={[...DISTRIBUTOR_STATUS_OPTIONS, ...DIRECT_STATUS_OPTIONS].map((opt) => ({
                 value: opt.value,
                 label: opt.label,
               }))}
