@@ -13,7 +13,7 @@ import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
 const { Text } = Typography;
 
-const TEMPLATE_URL = "/templates/Template Upload Open FKR Pemusnahan.xlsx";
+const TEMPLATE_URL = "/templates/fkr/open-pemusnahan/template_open_fkr_pemusnahan.xlsx";
 const ALLOWED_EXTS = [".xlsx", ".xls"];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -128,7 +128,7 @@ export function UploadPemusnahanModal({
           </div>
           <a
             href={TEMPLATE_URL}
-            download="Template Upload Open FKR Pemusnahan.xlsx"
+            download="template_open_fkr_pemusnahan.xlsx"
             target="_blank"
             rel="noopener noreferrer"
           >
