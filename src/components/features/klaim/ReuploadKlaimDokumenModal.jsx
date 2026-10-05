@@ -83,6 +83,13 @@ export const KLAIM_DOC_CONFIG = {
     prefix: "file_copy_faktur_reupload",
     ext: ".pdf",
   },
+  foto_sewa_display: {
+    label: "Foto Sewa/Display",
+    dbField: "file_program",
+    folder: "klaimproposal",
+    prefix: "file_program_reupload",
+    ext: ".pdf",
+  },
 };
 
 /** Select options derived from KLAIM_DOC_CONFIG. */
