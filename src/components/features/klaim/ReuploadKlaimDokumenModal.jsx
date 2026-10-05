@@ -18,76 +18,48 @@ const { Text } = Typography;
 /**
  * Document type configuration for Klaim re-upload.
  *
- * Maps a document type key to its backend upload metadata:
- *   - dbField  : database column name on the server
- *   - folder   : storage folder path
- *   - prefix   : filename prefix used by the backend
- *   - ext      : expected file extension
+ * Each entry controls:
+ *   - key    : becomes the `document_type` payload sent to the backend
+ *   - label  : text shown in the UI dropdown
+ *   - ext    : expected file extension (for validation, optional)
  *
- * @type {Record<string, { dbField: string, folder: string, prefix: string, ext: string }>}
+ * @type {Record<string, { label: string, ext?: string }>}
  */
 export const KLAIM_DOC_CONFIG = {
-  faktur_pajak: {
+  file_faktur_pajak: {
     label: "Faktur Pajak",
-    dbField: "file_faktur_pajak",
-    folder: "klaimproposal",
-    prefix: "file_faktur_pajak_reupload",
     ext: ".pdf",
   },
-  e_proposal: {
+  file_eproposal: {
     label: "E-Proposal",
-    dbField: "file_eproposal",
-    folder: "klaimproposal",
-    prefix: "file_eproposal_reupload",
     ext: ".pdf",
   },
-  rekap_klaim: {
+  file_rekap_klaim: {
     label: "Rekap Klaim",
-    dbField: "file_rekap_klaim",
-    folder: "klaimproposal",
-    prefix: "file_rekap_klaim_reupload",
     ext: ".pdf",
   },
-  skp: {
+  file_skp: {
     label: "Surat Keterangan Pajak (SKP)",
-    dbField: "file_skp",
-    folder: "klaimproposal",
-    prefix: "file_skp_reupload",
     ext: ".pdf",
   },
-  invoice: {
+  file_invoice: {
     label: "Invoice",
-    dbField: "file_invoice",
-    folder: "klaimproposal",
-    prefix: "file_invoice_reupload",
     ext: ".pdf",
   },
-  surat_klaim_sesuai_prinsiple: {
+  file_surat_klaim_sesuai_prinsiple: {
     label: "Surat Klaim Sesuai Prinsiple",
-    dbField: "file_surat_klaim_sesuai_prinsiple",
-    folder: "klaimproposal",
-    prefix: "file_prinsiple_reupload",
     ext: ".pdf",
   },
-  ktp: {
+  file_ktp: {
     label: "KTP (Kartu Tanda Penduduk)",
-    dbField: "file_ktp",
-    folder: "klaimproposal",
-    prefix: "file_ktp_reupload",
     ext: ".pdf",
   },
-  copy_faktur: {
+  file_copy_faktur: {
     label: "Copy Faktur",
-    dbField: "file_copy_faktur",
-    folder: "klaimproposal",
-    prefix: "file_copy_faktur_reupload",
     ext: ".pdf",
   },
-  foto_sewa_display: {
+  file_program: {
     label: "Foto Sewa/Display",
-    dbField: "file_program",
-    folder: "klaimproposal",
-    prefix: "file_program_reupload",
     ext: ".pdf",
   },
 };
