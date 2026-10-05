@@ -79,7 +79,9 @@ function buildUpdateModalConfig({
   confirmLoading,
   isDirect,
 }) {
-  const statusOptions = isDirect ? DIRECT_STATUS_OPTIONS : DISTRIBUTOR_STATUS_OPTIONS;
+  const statusOptions = isDirect
+    ? DIRECT_STATUS_OPTIONS
+    : DISTRIBUTOR_STATUS_OPTIONS;
 
   return {
     title: "Update Status Proposal Klaim",
@@ -92,7 +94,10 @@ function buildUpdateModalConfig({
     confirmLoading,
     okText: "Update Status",
     okButtonProps: {
-      style: { backgroundColor: BRAND_FOCUS_COLOR, borderColor: BRAND_FOCUS_COLOR },
+      style: {
+        backgroundColor: BRAND_FOCUS_COLOR,
+        borderColor: BRAND_FOCUS_COLOR,
+      },
     },
     fields: [
       {
@@ -100,16 +105,15 @@ function buildUpdateModalConfig({
         label: "Kode Status Baru",
         type: "select",
         placeholder: "Pilih kode status baru...",
-        rules: [
-          { required: true, message: "Harap pilih kode status baru!" },
-        ],
+        rules: [{ required: true, message: "Harap pilih kode status baru!" }],
         options: statusOptions,
       },
       {
         name: "reason",
         label: "Alasan Perubahan Status / Reject",
         type: "textarea",
-        placeholder: "Berikan alasan penyesuaian kode status baru ini...",
+        placeholder:
+          "Harap Isi Nomor WO,seperti WO/IT BUSINESS APPLICATION/26/0057022",
         rules: [
           { required: true, message: "Harap berikan alasan perubahan status!" },
         ],
@@ -153,7 +157,7 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
     width: 100,
     render: (text) =>
       text ? (
-        <span className="capitalize text-xs font-medium text-slate-600">
+        <span className="text-xs font-medium capitalize text-slate-600">
           {text.toLowerCase()}
         </span>
       ) : (
@@ -172,8 +176,7 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
     dataIndex: "jenis_klaim",
     key: "jenis_klaim",
     width: 130,
-    render: (text) =>
-      text ? renderTag(text, "purple") : "-",
+    render: (text) => (text ? renderTag(text, "purple") : "-"),
   },
   {
     title: "Periode Klaim",
@@ -188,7 +191,7 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
     width: 220,
     render: (row) => (
       <div className="flex flex-col gap-0.5">
-        <span className="font-semibold text-slate-700 text-xs truncate">
+        <span className="text-xs font-semibold truncate text-slate-700">
           {row.nama_npwp || "-"}
         </span>
         <span className="text-slate-400 text-[10px] truncate">
@@ -289,7 +292,10 @@ const buildColumns = ({ onEdit, onDelete, onReupload, onDetail }) => [
             shape="circle"
             icon={<EditOutlined />}
             onClick={() => onEdit(row)}
-            style={{ backgroundColor: BRAND_FOCUS_COLOR, borderColor: BRAND_FOCUS_COLOR }}
+            style={{
+              backgroundColor: BRAND_FOCUS_COLOR,
+              borderColor: BRAND_FOCUS_COLOR,
+            }}
           />
         </Tooltip>
         <Tooltip title="Hapus Log Submit">
@@ -366,7 +372,8 @@ export default function KlaimSupportPage() {
   const openUpdateModal = (claim) => {
     setActiveClaimId(claim.klaim_id);
     // Handle both boolean true and string "true"
-    const isDirect = claim.is_direct_outlet === true || claim.is_direct_outlet === "true";
+    const isDirect =
+      claim.is_direct_outlet === true || claim.is_direct_outlet === "true";
     setIsDirectClaim(isDirect);
     updateForm.resetFields();
     setIsUpdateModalOpen(true);
@@ -382,9 +389,11 @@ export default function KlaimSupportPage() {
   const handleUpdateStatusSubmit = async () => {
     try {
       const values = await updateForm.validateFields();
-      const statusOptions = isDirectClaim ? DIRECT_STATUS_OPTIONS : DISTRIBUTOR_STATUS_OPTIONS;
+      const statusOptions = isDirectClaim
+        ? DIRECT_STATUS_OPTIONS
+        : DISTRIBUTOR_STATUS_OPTIONS;
       const selectedStatus = statusOptions.find(
-        (opt) => opt.value === values.kode_status_baru
+        (opt) => opt.value === values.kode_status_baru,
       );
 
       confirmAction({
@@ -416,7 +425,10 @@ export default function KlaimSupportPage() {
   // ── Action Handlers: Re-upload Dokumen ──
 
   const openReuploadModal = (claim) => {
-    setActiveKlaim({ klaim_id: claim.klaim_id, nomor_klaim: claim.nomor_klaim });
+    setActiveKlaim({
+      klaim_id: claim.klaim_id,
+      nomor_klaim: claim.nomor_klaim,
+    });
     setIsReuploadModalOpen(true);
   };
 
@@ -425,7 +437,12 @@ export default function KlaimSupportPage() {
     setIsReuploadModalOpen(false);
   };
 
-  const handleReuploadSubmit = async ({ klaim_id, document_type, reason, file }) => {
+  const handleReuploadSubmit = async ({
+    klaim_id,
+    document_type,
+    reason,
+    file,
+  }) => {
     confirmAction({
       title: "Konfirmasi Upload Ulang Dokumen Klaim",
       description:
@@ -476,10 +493,10 @@ export default function KlaimSupportPage() {
   return (
     <>
       {/* Filter Toolbar */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+      <div className="p-4 mb-4 bg-white border shadow-sm rounded-xl border-slate-200">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-6">
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block mb-1 text-xs font-semibold text-slate-600">
               Kode Status
             </label>
             <Select
@@ -488,14 +505,17 @@ export default function KlaimSupportPage() {
               className="w-full"
               value={params.kode_status || undefined}
               onChange={(v) => handleFilterChange("kode_status", v ?? "")}
-              options={[...DISTRIBUTOR_STATUS_OPTIONS, ...DIRECT_STATUS_OPTIONS].map((opt) => ({
+              options={[
+                ...DISTRIBUTOR_STATUS_OPTIONS,
+                ...DIRECT_STATUS_OPTIONS,
+              ].map((opt) => ({
                 value: opt.value,
                 label: opt.label,
               }))}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block mb-1 text-xs font-semibold text-slate-600">
               Jenis Klaim
             </label>
             <Select
@@ -511,7 +531,7 @@ export default function KlaimSupportPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block mb-1 text-xs font-semibold text-slate-600">
               Fiscal Year
             </label>
             <Select
@@ -529,7 +549,7 @@ export default function KlaimSupportPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block mb-1 text-xs font-semibold text-slate-600">
               Tanggal Klaim (Dari)
             </label>
             <DatePicker
@@ -543,7 +563,7 @@ export default function KlaimSupportPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
+            <label className="block mb-1 text-xs font-semibold text-slate-600">
               Tanggal Klaim (Sampai)
             </label>
             <DatePicker
