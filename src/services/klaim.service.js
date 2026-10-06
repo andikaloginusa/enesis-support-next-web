@@ -88,6 +88,37 @@ export const KlaimSupportServices = (apiInstance) => {
   };
 
   /**
+   * Bulk re-upload Klaim documents via Excel.
+   * Sends multipart/form-data; field names "excel" and "document" must match the BE Skipper upload keys.
+   *
+   * PUT /support/klaim/reupload-dokumen-klaim-excel
+   *
+   * FormData fields:
+   *   - m_user_id      : ID user yang melakukan aksi (dari storage/getUserId)
+   *   - reason         : Nomor Work Order (WO) sebagai alasan/justifikasi audit log
+   *   - document_type  : Tipe dokumen — salah satu key di KLAIM_DOC_CONFIG
+   *                      (e.g. "file_program", "file_faktur_pajak", dll.)
+   *   - excel          : File Excel berisi daftar nomor klaim (nomor_klaim)
+   *   - document       : File PDF yang akan di-attach ke setiap klaim di Excel
+   *
+   * @param {Object}  payload
+   * @param {string}  payload.m_user_id       - ID user terautentikasi
+   * @param {string}  payload.reason          - Nomor Work Order (WO)
+   * @param {string}  payload.document_type    - Salah satu key di KLAIM_DOC_CONFIG
+   * @param {File}    payload.excel           - File Excel daftar nomor klaim
+   * @param {File}    payload.document        - File PDF yang di-attach
+   */
+  const uploadKlaimExcelDocument = ({ m_user_id, reason, document_type, excel, document }) => {
+    const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
+    formData.append("reason", reason);
+    formData.append("document_type", document_type);
+    formData.append("excel", excel);
+    formData.append("document", document);
+    return authFetch("PUT", "support/klaim/reupload-dokumen-klaim-excel", { body: formData });
+  };
+
+  /**
    * Fetch full detail of a single klaim record.
    * GET /support/klaim/get-detail?klaim_id=...
    *
@@ -104,6 +135,7 @@ export const KlaimSupportServices = (apiInstance) => {
     deleteLogSubmitKlaim,
     updateStatusKlaim,
     reuploadDokumenKlaim,
+    uploadKlaimExcelDocument,
     getKlaimDetail,
   };
 };

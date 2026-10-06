@@ -138,6 +138,32 @@ export const useKlaim = () => {
     },
   });
 
+  // Mutation: Upload Klaim Excel Document (bulk)
+  const uploadExcelDocMutation = useMutation({
+    mutationFn: async ({ excel, document, ...rest }) => {
+      const response = await klaimService.uploadKlaimExcelDocument({
+        ...rest,
+        excel,
+        document,
+      });
+      if (!response.ok) {
+        throw new Error(response.data?.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_ERROR);
+      }
+      return response;
+    },
+    onSuccess: (response) => {
+      notifySuccess(
+        NOTIF_MESSAGES.SUCCESS,
+        response.data?.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_SUCCESS,
+        NOTIF_DURATION_SHORT,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.klaim.all() });
+    },
+    onError: (err) => {
+      notifyError(NOTIF_MESSAGES.ERROR, err.message || NOTIF_MESSAGES.REUPLOAD_KLAIM_ERROR, NOTIF_DURATION_MEDIUM);
+    },
+  });
+
   return {
     // List Query
     klaimList: data?.results || [],
@@ -164,5 +190,9 @@ export const useKlaim = () => {
     // Mutation: Re-upload Dokumen
     reuploadDokumenKlaim: reuploadDokumenMutation.mutateAsync,
     loadingReupload: reuploadDokumenMutation.isPending,
+
+    // Mutation: Upload Excel Document (bulk)
+    uploadKlaimExcelDoc: uploadExcelDocMutation.mutateAsync,
+    loadingUploadExcel: uploadExcelDocMutation.isPending,
   };
 };

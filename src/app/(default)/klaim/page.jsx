@@ -30,6 +30,7 @@ import {
   renderTag,
 } from "@/components/ui";
 import { ReuploadKlaimDokumenModal } from "@/components/features/klaim/ReuploadKlaimDokumenModal";
+import { UploadKlaimExcelModal } from "@/components/features/klaim/UploadKlaimExcelModal";
 import { KlaimDetailModal } from "@/components/features/klaim/KlaimDetailModal";
 import { getUserId } from "@/utils/storage";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
@@ -340,6 +341,8 @@ export default function KlaimSupportPage() {
     loadingUpdateStatus,
     loadingReupload,
     reuploadDokumenKlaim,
+    uploadKlaimExcelDoc,
+    loadingUploadExcel,
     refetchList,
   } = useKlaim();
 
@@ -362,6 +365,9 @@ export default function KlaimSupportPage() {
   // ── Modal State: Re-upload Dokumen ──
   const [isReuploadModalOpen, setIsReuploadModalOpen] = useState(false);
   const [activeKlaim, setActiveKlaim] = useState(null); // { klaim_id, nomor_klaim }
+
+  // ── Modal State: Upload Excel Document ──
+  const [isExcelUploadModalOpen, setIsExcelUploadModalOpen] = useState(false);
 
   // ── Modal State: Detail Klaim ──
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -458,6 +464,32 @@ export default function KlaimSupportPage() {
           file,
         });
         closeReuploadModal();
+      },
+    });
+  };
+
+  // ── Action Handlers: Upload Excel Document ──
+  const handleExcelUploadSubmit = async ({
+    document_type,
+    reason,
+    excel,
+    document,
+  }) => {
+    confirmAction({
+      title: "Konfirmasi Upload Excel Document Klaim",
+      description:
+        `Apakah Anda yakin ingin mengunggah dokumen "${document_type}" untuk semua klaim yang tercantum di dalam file Excel? ` +
+        `Dokumen PDF akan di-attach ke setiap klaim.`,
+      okText: "Ya, Upload Sekarang",
+      onConfirm: async () => {
+        await uploadKlaimExcelDoc({
+          m_user_id: getUserId(),
+          document_type,
+          reason,
+          excel,
+          document,
+        });
+        setIsExcelUploadModalOpen(false);
       },
     });
   };
@@ -612,19 +644,31 @@ export default function KlaimSupportPage() {
           onChange: setSearchValue,
         }}
         extraHeaderActions={
-          <Tooltip title="Muat Ulang Data">
-            <Button
-              type="default"
-              shape="circle"
-              size="large"
-              icon={
-                <ReloadOutlined
-                  className={isListFetching ? "animate-spin" : ""}
-                />
-              }
-              onClick={refetchList}
-            />
-          </Tooltip>
+          <Space size="middle">
+            <Tooltip title="Upload Excel Document Klaim">
+              <Button
+                type="default"
+                shape="circle"
+                size="large"
+                icon={<CloudUploadOutlined className="text-blue-500" />}
+                onClick={() => setIsExcelUploadModalOpen(true)}
+                className="border-blue-300 hover:!border-blue-500 hover:!bg-blue-50"
+              />
+            </Tooltip>
+            <Tooltip title="Muat Ulang Data">
+              <Button
+                type="default"
+                shape="circle"
+                size="large"
+                icon={
+                  <ReloadOutlined
+                    className={isListFetching ? "animate-spin" : ""}
+                  />
+                }
+                onClick={refetchList}
+              />
+            </Tooltip>
+          </Space>
         }
       />
 
@@ -646,6 +690,14 @@ export default function KlaimSupportPage() {
         open={isDetailModalOpen}
         klaimId={activeDetailKlaimId}
         onClose={closeDetailModal}
+      />
+
+      {/* Upload Excel Document Klaim Modal */}
+      <UploadKlaimExcelModal
+        open={isExcelUploadModalOpen}
+        onCancel={() => setIsExcelUploadModalOpen(false)}
+        onSubmit={handleExcelUploadSubmit}
+        confirmLoading={loadingUploadExcel}
       />
     </>
   );
