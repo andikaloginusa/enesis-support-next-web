@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { App, Form, Input, Modal, Select, Typography, Upload } from "antd";
 import {
   CloudUploadOutlined,
@@ -19,55 +19,68 @@ const { Text } = Typography;
  * Document type configuration for Klaim re-upload.
  *
  * Each entry controls:
- *   - key    : becomes the `document_type` payload sent to the backend
- *   - label  : text shown in the UI dropdown
- *   - ext    : expected file extension (for validation, optional)
+ *   - key          : config key (not sent to BE — just a unique identifier)
+ *   - label        : text shown in the UI dropdown
+ *   - ext          : expected file extension (for validation, optional)
+ *   - payload_name : the value sent as `document_type` to the backend
  *
- * @type {Record<string, { label: string, ext?: string }>}
+ * @type {Record<string, { label: string, ext?: string, payload_name: string }>}
  */
 export const KLAIM_DOC_CONFIG = {
   file_faktur_pajak: {
     label: "Faktur Pajak",
     ext: ".pdf",
+    payload_name: "faktur_pajak",
   },
   file_eproposal: {
     label: "E-Proposal",
     ext: ".pdf",
+    payload_name: "e_proposal",
   },
   file_rekap_klaim: {
     label: "Rekap Klaim",
     ext: ".pdf",
+    payload_name: "rekap_klaim",
   },
   file_skp: {
     label: "Surat Keterangan Pajak (SKP)",
     ext: ".pdf",
+    payload_name: "surat_keterangan_pajak",
   },
   file_invoice: {
     label: "Invoice",
     ext: ".pdf",
+    payload_name: "invoice",
   },
   file_surat_klaim_sesuai_prinsiple: {
     label: "Surat Klaim Sesuai Prinsiple",
     ext: ".pdf",
+    payload_name: "surat_klaim_sesuai_prinsiple",
   },
   file_ktp: {
     label: "KTP (Kartu Tanda Penduduk)",
     ext: ".pdf",
+    payload_name: "ktp",
   },
   file_copy_faktur: {
     label: "Copy Faktur",
     ext: ".pdf",
+    payload_name: "copy_faktur",
   },
   file_program: {
     label: "Foto Sewa/Display",
     ext: ".pdf",
+    payload_name: "file_program",
   },
 };
 
-/** Select options derived from KLAIM_DOC_CONFIG. */
+/**
+ * Select options derived from KLAIM_DOC_CONFIG.
+ * `value` = `payload_name` (what gets sent to the backend).
+ */
 export const KLAIM_DOC_OPTIONS = Object.entries(KLAIM_DOC_CONFIG).map(
-  ([value, meta]) => ({
-    value,
+  ([_key, meta]) => ({
+    value: meta.payload_name,
     label: meta.label,
   }),
 );
