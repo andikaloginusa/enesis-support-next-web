@@ -21,6 +21,7 @@ import {
 import { useRouter } from "next/navigation";
 import moment from "moment";
 import { useFkr } from "@/hooks";
+import { getUserId } from "@/utils/storage";
 import {
   Card,
   CardHeader,
@@ -362,6 +363,10 @@ export default function FkrDetailPage({ params: paramsPromise }) {
   const handleDelegasiOk = () => {
     formFKR.validateFields()
       .then((values) => {
+        if (!selectedApprovalId) {
+          console.error("[Delegasi] selectedApprovalId is null/undefined — fkr_approval_id tidak ditemukan di step data.");
+          return;
+        }
         modal.confirm({
           title: "Simpan Perubahan?",
           icon: <ExclamationCircleOutlined className="text-amber-500" />,
@@ -374,14 +379,22 @@ export default function FkrDetailPage({ params: paramsPromise }) {
           cancelButtonProps: { size: "large" },
           onOk: async () => {
             try {
-              await updateApprover({ id: selectedApprovalId, m_user_id: values.m_user_id });
+              await updateApprover({
+                fkr_approval_id: selectedApprovalId,
+                m_user_id: values.m_user_id,
+                m_user_id_aktor: getUserId(),
+              });
               closeDelegasiModal();
               refetchDetail();
-            } catch { /* Handled by mutation onError */ }
+            } catch (err) {
+              console.error("[Delegasi] Mutation error:", err.message);
+            }
           },
         });
       })
-      .catch(() => { /* Validation styled by Ant Design */ });
+      .catch((err) => {
+        console.error("[Delegasi] Validasi gagal:", err.errorFields || err.message || err);
+      });
   };
 
   // ── Render States ──
@@ -524,7 +537,10 @@ export default function FkrDetailPage({ params: paramsPromise }) {
                 showSearch
                 placeholder="Pilih User"
                 optionFilterProp="label"
-                onChange={(val) => setApprovalValue(val)}
+                onChange={(val) => {
+                  setApprovalValue(val);
+                  formFKR.setFieldValue("m_user_id", val);
+                }}
                 filterOption={filterOption}
                 options={userOptions}
                 loading={isCandidatesLoading}

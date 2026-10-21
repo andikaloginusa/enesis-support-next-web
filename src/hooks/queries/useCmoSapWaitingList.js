@@ -50,7 +50,13 @@ export const useCmoSapWaitingList = (options = {}) => {
         currentPage: activeParams.currentPage,
         pageSize: activeParams.pageSize,
       });
-      if (response.ok) return response.data;
+      if (response.ok) {
+        const results = Array.isArray(response.data)
+          ? response.data
+          : response.data?.results || [];
+        const meta = response.data?.meta || { count: results.length };
+        return { data: results, meta };
+      }
       return { data: [], meta: { count: 0 } };
     },
     enabled: hasActiveParams,
