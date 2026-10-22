@@ -15,6 +15,28 @@ export function formatCurrency(val) {
 }
 
 /**
+ * Format a numeric value into a currency string for a given ISO currency code.
+ * Falls back to a plain grouped number when the currency code is unsupported.
+ * Returns "-" for null or undefined values.
+ */
+export function formatCurrencyAmount(val, currency = "IDR") {
+  if (val === null || val === undefined || val === "") return "-";
+  try {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: currency || "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(val);
+  } catch {
+    return new Intl.NumberFormat("id-ID", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(val);
+  }
+}
+
+/**
  * Format a date string into a readable date.
  * Returns "-" for empty or falsy values.
  */

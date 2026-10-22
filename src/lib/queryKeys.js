@@ -42,6 +42,18 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Klaim Internasional (eprop_internasional_klaim)
+  // ─────────────────────────────────────────────
+  klaimInternasional: {
+    /** Matches ALL klaim internasional queries */
+    all: () => ["klaim-internasional"],
+    /** Matches the klaim internasional list with specific params */
+    list: (params) => ["klaim-internasional", "list", params],
+    /** Matches a single klaim internasional detail by ID */
+    detail: (id) => ["klaim-internasional", "detail", id],
+  },
+
+  // ─────────────────────────────────────────────
   // Proposal
   // ─────────────────────────────────────────────
   proposal: {

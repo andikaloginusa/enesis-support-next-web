@@ -13,9 +13,14 @@ export const useMenuItems = () => {
       theme: subMenuTheme,
       children: [
         {
-          label: <Link href="/klaim">Klaim Support</Link>,
+          label: <Link href="/klaim">Klaim Support Nasional</Link>,
           key: "list-klaim",
           icon: <FileText className="w-5 h-5" />,
+        },
+        {
+          label: <Link href="/klaim-internasional">Klaim Support Internasional</Link>,
+          key: "list-klaim-internasional",
+          icon: <FileText className="w-5 h-5 text-violet-600" />,
         },
       ],
     },

@@ -4,6 +4,7 @@ export * from "./useDebounce";
 export * from "./useListParams";
 export * from "./useConfirm";
 export * from "./queries/useKlaim";
+export * from "./queries/useKlaimInternasional";
 export * from "./queries/useFkr";
 export * from "./queries/useProposal";
 export * from "./queries/useCmo";

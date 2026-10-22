@@ -249,6 +249,64 @@ export const STATUS_CONFIG = {
     dot: "bg-amber-500",
   },
 
+  // ── Direct Outlet Flow (kode DIRC* / DAD / TDF / APF / RJF) ──
+  dirc1: {
+    label: "PENGAJUAN",
+    color: "default",
+    bg: "bg-slate-100",
+    border: "border-slate-300",
+    text: "text-slate-700",
+    dot: "bg-slate-500",
+  },
+  dirc2: {
+    label: "KAM APPROVED",
+    color: "success",
+    bg: "bg-teal-50",
+    border: "border-teal-200",
+    text: "text-teal-700",
+    dot: "bg-teal-500",
+  },
+  dirc3: {
+    label: "SALES HEAD APPROVED",
+    color: "purple",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    text: "text-purple-700",
+    dot: "bg-purple-500",
+  },
+  dad: {
+    label: "SALES KIRIM DOK.",
+    color: "warning",
+    bg: "bg-orange-50",
+    border: "border-orange-200",
+    text: "text-orange-700",
+    dot: "bg-orange-500",
+  },
+  tdf: {
+    label: "ECC TERIMA DOK.",
+    color: "blue",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    text: "text-indigo-700",
+    dot: "bg-indigo-500",
+  },
+  apf: {
+    label: "PLAN PAYMENT",
+    color: "gold",
+    bg: "bg-amber-50",
+    border: "border-amber-200",
+    text: "text-amber-800",
+    dot: "bg-amber-500",
+  },
+  rjf: {
+    label: "REJECTED",
+    color: "error",
+    bg: "bg-rose-50",
+    border: "border-rose-200",
+    text: "text-rose-700",
+    dot: "bg-rose-500",
+  },
+
   // ── General / Fallback ──
   waiting_approval: {
     label: "WAITING APPROVAL",
@@ -289,6 +347,8 @@ const SHORT_CODE_KEYS = new Set([
   "y", "n", "apr", "rjc", "pay",
   "dr", "ecc", "rsm", "sha",
   "send", "receive", "plan",
+  "dirc1", "dirc2", "dirc3",
+  "dad", "tdf", "apf", "rjf",
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────

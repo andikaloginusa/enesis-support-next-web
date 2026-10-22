@@ -2,6 +2,14 @@ import { api } from "./api";
 import { authFetch } from "@/utils/authFetch";
 
 /**
+ * Base path untuk endpoint klaim internasional (tabel `eprop_internasional_klaim`).
+ *
+ * Dipisah sebagai konstanta supaya URL backend cukup diubah di satu titik
+ * apabila naming route BE berbeda.
+ */
+const KLAIM_INTERNASIONAL_BASE = "support/klaim-internasional";
+
+/**
  * Higher-order factory function to instantiate Klaim Support Services.
  * Allows custom API client injection for testing or isolation.
  * Consistent with the Factory Pattern used in `fkr.service.js` and `proposal.service.js`.
@@ -130,6 +138,40 @@ export const KlaimSupportServices = (apiInstance) => {
   const getKlaimDetail = (params) =>
     apiInstance.get("support/klaim/get-detail", params);
 
+  /**
+   * Fetch the list of international claims (tabel `eprop_internasional_klaim`).
+   *
+   * GET /support/klaim/internasional/get-all
+   *
+   * Query params mengikuti `getListKlaim`, kecuali `m_distributor_id`
+   * (tidak ada di tabel internasional — memakai `m_direct_outlet_id`).
+   *
+   * Response shape:
+   *   {
+   *     status, error,
+   *     message,
+   *     results: KlaimInternasionalRow[],
+   *     meta: { currentPage, pageCount, pageSize, count }
+   *   }
+   *
+   * @param {Object} params - Query filters (currentPage, pageSize, searchText, dll.)
+   */
+  const getListKlaimInternasional = (params) =>
+    apiInstance.get(`${KLAIM_INTERNASIONAL_BASE}/get-all`, params);
+
+  /**
+   * Fetch full detail of a single international claim.
+   *
+   * GET /support/klaim/internasional/get-detail?klaim_id=...
+   *
+   * Returns: { result: { klaim_v_id, details[], logSubmit[], logSubmitError[], lines[], ... } }
+   *
+   * @param {Object} params
+   * @param {string} params.klaim_id - Target klaim record ID
+   */
+  const getKlaimInternasionalDetail = (params) =>
+    apiInstance.get(`${KLAIM_INTERNASIONAL_BASE}/get-detail`, params);
+
   return {
     getListKlaim,
     deleteLogSubmitKlaim,
@@ -137,6 +179,8 @@ export const KlaimSupportServices = (apiInstance) => {
     reuploadDokumenKlaim,
     uploadKlaimExcelDocument,
     getKlaimDetail,
+    getListKlaimInternasional,
+    getKlaimInternasionalDetail,
   };
 };
 

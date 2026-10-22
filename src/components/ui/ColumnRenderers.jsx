@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Tooltip, Tag } from "antd";
-import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
+import { formatCurrency, formatCurrencyAmount, formatDate, formatDateTime } from "@/utils/formatters";
 import { StatusBadge } from "./StatusBadge";
 
 /**
@@ -29,6 +29,25 @@ export function renderCurrency(val, color = "emerald") {
 }
 
 // ── Date Cells ───────────────────────────────────────────────────────────────
+
+/**
+ * Currency cell that respects a per-row ISO currency code.
+ * Used by klaim internasional, where nominal can be in a non-IDR currency.
+ *
+ * @param {unknown} val      - Raw value to format
+ * @param {string}  currency - ISO currency code (e.g. "IDR", "USD")
+ * @param {string}  color    - Tailwind color prefix (default emerald)
+ */
+export function renderCurrencyAmount(val, currency = "IDR", color = "emerald") {
+  if (val === null || val === undefined || val === "") {
+    return <span className="text-slate-400">-</span>;
+  }
+  return (
+    <span className={`font-semibold text-${color}-700`}>
+      {formatCurrencyAmount(val, currency)}
+    </span>
+  );
+}
 
 /**
  * Standard date cell (DD MMM YYYY).

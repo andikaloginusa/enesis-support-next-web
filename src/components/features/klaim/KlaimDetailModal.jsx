@@ -32,6 +32,7 @@ import {
 import { useKlaimDetail } from "@/hooks/queries/useKlaimDetail";
 import {
   renderCurrency,
+  renderCurrencyAmount,
   renderDate,
   renderBold,
   renderTag,
@@ -114,8 +115,17 @@ function extractSapMessages(logResponse) {
 // Tab panes
 // ─────────────────────────────────────────────────────────────────────────────
 
-function InfoTab({ data }) {
+function InfoTab({ data, variant = "nasional" }) {
   if (!data) return null;
+
+  const isInternational = variant === "internasional";
+  // Klaim internasional menyimpan nominal dalam mata uang sendiri (`currency`),
+  // sehingga formatter harus mengikuti `currency` dari API, bukan hardcode IDR.
+  const currency = data.currency || "IDR";
+  const amount = (val) =>
+    isInternational
+      ? renderCurrencyAmount(val, currency)
+      : renderCurrency(val);
 
   const DOC_FILES = [
     { key: "file_invoice", label: "Invoice" },
@@ -149,6 +159,11 @@ function InfoTab({ data }) {
           <Descriptions.Item label="Nomor Proposal">
             <Text className="font-mono text-xs">{data.nomor_proposal || "—"}</Text>
           </Descriptions.Item>
+          {isInternational && (
+            <Descriptions.Item label="Title" span={2}>
+              {data.title || "—"}
+            </Descriptions.Item>
+          )}
           <Descriptions.Item label="Status">
             <Tag color={data.status === "Payment Completed" ? "green" : "blue"} className="rounded-full">
               {data.status || "—"}
@@ -164,32 +179,68 @@ function InfoTab({ data }) {
             {data.periode_klaim || "—"}
           </Descriptions.Item>
           <Descriptions.Item label="Region">{data.region || "—"}</Descriptions.Item>
-          <Descriptions.Item label="Kode Region">{data.kode_region || "—"}</Descriptions.Item>
-          <Descriptions.Item label="Company Code">{data.company_code || "—"}</Descriptions.Item>
+          {isInternational ? (
+            <>
+              <Descriptions.Item label="Company">{data.company || "—"}</Descriptions.Item>
+              <Descriptions.Item label="Mata Uang">
+                <Text code>{data.currency || "—"}</Text>
+              </Descriptions.Item>
+            </>
+          ) : (
+            <>
+              <Descriptions.Item label="Kode Region">{data.kode_region || "—"}</Descriptions.Item>
+              <Descriptions.Item label="Company Code">{data.company_code || "—"}</Descriptions.Item>
+            </>
+          )}
           <Descriptions.Item label="Divisi">{data.divisi || "—"}</Descriptions.Item>
         </Descriptions>
       </section>
 
       <Divider className="my-4" />
 
-      {/* ── Distributor & Kontak ── */}
+      {/* ── Distributor & Kontak (nasional) / Outlet & Vendor (internasional) ── */}
       <section>
         <Title level={5} className="text-slate-700 mb-3 text-sm">
-          Distributor & Kontak
+          {isInternational ? "Outlet & Vendor" : "Distributor & Kontak"}
         </Title>
         <Descriptions
           size="small"
           column={2}
           className="[&_.ant-descriptions-item-label]:text-slate-500 [&_.ant-descriptions-item-content]:text-slate-800 [&_.ant-descriptions-item]:py-1"
         >
-          <Descriptions.Item label="Nama">{data.nama || "—"}</Descriptions.Item>
-          <Descriptions.Item label="Ship To">{data.ship_to || "—"}</Descriptions.Item>
-          <Descriptions.Item label="NIK RSM">{data.nik_rsm || "—"}</Descriptions.Item>
-          <Descriptions.Item label="NIK ASM">{data.nik_asm || "—"}</Descriptions.Item>
-          <Descriptions.Item label="NIK Sales Head">{data.nik_sales_head || "—"}</Descriptions.Item>
-          <Descriptions.Item label="NIK KAM">{data.nik_kam || "—"}</Descriptions.Item>
-          <Descriptions.Item label="Nama Outlet">{data.nama_outlet || "—"}</Descriptions.Item>
-          <Descriptions.Item label="Surdon Group">{data.surdon_group_golive || "—"}</Descriptions.Item>
+          {isInternational ? (
+            <>
+              <Descriptions.Item label="Company List">
+                {data.company_list || "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Vendor Type">
+                {data.vendor_type || "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Direct Outlet">
+                {data.m_direct_outlet_id || "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Profit Center">
+                {data.profit_center ?? "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tanggal Proposal">
+                {data.date_prop ? renderDate(data.date_prop) : "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Dokumen Nomor">
+                {data.proposal_id || "—"}
+              </Descriptions.Item>
+            </>
+          ) : (
+            <>
+              <Descriptions.Item label="Nama">{data.nama || "—"}</Descriptions.Item>
+              <Descriptions.Item label="Ship To">{data.ship_to || "—"}</Descriptions.Item>
+              <Descriptions.Item label="NIK RSM">{data.nik_rsm || "—"}</Descriptions.Item>
+              <Descriptions.Item label="NIK ASM">{data.nik_asm || "—"}</Descriptions.Item>
+              <Descriptions.Item label="NIK Sales Head">{data.nik_sales_head || "—"}</Descriptions.Item>
+              <Descriptions.Item label="NIK KAM">{data.nik_kam || "—"}</Descriptions.Item>
+              <Descriptions.Item label="Nama Outlet">{data.nama_outlet || "—"}</Descriptions.Item>
+              <Descriptions.Item label="Surdon Group">{data.surdon_group_golive || "—"}</Descriptions.Item>
+            </>
+          )}
         </Descriptions>
       </section>
 
@@ -230,22 +281,27 @@ function InfoTab({ data }) {
           className="[&_.ant-descriptions-item-label]:text-slate-500 [&_.ant-descriptions-item-content]:text-slate-800 [&_.ant-descriptions-item]:py-1"
         >
           <Descriptions.Item label="Total Klaim (Excl. PPN)">
-            <Text className="font-bold text-slate-800">{renderCurrency(data.total_klaim)}</Text>
+            <Text className="font-bold text-slate-800">{amount(data.total_klaim)}</Text>
           </Descriptions.Item>
           <Descriptions.Item label="Nominal Pajak">
-            {renderCurrency(data.nominal_pajak)}
+            {amount(data.nominal_pajak)}
           </Descriptions.Item>
           <Descriptions.Item label="Klaim + PPN (Claimable)">
             <Text className="font-bold text-[#1aac32]">
-              {renderCurrency(data.nominal_claimable)}
+              {amount(data.nominal_claimable)}
             </Text>
           </Descriptions.Item>
           <Descriptions.Item label="Sales Approved">
-            {renderCurrency(data.sales_approve_amount)}
+            {amount(data.sales_approve_amount)}
           </Descriptions.Item>
           <Descriptions.Item label="ASDH Approved">
-            {renderCurrency(data.asdh_approve_amount)}
+            {amount(data.asdh_approve_amount)}
           </Descriptions.Item>
+          {isInternational && (
+            <Descriptions.Item label="Accounting Approved">
+              {amount(data.accounting_approve_amount)}
+            </Descriptions.Item>
+          )}
           <Descriptions.Item label="Invoice / Kwitansi Outlet">
             {data.invoice || data.kwitansi_outlet || "—"}
           </Descriptions.Item>
@@ -285,6 +341,20 @@ function InfoTab({ data }) {
           <Descriptions.Item label="Penerima">{data.penerima || "—"}</Descriptions.Item>
           <Descriptions.Item label="Jasa Pengiriman">{data.jasa_pengiriman || "—"}</Descriptions.Item>
           <Descriptions.Item label="Nomor Resi">{data.nomor_resi || "—"}</Descriptions.Item>
+          {isInternational && (
+            <>
+              <Descriptions.Item label="Tanda Terima">
+                {data.url_tanda_terima || "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Cek Payment">
+                {data.tgl_cek_payment ? renderDate(data.tgl_cek_payment) : "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Tanggal Reject">
+                {data.tgl_reject ? renderDate(data.tgl_reject) : "—"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Reason">{data.reason || "—"}</Descriptions.Item>
+            </>
+          )}
         </Descriptions>
       </section>
 
@@ -335,17 +405,24 @@ function InfoTab({ data }) {
       )}
 
       {/* ── Notes ── */}
-      {data.noted && (
+      {(data.noted || (isInternational && data.catatan_it)) && (
         <>
           <Divider className="my-4" />
           <section>
             <Title level={5} className="text-slate-700 mb-2 text-sm">
               Catatan
             </Title>
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-              <Text className="text-sm text-slate-600 whitespace-pre-line">
-                {data.noted}
-              </Text>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 space-y-2">
+              {data.noted && (
+                <Text className="text-sm text-slate-600 whitespace-pre-line block">
+                  {data.noted}
+                </Text>
+              )}
+              {isInternational && data.catatan_it && (
+                <Text className="text-sm text-slate-600 whitespace-pre-line block">
+                  {data.catatan_it}
+                </Text>
+              )}
             </div>
           </section>
         </>
@@ -717,8 +794,14 @@ function LogSubmitTab({
   );
 }
 
-function LinesTab({ data }) {
+function LinesTab({ data, variant = "nasional" }) {
   const lines = data?.lines || [];
+  const isInternational = variant === "internasional";
+  const currency = data?.currency || "IDR";
+  const amount = (val) =>
+    isInternational
+      ? renderCurrencyAmount(val, currency)
+      : renderCurrency(val);
 
   const columns = [
     {
@@ -759,7 +842,7 @@ function LinesTab({ data }) {
       width: 130,
       align: "right",
       render: (val) => (
-        <Text className="text-xs font-medium">{renderCurrency(val)}</Text>
+        <Text className="text-xs font-medium">{amount(val)}</Text>
       ),
     },
     {
@@ -769,7 +852,7 @@ function LinesTab({ data }) {
       width: 130,
       align: "right",
       render: (val) => (
-        <Text className="text-xs font-medium">{renderCurrency(val)}</Text>
+        <Text className="text-xs font-medium">{amount(val)}</Text>
       ),
     },
     {
@@ -780,7 +863,7 @@ function LinesTab({ data }) {
       align: "right",
       render: (val) => (
         <Text className="text-xs font-medium text-amber-600">
-          {renderCurrency(val)}
+          {amount(val)}
         </Text>
       ),
     },
@@ -791,7 +874,7 @@ function LinesTab({ data }) {
       width: 120,
       align: "right",
       render: (val) => (
-        <Text className="text-xs">{renderCurrency(val)}</Text>
+        <Text className="text-xs">{amount(val)}</Text>
       ),
     },
     {
@@ -907,7 +990,7 @@ function LinesTab({ data }) {
  * KlaimDetailModal — Full detail view for a single klaim record.
  *
  * Tabs:
- * - Info        : Identitas, distributor, NPWP, nominal, invoice, pembayaran, dokumen
+ * - Info        : Identitas, distributor/outlet, NPWP, nominal, invoice, pembayaran, dokumen
  * - Timeline    : Audit trail dari details[]
  * - Log Submit  : Submit log dari logSubmit[] + download XML (header & detail)
  * - Log Error   : Submit log error dari logSubmitError[] + ringkasan SAP OUT_RETURN
@@ -917,9 +1000,15 @@ function LinesTab({ data }) {
  * @param {boolean}  props.open
  * @param {string}   props.klaimId   - Klaim ID to fetch
  * @param {Function} props.onClose
+ * @param {"nasional"|"internasional"} [props.variant] - Tipe klaim (default: nasional)
  */
-export function KlaimDetailModal({ open, klaimId, onClose }) {
-  const { detail, isLoading } = useKlaimDetail({ klaimId: open ? klaimId : null });
+export function KlaimDetailModal({ open, klaimId, onClose, variant = "nasional" }) {
+  const { detail, isLoading } = useKlaimDetail({
+    klaimId: open ? klaimId : null,
+    variant,
+  });
+
+  const isInternational = variant === "internasional";
 
   const items = [
     {
@@ -930,7 +1019,7 @@ export function KlaimDetailModal({ open, klaimId, onClose }) {
           Info Klaim
         </span>
       ),
-      children: <InfoTab data={detail} />,
+      children: <InfoTab data={detail} variant={variant} />,
     },
     {
       key: "timeline",
@@ -1000,7 +1089,7 @@ export function KlaimDetailModal({ open, klaimId, onClose }) {
           )}
         </span>
       ),
-      children: <LinesTab data={detail} />,
+      children: <LinesTab data={detail} variant={variant} />,
     },
   ];
 
@@ -1011,7 +1100,7 @@ export function KlaimDetailModal({ open, klaimId, onClose }) {
       title={
         <div className="flex items-center gap-2 pb-3 text-base font-bold border-b border-slate-100 text-slate-800">
           <InfoCircleOutlined className="text-blue-500" />
-          <span>Detail Klaim</span>
+          <span>Detail Klaim{isInternational ? " Internasional" : ""}</span>
           {detail?.nomor_klaim && (
             <Text className="text-slate-400 font-normal text-sm ml-1">
               — {detail.nomor_klaim}
