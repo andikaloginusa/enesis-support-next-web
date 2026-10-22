@@ -122,7 +122,7 @@ export const KlaimSupportServices = (apiInstance) => {
    * Fetch full detail of a single klaim record.
    * GET /support/klaim/get-detail?klaim_id=...
    *
-   * Returns: { result: { klaim_v_id, details[], logSubmit[], lines[], ... } }
+   * Returns: { result: { klaim_v_id, details[], logSubmit[], logSubmitError[], lines[], ... } }
    *
    * @param {Object} params
    * @param {string} params.klaim_id - Target klaim record ID

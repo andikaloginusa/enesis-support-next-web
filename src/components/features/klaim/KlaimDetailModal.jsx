@@ -27,6 +27,7 @@ import {
   EyeOutlined,
   RightOutlined,
   DownOutlined,
+  WarningOutlined,
 } from "@ant-design/icons";
 import { useKlaimDetail } from "@/hooks/queries/useKlaimDetail";
 import {
@@ -55,6 +56,58 @@ function downloadLog(content, filename) {
   } catch {
     /* silently fail — avoid crashing the modal */
   }
+}
+
+/**
+ * Decode the 5 basic XML entities so error messages render readably.
+ */
+function decodeXmlEntities(str) {
+  if (!str) return "";
+  return str
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+/**
+ * Extract SAP OUT_RETURN messages from a log_response payload.
+ * The payload is a JSON string wrapping the raw SOAP XML; both are tolerated.
+ *
+ * @param {string} logResponse - Raw log_response value
+ * @returns {Array<{type,id,number,message}>}
+ */
+function extractSapMessages(logResponse) {
+  if (!logResponse) return [];
+
+  let body = logResponse;
+  try {
+    const parsed = JSON.parse(logResponse);
+    if (parsed?.body) body = parsed.body;
+  } catch {
+    /* not JSON — fall back to treating the value as raw XML */
+  }
+
+  const outReturn = body.match(/<OUT_RETURN>([\s\S]*?)<\/OUT_RETURN>/);
+  if (!outReturn) return [];
+
+  const items = outReturn[1].match(/<item>[\s\S]*?<\/item>/g) || [];
+
+  return items
+    .map((item) => {
+      const pick = (tag) => {
+        const match = item.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+        return match ? decodeXmlEntities(match[1].trim()) : "";
+      };
+      return {
+        type: pick("TYPE"),
+        id: pick("ID"),
+        number: pick("NUMBER"),
+        message: pick("MESSAGE"),
+      };
+    })
+    .filter((entry) => entry.message);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -385,8 +438,13 @@ function TimelineTab({ data }) {
   );
 }
 
-function LogSubmitTab({ data }) {
-  const logs = data?.logSubmit || [];
+function LogSubmitTab({
+  logs = [],
+  rowKey,
+  emptyText,
+  alertText,
+  showSapMessages = false,
+}) {
   const [expandedRows, setExpandedRows] = useState([]);
 
   const toggleRow = (id) => {
@@ -407,11 +465,11 @@ function LogSubmitTab({ data }) {
         <Button
           type="primary"
           size="small"
-          icon={isExpanded(row.submit_klaim_id) ? <DownOutlined /> : <RightOutlined />}
-          onClick={() => toggleRow(row.submit_klaim_id)}
+          icon={isExpanded(row[rowKey]) ? <DownOutlined /> : <RightOutlined />}
+          onClick={() => toggleRow(row[rowKey])}
           className="rounded-lg flex items-center justify-center"
           style={{
-            backgroundColor: isExpanded(row.submit_klaim_id) ? "#1aac32" : "#1aac32",
+            backgroundColor: isExpanded(row[rowKey]) ? "#1aac32" : "#1aac32",
             borderColor: "#1aac32",
             color: "#ffffff",
           }}
@@ -456,8 +514,55 @@ function LogSubmitTab({ data }) {
       ? row.nomor_klaim.replace(/[^a-zA-Z0-9]/g, "_")
       : "submit";
 
+    const sapMessages = showSapMessages
+      ? extractSapMessages(row.log_response)
+      : [];
+
     return (
       <div className="space-y-4 pl-2 pr-2 pb-2">
+        {/* ── SAP Error Messages ── */}
+        {sapMessages.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-1">
+              <Text className="text-xs font-bold text-red-500 uppercase tracking-wide">
+                SAP Error (OUT_RETURN)
+              </Text>
+            </div>
+            <div className="space-y-2">
+              {sapMessages.map((entry, idx) => (
+                <div
+                  key={`${entry.id}-${entry.number}-${idx}`}
+                  className={`rounded-lg border px-3 py-2 ${
+                    entry.type === "E"
+                      ? "bg-red-50 border-red-200"
+                      : entry.type === "W"
+                        ? "bg-amber-50 border-amber-200"
+                        : "bg-slate-50 border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <Tag
+                      color={entry.type === "E" ? "red" : entry.type === "W" ? "amber" : "blue"}
+                      className="rounded-full text-[10px] font-bold m-0"
+                    >
+                      {entry.type || "?"}
+                    </Tag>
+                    {entry.id && (
+                      <Text className="text-[10px] font-mono font-semibold text-slate-500">
+                        {entry.id}
+                        {entry.number ? ` / ${entry.number}` : ""}
+                      </Text>
+                    )}
+                  </div>
+                  <Text className="text-xs text-slate-700 break-words">
+                    {entry.message}
+                  </Text>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         {/* ── Log Header ── */}
         {row.log_header && (
           <section>
@@ -470,7 +575,7 @@ function LogSubmitTab({ data }) {
                   <Button
                     size="small"
                     icon={<EyeOutlined />}
-                    onClick={() => toggleRow(row.submit_klaim_id)}
+                    onClick={() => toggleRow(row[rowKey])}
                     className="rounded-lg text-xs"
                     style={{
                       backgroundColor: "#94a3b8",
@@ -582,21 +687,21 @@ function LogSubmitTab({ data }) {
       {logs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 gap-3">
           <FileTextOutlined className="text-slate-200 text-4xl" />
-          <Text className="text-slate-400 text-sm">Belum ada log submit.</Text>
+          <Text className="text-slate-400 text-sm">{emptyText}</Text>
         </div>
       ) : (
         <>
           <Alert
-            message={`${logs.length} log submit ditemukan`}
+            message={`${logs.length} ${alertText} ditemukan`}
             description="Klik baris untuk melihat isi log · Gunakan tombol Download .txt untuk menyimpan."
-            type="info"
+            type={showSapMessages ? "warning" : "info"}
             showIcon
-            className="rounded-xl mb-4 [&_.ant-alert-info]:bg-blue-50/70 [&_.ant-alert-info]:border-blue-100"
+            className="rounded-xl mb-4 [&_.ant-alert-info]:bg-blue-50/70 [&_.ant-alert-info]:border-blue-100 [&_.ant-alert-warning]:bg-amber-50/70 [&_.ant-alert-warning]:border-amber-100"
           />
           <Table
             dataSource={logs}
             columns={baseColumns}
-            rowKey="submit_klaim_id"
+            rowKey={rowKey}
             expandable={{
               expandedRowRender,
               expandedRowKeys: expandedRows,
@@ -805,6 +910,7 @@ function LinesTab({ data }) {
  * - Info        : Identitas, distributor, NPWP, nominal, invoice, pembayaran, dokumen
  * - Timeline    : Audit trail dari details[]
  * - Log Submit  : Submit log dari logSubmit[] + download XML (header & detail)
+ * - Log Error   : Submit log error dari logSubmitError[] + ringkasan SAP OUT_RETURN
  * - Lines       : Budget lines dari lines[]
  *
  * @param {Object}   props
@@ -849,7 +955,37 @@ export function KlaimDetailModal({ open, klaimId, onClose }) {
           )}
         </span>
       ),
-      children: <LogSubmitTab data={detail} />,
+      children: (
+        <LogSubmitTab
+          logs={detail?.logSubmit}
+          rowKey="submit_klaim_id"
+          emptyText="Belum ada log submit."
+          alertText="log submit"
+        />
+      ),
+    },
+    {
+      key: "log-error",
+      label: (
+        <span className="flex items-center gap-1.5">
+          <WarningOutlined />
+          Log Submit Error
+          {detail?.logSubmitError?.length > 0 && (
+            <Tag className="ml-1 rounded-full text-xs" color="red">
+              {detail.logSubmitError.length}
+            </Tag>
+          )}
+        </span>
+      ),
+      children: (
+        <LogSubmitTab
+          logs={detail?.logSubmitError}
+          rowKey="log_submit_klaim_error_id"
+          emptyText="Belum ada log submit error."
+          alertText="log submit error"
+          showSapMessages
+        />
+      ),
     },
     {
       key: "lines",
