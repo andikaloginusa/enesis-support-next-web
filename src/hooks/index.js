@@ -12,3 +12,5 @@ export * from "./queries/useCmoSapWaitingList";
 export * from "./queries/useCmoSapCOrderWaitingList";
 export * from "./queries/useReversalBudget";
 export * from "./queries/useAddMoveBudget";
+export * from "./queries/usePartnerBank";
+export * from "./queries/usePartnerBankDetail";

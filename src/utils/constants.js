@@ -117,6 +117,16 @@ export const NOTIF_MESSAGES = {
   PROCESS_SAP_C_ORDER_ERROR: "Gagal Sinkronisasi SAP C-Order",
   FETCH_SAP_CMO_ERROR: "Gagal Mengambil Daftar CMO SAP",
 
+  // Partner Bank
+  CREATE_PARTNER_BANK_SUCCESS: "Partner Bank Berhasil Ditambahkan",
+  CREATE_PARTNER_BANK_ERROR: "Gagal Menambahkan Partner Bank",
+  UPDATE_PARTNER_BANK_SUCCESS: "Partner Bank Berhasil Diperbarui",
+  UPDATE_PARTNER_BANK_ERROR: "Gagal Memperbarui Partner Bank",
+  DELETE_PARTNER_BANK_SUCCESS: "Partner Bank Berhasil Dihapus",
+  DELETE_PARTNER_BANK_ERROR: "Gagal Menghapus Partner Bank",
+  FETCH_PARTNER_BANK_ERROR: "Gagal mengambil daftar partner bank",
+  FETCH_PARTNER_BANK_DETAIL_ERROR: "Gagal mengambil detail partner bank",
+
   // Proposal
   UPDATE_PROPOSAL_SUCCESS: "Data Proposal Berhasil Diperbarui",
   UPDATE_PROPOSAL_ERROR: "Gagal Memperbarui Data Proposal",
@@ -159,4 +169,5 @@ export const API_LABELS = {
   KLAIM: "[useKlaim]",
   PROPOSAL: "[useProposal]",
   CMO: "[useCmo]",
+  PARTNER_BANK: "[usePartnerBank]",
 };

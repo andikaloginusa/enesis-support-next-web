@@ -90,6 +90,18 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Partner Bank (r_partner_bank_key)
+  // ─────────────────────────────────────────────
+  partnerBank: {
+    /** Matches ALL partner bank queries */
+    all: () => ["partner-bank"],
+    /** Matches the partner bank list with specific params */
+    list: (params) => ["partner-bank", "list", params],
+    /** Matches a single partner bank detail by ID */
+    detail: (id) => ["partner-bank", "detail", id],
+  },
+
+  // ─────────────────────────────────────────────
   // Budget (Reversal Budget & Add/Move Budget)
   // ─────────────────────────────────────────────
   budget: {

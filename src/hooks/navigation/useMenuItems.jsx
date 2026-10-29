@@ -1,7 +1,7 @@
 import { useTranslation } from "@/hooks";
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import { TableOutlined } from "@ant-design/icons";
+import { TableOutlined, BankOutlined } from "@ant-design/icons";
 
 export const useMenuItems = () => {
   const t = useTranslation();
@@ -74,6 +74,18 @@ export const useMenuItems = () => {
           label: <Link href="/budget/add-move">Add & Move Budget</Link>,
           key: "add-move-budget",
           icon: <FileText className="w-5 h-5 text-teal-600" />,
+        },
+      ],
+    },
+    {
+      label: "Master Data",
+      key: "master-data",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/partner-bank">Partner Bank</Link>,
+          key: "list-partner-bank",
+          icon: <BankOutlined className="text-cyan-600" />,
         },
       ],
     },
