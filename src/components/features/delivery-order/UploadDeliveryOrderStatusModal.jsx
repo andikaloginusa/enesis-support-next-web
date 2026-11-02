@@ -109,15 +109,11 @@ export function UploadDeliveryOrderStatusModal({
         </div>
 
         <Text className="block text-slate-500 text-sm leading-relaxed">
-          Isi kolom <span className="font-mono font-semibold">Bundle</span> (A)
-          dengan nomor bundle, lalu pilih status pada dropdown di kolom{" "}
-          <span className="font-mono font-semibold">Status</span> (B). Kolom{" "}
-          <span className="font-mono font-semibold">Kode Status</span> (C)
-          terisi otomatis dan itulah yang dibaca backend. Baris dicocokkan ke{" "}
-          <span className="font-mono font-semibold">bundle_id</span>, sehingga
-          semua Delivery Order di dalam bundle tersebut ikut diperbarui.
-          Proses bersifat all-or-nothing: jika satu baris tidak valid, tidak ada
-          data yang diperbarui.
+          Unggah file Excel berisi daftar bundle dan kode status baru. Baris
+          dicocokkan ke <span className="font-mono font-semibold">bundle_id</span>,
+          sehingga semua Delivery Order di dalam bundle tersebut ikut
+          diperbarui. Proses bersifat all-or-nothing: jika satu baris tidak
+          valid, tidak ada data yang diperbarui.
         </Text>
 
         {/* Panduan kolom */}
@@ -131,7 +127,7 @@ export function UploadDeliveryOrderStatusModal({
             {DELIVERY_ORDER_TEMPLATE_COLUMNS.map((column) => (
               <div
                 key={column.name}
-                className="px-4 py-3 flex flex-col sm:flex-row sm:items-start sm:gap-4"
+                className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4"
               >
                 <div className="sm:w-52 flex-shrink-0">
                   <Text className="font-semibold text-slate-700 text-sm">
@@ -140,25 +136,10 @@ export function UploadDeliveryOrderStatusModal({
                   <Text className="text-xs text-slate-400 font-mono ml-2">
                     Kolom {column.index}
                   </Text>
-                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-                      {column.type}
-                    </span>
-                    {column.mandatory && (
-                      <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
-                        Wajib
-                      </span>
-                    )}
-                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <Text className="block text-xs text-slate-500 leading-relaxed">
-                    {column.description}
-                  </Text>
-                  <Text className="block text-xs text-slate-400 font-mono mt-1">
-                    Contoh: {column.example}
-                  </Text>
-                </div>
+                <Text className="text-xs text-slate-500 flex-1">
+                  {column.description}
+                </Text>
               </div>
             ))}
           </div>

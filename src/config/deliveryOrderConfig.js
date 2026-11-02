@@ -83,41 +83,25 @@ export const getDeliveryOrderStatusLabel = (kodeStatus) => {
 
 /**
  * Column definitions shared by the Excel template guide and the upload modal.
- *
- * Mirrors the shipped template `template_bundle_status.xlsx` (sheet "Bundle"):
- *   A — Bundle     : nomor bundle_id, diisi manual
- *   B — Status     : deskripsi status, dipilih dari dropdown
- *   C — Kode Status: kode status, terisi otomatis dari kolom B via VLOOKUP
- *
- * The backend locates both columns by header name (normalised), not by
- * position, and matches Excel rows on `bundle_id` — never on `delivery_order_id`.
+ * The backend matches Excel rows on `bundle_id`, never on `delivery_order_id`.
  */
 export const DELIVERY_ORDER_TEMPLATE_COLUMNS = [
   {
     name: "Bundle",
     index: "A",
-    type: "Number",
+    type: "String",
     mandatory: true,
     description:
       "Nomor bundle (bundle_id) yang akan di-update. Semua Delivery Order di dalam bundle tersebut ikut diperbarui.",
     example: "82818, 83360, 83361",
   },
   {
-    name: "Status",
-    index: "B",
-    type: "Dropdown",
-    mandatory: true,
-    description:
-      "Pilih status dari dropdown yang tersedia, misalnya \"Proses Pengantaran\". Kolom ini hanya membantu memetik kode — backend tidak membacanya.",
-    example: "Proses Pengantaran, POD Transporter, Finish",
-  },
-  {
     name: "Kode Status",
-    index: "C",
-    type: "VLOOKUP (otomatis)",
+    index: "B",
+    type: "String",
     mandatory: true,
     description:
-      "Kode status yang dibaca backend. Terisi otomatis dari kolom Status, jadi jangan diedit manual. Kode harus persis salah satu dari CHG, SPL, FNS, PIC, PODDIST, PODLOG, PODTRANS, OTW, SGE.",
+      "Kode status baru untuk bundle tersebut. Gunakan salah satu kode yang tersedia pada dropdown di template.",
     example: "OTW, PODTRANS, FNS",
   },
 ];
