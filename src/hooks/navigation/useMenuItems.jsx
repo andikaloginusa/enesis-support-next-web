@@ -61,6 +61,18 @@ export const useMenuItems = () => {
       ],
     },
     {
+      label: "Delivery Order Support",
+      key: "delivery-order-support",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/delivery-order">Delivery Order</Link>,
+          key: "delivery-order",
+          icon: <FileText className="w-5 h-5 text-cyan-600" />,
+        },
+      ],
+    },
+    {
       label: "Budget Support",
       key: "budget",
       theme: subMenuTheme,

@@ -155,6 +155,15 @@ export const NOTIF_MESSAGES = {
   SAP_MASS_UPDATE_DUPLICATE_WARNING: "Terdapat data WBS_NUMBER yang duplikat",
   SAP_MASS_UPDATE_NOT_FOUND_ERROR: "Terdapat data yang tidak ditemukan di sistem",
 
+  // Delivery Order
+  UPDATE_DO_SUCCESS: "Status Delivery Order Berhasil Diperbarui",
+  UPDATE_DO_ERROR: "Gagal Memperbarui Status Delivery Order",
+  UPLOAD_DO_SUCCESS: "Update Status Delivery Order dari Excel Berhasil",
+  UPLOAD_DO_ERROR: "Gagal Upload Update Status Delivery Order",
+  FETCH_DO_ERROR: "Gagal mengambil daftar Delivery Order",
+  FETCH_DO_DETAIL_ERROR: "Gagal mengambil detail Delivery Order",
+  FETCH_BUNDLE_READY_ERROR: "Gagal mengambil daftar Bundle Ready Invoice",
+
   // Generic fallbacks
   GENERIC_SUCCESS: "Operasi berhasil",
   GENERIC_ERROR: "Terjadi kesalahan. Silakan coba lagi.",
@@ -170,4 +179,5 @@ export const API_LABELS = {
   PROPOSAL: "[useProposal]",
   CMO: "[useCmo]",
   PARTNER_BANK: "[usePartnerBank]",
+  DELIVERY_ORDER: "[useDeliveryOrder]",
 };

@@ -70,6 +70,20 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Delivery Order (DO)
+  // ─────────────────────────────────────────────
+  deliveryOrder: {
+    /** Matches ALL delivery order queries */
+    all: () => ["delivery-order"],
+    /** Matches the delivery order list with pagination/search params */
+    list: (params) => ["delivery-order", "list", params],
+    /** Matches a single delivery order detail by ID */
+    detail: (id) => ["delivery-order", "detail", id],
+    /** Matches the bundle-ready-to-invoice list for a given user */
+    bundleReady: (params) => ["delivery-order", "bundle-ready", params],
+  },
+
+  // ─────────────────────────────────────────────
   // User Profile
   // ─────────────────────────────────────────────
   user: {

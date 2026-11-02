@@ -13,6 +13,24 @@
 // ─────────────────────────────────────────────
 
 /**
+ * Extract the per-row / per-field error details from an API error response.
+ *
+ * The Sails error envelope nests the detail under `meta.data`, but some
+ * endpoints also mirror it at the top level as `data`. This helper tolerates
+ * both so callers never have to guess.
+ *
+ * @param {Object|null|undefined} response - Raw API response
+ * @returns {*} Array of `{ bundle_id, reason }`, an object, or null
+ *
+ * @example
+ * const detail = extractErrorDetail(response);
+ * // → [{ bundle_id: "83361", reason: "baris 5: Kode Status 'XYZ' tidak dikenali." }]
+ */
+export const extractErrorDetail = (response) => {
+  return response?.data?.data ?? response?.data?.meta?.data ?? null;
+};
+
+/**
  * Extract a human-readable error message from an API response object.
  * Tries multiple known response shapes before falling back to the provided default.
  *
