@@ -15,17 +15,21 @@ export const DELIVERY_ORDER_BUNDLE_FIELD = "bundle_id";
 
 /** Public path of the Excel template used for bulk status updates. */
 export const DELIVERY_ORDER_TEMPLATE_URL =
-  "/templates/delivery-order/update-status/template_bundle_status.xlsx";
+  "/templates/delivery-order/update-status/template_ubah_status.xlsx";
 
 /** Filename shown when the template is downloaded. */
-export const DELIVERY_ORDER_TEMPLATE_FILENAME = "template_bundle_status.xlsx";
+export const DELIVERY_ORDER_TEMPLATE_FILENAME = "template_ubah_status.xlsx";
 
 /**
  * Valid `kode_status` values with their Indonesian descriptions.
  * The backend accepts any casing but the description text comes from here.
  */
 export const DELIVERY_ORDER_STATUS_OPTIONS = [
-  { value: "CHG", label: "CHG", description: "Driver melakukan pergantian driver" },
+  {
+    value: "CHG",
+    label: "CHG",
+    description: "Driver melakukan pergantian driver",
+  },
   { value: "SPL", label: "SPL", description: "Driver Telah Sampai lokasi" },
   { value: "FNS", label: "FNS", description: "Finish" },
   { value: "PIC", label: "PIC", description: "Picking barang" },
@@ -77,7 +81,9 @@ export const getDeliveryOrderStatusMeta = (kodeStatus) => {
  */
 export const getDeliveryOrderStatusLabel = (kodeStatus) => {
   const key = String(kodeStatus || "").toUpperCase();
-  const option = DELIVERY_ORDER_STATUS_OPTIONS.find((item) => item.value === key);
+  const option = DELIVERY_ORDER_STATUS_OPTIONS.find(
+    (item) => item.value === key,
+  );
   return option ? `${option.description} (${option.value})` : key || "-";
 };
 
