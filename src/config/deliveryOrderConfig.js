@@ -102,12 +102,12 @@ export const DELIVERY_ORDER_TEMPLATE_COLUMNS = [
     example: "82818, 83360, 83361",
   },
   {
-    name: "Kode Status",
+    name: "Status",
     index: "B",
     type: "String",
     mandatory: true,
     description:
-      "Kode status baru untuk bundle tersebut. Gunakan salah satu kode yang tersedia pada dropdown di template.",
-    example: "OTW, PODTRANS, FNS",
+      "Status baru untuk bundle tersebut. Gunakan salah satu kode yang tersedia pada dropdown di template.",
+    example: "Proses Pengantaran",
   },
 ];

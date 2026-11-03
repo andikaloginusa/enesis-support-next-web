@@ -82,12 +82,12 @@ export function UploadDeliveryOrderStatusModal({
     >
       <div className="py-4 space-y-4">
         {/* Download template */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 px-4 py-3 border bg-slate-50 border-slate-200 rounded-xl">
           <div>
-            <Text className="block font-semibold text-slate-700 text-sm">
+            <Text className="block text-sm font-semibold text-slate-700">
               Template Update Status Delivery Order
             </Text>
-            <Text className="text-slate-400 text-xs">
+            <Text className="text-xs text-slate-400">
               Gunakan template resmi agar format kolom sesuai dengan backend.
             </Text>
           </div>
@@ -108,17 +108,18 @@ export function UploadDeliveryOrderStatusModal({
           </a>
         </div>
 
-        <Text className="block text-slate-500 text-sm leading-relaxed">
-          Unggah file Excel berisi daftar bundle dan kode status baru. Baris
-          dicocokkan ke <span className="font-mono font-semibold">bundle_id</span>,
-          sehingga semua Delivery Order di dalam bundle tersebut ikut
-          diperbarui. Proses bersifat all-or-nothing: jika satu baris tidak
-          valid, tidak ada data yang diperbarui.
+        <Text className="block text-sm leading-relaxed text-slate-500">
+          Unggah file Excel berisi daftar bundle dan status baru. Baris
+          dicocokkan ke{" "}
+          <span className="font-mono font-semibold">bundle_id</span>, sehingga
+          semua Delivery Order di dalam bundle tersebut ikut diperbarui. Proses
+          bersifat all-or-nothing: jika satu baris tidak valid, tidak ada data
+          yang diperbarui.
         </Text>
 
         {/* Panduan kolom */}
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+        <div className="overflow-hidden border rounded-xl border-slate-200">
+          <div className="px-4 py-2 border-b bg-slate-50 border-slate-200">
             <Text className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
               Kolom Template
             </Text>
@@ -127,17 +128,17 @@ export function UploadDeliveryOrderStatusModal({
             {DELIVERY_ORDER_TEMPLATE_COLUMNS.map((column) => (
               <div
                 key={column.name}
-                className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:gap-4"
+                className="flex flex-col px-4 py-3 sm:flex-row sm:items-center sm:gap-4"
               >
-                <div className="sm:w-52 flex-shrink-0">
-                  <Text className="font-semibold text-slate-700 text-sm">
+                <div className="flex-shrink-0 sm:w-52">
+                  <Text className="text-sm font-semibold text-slate-700">
                     {column.name}
                   </Text>
-                  <Text className="text-xs text-slate-400 font-mono ml-2">
+                  <Text className="ml-2 font-mono text-xs text-slate-400">
                     Kolom {column.index}
                   </Text>
                 </div>
-                <Text className="text-xs text-slate-500 flex-1">
+                <Text className="flex-1 text-xs text-slate-500">
                   {column.description}
                 </Text>
               </div>
@@ -158,8 +159,9 @@ export function UploadDeliveryOrderStatusModal({
             message="Upload ditolak — tidak ada data yang diperbarui"
             description={
               <div className="mt-2">
-                <Text className="block text-xs mb-2">
-                  Backend menolak seluruh baris karena ada data yang tidak valid:
+                <Text className="block mb-2 text-xs">
+                  Backend menolak seluruh baris karena ada data yang tidak
+                  valid:
                 </Text>
                 <Table
                   size="small"
@@ -180,7 +182,9 @@ export function UploadDeliveryOrderStatusModal({
                       title: "Alasan",
                       dataIndex: "reason",
                       key: "reason",
-                      render: (text) => <span className="text-xs">{text || "-"}</span>,
+                      render: (text) => (
+                        <span className="text-xs">{text || "-"}</span>
+                      ),
                     },
                   ]}
                 />
