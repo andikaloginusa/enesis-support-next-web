@@ -15,10 +15,10 @@ export const DELIVERY_ORDER_BUNDLE_FIELD = "bundle_id";
 
 /** Public path of the Excel template used for bulk status updates. */
 export const DELIVERY_ORDER_TEMPLATE_URL =
-  "/templates/delivery-order/update-status/template_ubah_status.xlsx";
+  "/templates/delivery-order/update-status/template_bundle_status.xlsx";
 
 /** Filename shown when the template is downloaded. */
-export const DELIVERY_ORDER_TEMPLATE_FILENAME = "template_ubah_status.xlsx";
+export const DELIVERY_ORDER_TEMPLATE_FILENAME = "template_bundle_status.xlsx";
 
 /**
  * Valid `kode_status` values with their Indonesian descriptions.
