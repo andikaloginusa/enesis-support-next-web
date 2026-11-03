@@ -25,11 +25,6 @@ export const DELIVERY_ORDER_TEMPLATE_FILENAME = "template_bundle_status.xlsx";
  * The backend accepts any casing but the description text comes from here.
  */
 export const DELIVERY_ORDER_STATUS_OPTIONS = [
-  {
-    value: "CHG",
-    label: "CHG",
-    description: "Driver melakukan pergantian driver",
-  },
   { value: "SPL", label: "SPL", description: "Driver Telah Sampai lokasi" },
   { value: "FNS", label: "FNS", description: "Finish" },
   { value: "PIC", label: "PIC", description: "Picking barang" },
