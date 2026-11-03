@@ -207,6 +207,17 @@ export default function DeliveryOrderDetailPage({ params: paramsPromise }) {
       render: (text) => <span className="text-slate-700 text-sm">{text || "-"}</span>,
     },
     {
+      title: "Keterangan",
+      dataIndex: "keterangan_perubahan",
+      key: "keterangan_perubahan",
+      render: (text) =>
+        text ? (
+          <span className="text-slate-600 text-sm">{text}</span>
+        ) : (
+          <span className="text-slate-400">-</span>
+        ),
+    },
+    {
       title: "User",
       dataIndex: "m_user_id",
       key: "m_user_id",

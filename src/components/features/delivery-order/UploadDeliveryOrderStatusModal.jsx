@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { Alert, Button, Modal, Table, Typography } from "antd";
+import { Alert, Button, Input, Modal, Table, Typography } from "antd";
 import { DownloadOutlined, UploadOutlined } from "@ant-design/icons";
 import { ExcelUploadField } from "@/components/ui/ExcelUpload";
 import {
+  DELIVERY_ORDER_KETERANGAN_FIELD,
+  DELIVERY_ORDER_KETERANGAN_MAX_LENGTH,
   DELIVERY_ORDER_TEMPLATE_COLUMNS,
   DELIVERY_ORDER_TEMPLATE_FILENAME,
   DELIVERY_ORDER_TEMPLATE_URL,
@@ -22,7 +24,7 @@ const { Text } = Typography;
  * @param {Object}   props
  * @param {boolean}  props.open
  * @param {Function} props.onCancel
- * @param {Function} props.onSubmit - Callback dengan `{ file }`
+ * @param {Function} props.onSubmit - Callback dengan `{ file, keterangan_perubahan }`
  * @param {boolean}  props.confirmLoading
  * @param {Array}    props.errorDetails - Daftar `{ bundle_id, reason }` dari kegagalan
  */
@@ -34,9 +36,11 @@ export function UploadDeliveryOrderStatusModal({
   errorDetails = [],
 }) {
   const [file, setFile] = useState(null);
+  const [keterangan, setKeterangan] = useState("");
 
   const handleCancel = () => {
     setFile(null);
+    setKeterangan("");
     onCancel?.();
   };
 
@@ -44,7 +48,10 @@ export function UploadDeliveryOrderStatusModal({
     if (!file) {
       return;
     }
-    onSubmit?.({ file });
+    onSubmit?.({
+      file,
+      [DELIVERY_ORDER_KETERANGAN_FIELD]: keterangan.trim() || undefined,
+    });
   };
 
   const errorRows = (Array.isArray(errorDetails) ? errorDetails : []).map(
@@ -151,6 +158,25 @@ export function UploadDeliveryOrderStatusModal({
           onChange={setFile}
           placeholder="Klik atau tarik file Excel ke sini"
         />
+
+        <div>
+          <Text className="block mb-1 text-sm font-semibold text-slate-700">
+            Keterangan Perubahan
+          </Text>
+          <Input.TextArea
+            value={keterangan}
+            onChange={(event) => setKeterangan(event.target.value)}
+            rows={3}
+            maxLength={DELIVERY_ORDER_KETERANGAN_MAX_LENGTH}
+            showCount
+            placeholder="Contoh: Upload massal perubahan status via Excel"
+            className="rounded-lg"
+          />
+          <Text className="mt-1 block text-xs text-slate-400">
+            Opsional. Berlaku untuk seluruh baris dan disimpan pada riwayat
+            status (audit tracking).
+          </Text>
+        </div>
 
         {errorRows.length > 0 && (
           <Alert

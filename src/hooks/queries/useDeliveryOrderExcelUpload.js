@@ -20,10 +20,11 @@ export const useDeliveryOrderExcelUpload = () => {
   const { notifySuccess, notifyError } = useNotify();
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ file }) => {
+    mutationFn: async ({ file, keterangan_perubahan }) => {
       const response = await deliveryOrderService.updateStatusFromExcel({
         file,
         m_user_id: getUserId(),
+        keterangan_perubahan: keterangan_perubahan || undefined,
       });
 
       if (!response?.ok) {

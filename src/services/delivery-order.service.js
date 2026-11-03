@@ -52,7 +52,7 @@ export const DeliveryOrderServices = (apiInstance) => {
    * Update the status of a single Delivery Order.
    * PUT /support/do/update/
    *
-   * @param {Object} data - { delivery_order_id, kode_status, m_user_id }
+   * @param {Object} data - { delivery_order_id, kode_status, m_user_id, keterangan_perubahan }
    */
   const updateStatus = (data) => apiInstance.put("support/do/update/", data);
 
@@ -64,13 +64,17 @@ export const DeliveryOrderServices = (apiInstance) => {
    * Rows are matched on `bundle_id`, not `delivery_order_id`.
    *
    * @param {Object}  payload
-   * @param {File}    payload.file      - The Excel file (already validated FE-side)
-   * @param {string}  payload.m_user_id - ID of the currently authenticated user
+   * @param {File}    payload.file                    - The Excel file (already validated FE-side)
+   * @param {string}  payload.m_user_id               - ID of the currently authenticated user
+   * @param {string} [payload.keterangan_perubahan]   - Optional note stored on audit_tracking
    */
-  const updateStatusFromExcel = ({ file, m_user_id }) => {
+  const updateStatusFromExcel = ({ file, m_user_id, keterangan_perubahan }) => {
     const formData = new FormData();
     formData.append("excel", file);
     formData.append("m_user_id", m_user_id);
+    if (keterangan_perubahan) {
+      formData.append("keterangan_perubahan", keterangan_perubahan);
+    }
     return authFetch("PUT", "support/do/update/excel", { body: formData });
   };
 

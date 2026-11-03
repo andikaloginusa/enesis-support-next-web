@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { Alert, Form, Modal, Select, Typography } from "antd";
+import { Alert, Form, Input, Modal, Select, Typography } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import { InfoField } from "@/components/ui";
 import {
   DELIVERY_ORDER_BUNDLE_FIELD,
   DELIVERY_ORDER_ID_FIELD,
+  DELIVERY_ORDER_KETERANGAN_FIELD,
+  DELIVERY_ORDER_KETERANGAN_MAX_LENGTH,
   DELIVERY_ORDER_STATUS_OPTIONS,
   getDeliveryOrderStatusLabel,
 } from "@/config/deliveryOrderConfig";
@@ -53,6 +55,8 @@ export function UpdateDeliveryOrderStatusModal({
       onSubmit?.({
         [DELIVERY_ORDER_ID_FIELD]: row[DELIVERY_ORDER_ID_FIELD],
         kode_status: values.kode_status,
+        [DELIVERY_ORDER_KETERANGAN_FIELD]:
+          values[DELIVERY_ORDER_KETERANGAN_FIELD]?.trim() || undefined,
       });
     } catch {
       /* validation errors surfaced inline by Ant Design */
@@ -140,6 +144,34 @@ export function UpdateDeliveryOrderStatusModal({
                   </span>
                 </div>
               )}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={DELIVERY_ORDER_KETERANGAN_FIELD}
+            label={
+              <Text className="font-semibold text-slate-700">
+                Keterangan Perubahan
+              </Text>
+            }
+            extra={
+              <Text className="text-xs text-slate-400">
+                Opsional. Disimpan pada riwayat status (audit tracking).
+              </Text>
+            }
+            rules={[
+              {
+                max: DELIVERY_ORDER_KETERANGAN_MAX_LENGTH,
+                message: `Maksimal ${DELIVERY_ORDER_KETERANGAN_MAX_LENGTH} karakter.`,
+              },
+            ]}
+          >
+            <Input.TextArea
+              rows={3}
+              maxLength={DELIVERY_ORDER_KETERANGAN_MAX_LENGTH}
+              showCount
+              placeholder="Contoh: Update manual oleh tim support karena kendala driver"
+              className="rounded-lg"
             />
           </Form.Item>
         </Form>

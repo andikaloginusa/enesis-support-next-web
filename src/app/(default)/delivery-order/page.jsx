@@ -216,7 +216,11 @@ export default function DeliveryOrderPage() {
     router.push(`/delivery-order/${deliveryOrderId}`);
   };
 
-  const handleUpdateSubmit = async ({ delivery_order_id, kode_status }) => {
+  const handleUpdateSubmit = async ({
+    delivery_order_id,
+    kode_status,
+    keterangan_perubahan,
+  }) => {
     const option = DELIVERY_ORDER_STATUS_OPTIONS.find(
       (item) => item.value === kode_status,
     );
@@ -227,13 +231,17 @@ export default function DeliveryOrderPage() {
         `Apakah Anda yakin ingin mengubah status Delivery Order bundle ` +
         `"${activeRow?.[DELIVERY_ORDER_BUNDLE_FIELD] ?? "-"}" menjadi ` +
         `"${option?.label ?? kode_status} (${kode_status})"? ` +
-        `Perubahan akan langsung tercatat ke dalam sistem.`,
+        `Perubahan akan langsung tercatat ke dalam sistem.` +
+        (keterangan_perubahan
+          ? ` Keterangan: "${keterangan_perubahan}".`
+          : ""),
       okText: "Ya, Perbarui Status",
       onConfirm: async () => {
         try {
           await updateDeliveryOrderStatus({
             [DELIVERY_ORDER_ID_FIELD]: delivery_order_id,
             kode_status,
+            keterangan_perubahan,
           });
           closeUpdateModal();
         } catch {
@@ -253,18 +261,21 @@ export default function DeliveryOrderPage() {
     setIsUploadModalOpen(false);
   };
 
-  const handleUploadSubmit = ({ file }) => {
+  const handleUploadSubmit = ({ file, keterangan_perubahan }) => {
     confirmAction({
       title: "Konfirmasi Upload Update Status Delivery Order",
       description:
         `Apakah Anda yakin ingin meng-upload file "${file.name}" untuk ` +
         `memperbarui status Delivery Order secara massal? ` +
         `Seluruh baris dalam file akan diproses — bila ada satu baris tidak ` +
-        `valid, tidak ada data yang diperbarui.`,
+        `valid, tidak ada data yang diperbarui.` +
+        (keterangan_perubahan
+          ? ` Keterangan: "${keterangan_perubahan}".`
+          : ""),
       okText: "Ya, Upload",
       onConfirm: async () => {
         try {
-          await uploadDeliveryOrderStatus({ file });
+          await uploadDeliveryOrderStatus({ file, keterangan_perubahan });
         } catch {
           /* detail per-baris ditampilkan di dalam modal upload */
         }

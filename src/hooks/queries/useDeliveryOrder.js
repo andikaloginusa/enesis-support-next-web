@@ -53,11 +53,16 @@ export const useDeliveryOrder = () => {
 
   // Mutation: Update the status of a single Delivery Order
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ delivery_order_id, kode_status }) => {
+    mutationFn: async ({
+      delivery_order_id,
+      kode_status,
+      keterangan_perubahan,
+    }) => {
       const response = await deliveryOrderService.updateStatus({
         delivery_order_id,
         kode_status,
         m_user_id: getUserId(),
+        keterangan_perubahan: keterangan_perubahan || undefined,
       });
 
       if (!response?.ok) {

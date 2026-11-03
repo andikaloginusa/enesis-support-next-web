@@ -13,6 +13,12 @@ export const DELIVERY_ORDER_ID_FIELD = "delivery_order_id";
 /** Column holding the bundle number (the key used by the Excel update). */
 export const DELIVERY_ORDER_BUNDLE_FIELD = "bundle_id";
 
+/** Optional free-text note stored on `audit_tracking` for every status change. */
+export const DELIVERY_ORDER_KETERANGAN_FIELD = "keterangan_perubahan";
+
+/** Backend truncates the note at 100 characters; the UI caps it beforehand. */
+export const DELIVERY_ORDER_KETERANGAN_MAX_LENGTH = 100;
+
 /** Public path of the Excel template used for bulk status updates. */
 export const DELIVERY_ORDER_TEMPLATE_URL =
   "/templates/delivery-order/update-status/template_ubah_status_bundle.xlsx";
