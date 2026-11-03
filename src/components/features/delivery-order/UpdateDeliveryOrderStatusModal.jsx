@@ -103,27 +103,37 @@ export function UpdateDeliveryOrderStatusModal({
           <Form.Item
             name="kode_status"
             label={
-              <Text className="font-semibold text-slate-700">Kode Status</Text>
+              <Text className="font-semibold text-slate-700">Status</Text>
             }
             rules={[
-              { required: true, message: "Kode status wajib dipilih." },
+              { required: true, message: "Status wajib dipilih." },
             ]}
           >
             <Select
               size="large"
               showSearch
-              placeholder="Pilih kode status baru..."
-              optionFilterProp="label"
+              placeholder="Pilih status baru..."
               className="rounded-lg"
               options={DELIVERY_ORDER_STATUS_OPTIONS.map((item) => ({
                 value: item.value,
-                label: `${item.description} (${item.value})`,
-                description: item.description,
+                label: item.label,
+                code: item.value,
               }))}
+              filterOption={(input, option) => {
+                const keyword = input.toLowerCase();
+                return (
+                  String(option?.label || "")
+                    .toLowerCase()
+                    .includes(keyword) ||
+                  String(option?.code || "")
+                    .toLowerCase()
+                    .includes(keyword)
+                );
+              }}
               optionRender={(option) => (
                 <div className="flex flex-col">
                   <span className="font-semibold text-slate-700">
-                    {option.data.description}
+                    {option.data.label}
                   </span>
                   <span className="text-xs text-slate-400 font-mono">
                     {option.data.value}

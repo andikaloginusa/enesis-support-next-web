@@ -23,17 +23,22 @@ export const DELIVERY_ORDER_TEMPLATE_FILENAME =
 
 /**
  * Valid `kode_status` values with their Indonesian descriptions.
- * The backend accepts any casing but the description text comes from here.
+ *
+ * `value` is the kode yang dikirim ke backend; `label` is the teks yang
+ * ditampilkan ke user. Keduanya harus persis sama dengan `STATUS_MAP` di
+ * `DeliveryOrderSupportController.js` — backend mencocokkan kolom `Status`
+ * pada template Excel dengan teks itu (case-insensitive), dan dropdown pada
+ * template juga berisi teks tersebut, bukan kode.
  */
 export const DELIVERY_ORDER_STATUS_OPTIONS = [
-  { value: "SPL", label: "SPL", description: "Driver Telah Sampai lokasi" },
-  { value: "FNS", label: "FNS", description: "Finish" },
-  { value: "PIC", label: "PIC", description: "Picking barang" },
-  { value: "PODDIST", label: "PODDIST", description: "POD Distributor" },
-  { value: "PODLOG", label: "PODLOG", description: "POD Logistik" },
-  { value: "PODTRANS", label: "PODTRANS", description: "POD Transporter" },
-  { value: "OTW", label: "OTW", description: "Proses Pengantaran" },
-  { value: "SGE", label: "SGE", description: "Sampai gudang Enesis" },
+  { value: "SPL", label: "Driver Telah Sampai lokasi" },
+  { value: "FNS", label: "Finish" },
+  { value: "PIC", label: "Picking barang" },
+  { value: "PODDIST", label: "POD Distributor" },
+  { value: "PODLOG", label: "POD Logistik" },
+  { value: "PODTRANS", label: "POD Transporter" },
+  { value: "OTW", label: "Proses Pengantaran" },
+  { value: "SGE", label: "Sampai gudang Enesis" },
 ];
 
 /**
@@ -70,7 +75,7 @@ export const getDeliveryOrderStatusMeta = (kodeStatus) => {
 };
 
 /**
- * Label shown in the status `<Select>` — "POD Transporter (PODTRANS)".
+ * Label lengkap untuk kode status — "POD Transporter (PODTRANS)".
  *
  * @param {string} kodeStatus - Raw `kode_status` value
  * @returns {string}
@@ -80,7 +85,7 @@ export const getDeliveryOrderStatusLabel = (kodeStatus) => {
   const option = DELIVERY_ORDER_STATUS_OPTIONS.find(
     (item) => item.value === key,
   );
-  return option ? `${option.description} (${option.value})` : key || "-";
+  return option ? `${option.label} (${option.value})` : key || "-";
 };
 
 /**
@@ -103,7 +108,7 @@ export const DELIVERY_ORDER_TEMPLATE_COLUMNS = [
     type: "String",
     mandatory: true,
     description:
-      "Status baru untuk bundle tersebut. Gunakan salah satu kode yang tersedia pada dropdown di template.",
+      'Status baru untuk bundle tersebut. Isi dengan teks status yang tersedia pada dropdown di template (mis. "Proses Pengantaran"), bukan kode singkatnya.',
     example: "Proses Pengantaran",
   },
 ];

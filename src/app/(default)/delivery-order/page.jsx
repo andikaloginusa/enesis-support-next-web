@@ -226,7 +226,7 @@ export default function DeliveryOrderPage() {
       description:
         `Apakah Anda yakin ingin mengubah status Delivery Order bundle ` +
         `"${activeRow?.[DELIVERY_ORDER_BUNDLE_FIELD] ?? "-"}" menjadi ` +
-        `"${option?.description ?? kode_status} (${kode_status})"? ` +
+        `"${option?.label ?? kode_status} (${kode_status})"? ` +
         `Perubahan akan langsung tercatat ke dalam sistem.`,
       okText: "Ya, Perbarui Status",
       onConfirm: async () => {
