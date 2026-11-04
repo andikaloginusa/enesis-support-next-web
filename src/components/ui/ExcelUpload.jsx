@@ -155,7 +155,16 @@ export function ExcelUploadField({
         maxCount={1}
         fileList={
           internalFile
-            ? [{ uid: "-1", name: internalFile.name, status: "done" }]
+            ? [
+                {
+                  uid: internalFile.uid ?? "-1",
+                  name: internalFile.name,
+                  size: internalFile.size,
+                  type: internalFile.type,
+                  status: "done",
+                  originFileObj: internalFile,
+                },
+              ]
             : []
         }
         beforeUpload={handleBeforeUpload}

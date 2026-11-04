@@ -394,6 +394,7 @@ export function MassUpdateProposalSapModal({
 }) {
   const [form] = Form.useForm();
   const selectedFileRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [fileError, setFileError] = useState("");
   const [resultData, setResultData] = useState(null);
 
@@ -402,6 +403,7 @@ export function MassUpdateProposalSapModal({
     if (!open) {
       form.resetFields();
       selectedFileRef.current = null;
+      setSelectedFile(null);
       setFileError("");
       setResultData(null);
     }
@@ -410,6 +412,9 @@ export function MassUpdateProposalSapModal({
   // ── File selection (uses ref to avoid stale closure) ──────────────────────
   const handleFileChange = useCallback((file) => {
     selectedFileRef.current = file;
+    // State (not just the ref) drives the Dragger's fileList — a ref update
+    // alone never re-renders, so the picked file would stay invisible.
+    setSelectedFile(file);
     setFileError("");
   }, []);
 
@@ -549,7 +554,7 @@ export function MassUpdateProposalSapModal({
               required
             >
               <ExcelUploadField
-                value={selectedFileRef.current}
+                value={selectedFile}
                 onChange={handleFileChange}
                 error={fileError}
               />

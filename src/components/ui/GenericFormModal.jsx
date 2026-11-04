@@ -106,7 +106,22 @@ export function FieldRenderer({ field, value, onChange, notification }) {
         return Upload.LIST_IGNORE;
       }
 
-      onChange?.(file);
+      // Returning `false` below stops the upload, but it also means Ant never
+      // fires its own `onChange` — so the form has to be fed the fileList
+      // entry directly. The field value must stay an array, otherwise the
+      // Dragger renders nothing and the picked file never reaches the modal.
+      const nextFileList = [
+        {
+          uid: file.uid ?? `upload-${Date.now()}`,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          status: "done",
+          originFileObj: file,
+        },
+      ];
+      onChange?.(nextFileList);
+      field.onFileChange?.(nextFileList);
       return false; // hold — actual upload happens on form submit
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
