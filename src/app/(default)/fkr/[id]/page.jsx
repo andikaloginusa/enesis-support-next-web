@@ -418,9 +418,10 @@ export default function FkrDetailPage({ params: paramsPromise }) {
         onOk: async () => {
           try {
             await updateApprover({
-              fkr_approval_id: selectedApprovalId,
+              // fkr_approval_id: selectedApprovalId,
+              // m_user_id_aktor: getUserId(),
+              id: selectedApprovalId,
               m_user_id: values.m_user_id,
-              m_user_id_aktor: getUserId(),
             });
             message.success("Approver berhasil diperbarui.");
             closeDelegasiModal();
