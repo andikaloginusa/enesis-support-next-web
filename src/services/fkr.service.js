@@ -31,8 +31,10 @@ export const ListFKRApprovalServices = (apiInstance) => {
     apiInstance.put("support/fkr/update/status", data);
 
   /**
-   * Update active user approval assignment
-   * @param {Object} data - Payload containing approval updates
+   * Update active user approval assignment.
+   * Payload: { fkr_approval_id, m_user_id, m_user_id_aktor }
+   *
+   * PUT /fkr/ubah-user-approval-fkr
    */
   const updateListApprovalFkr = (data) =>
     apiInstance.put("fkr/ubah-user-approval-fkr", data);

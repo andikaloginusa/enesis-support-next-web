@@ -1,14 +1,7 @@
 "use client";
 
 import React, { use, useState } from "react";
-import {
-  Button,
-  Form,
-  Select,
-  Table,
-  Typography,
-  Modal,
-} from "antd";
+import { Button, Form, Select, Table, Typography, Modal, message } from "antd";
 import {
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
@@ -43,8 +36,8 @@ import {
 function LoadingSpinner() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-      <div className="w-12 h-12 rounded-full border-2 border-t-emerald-600 border-b-emerald-600 border-l-transparent border-r-transparent animate-spin" />
-      <Typography.Text className="text-slate-500 font-medium">
+      <div className="w-12 h-12 border-2 rounded-full border-t-emerald-600 border-b-emerald-600 border-l-transparent border-r-transparent animate-spin" />
+      <Typography.Text className="font-medium text-slate-500">
         Memuat Detail FKR...
       </Typography.Text>
     </div>
@@ -54,10 +47,10 @@ function LoadingSpinner() {
 function NotFoundState({ onBack }) {
   return (
     <Card className="max-w-2xl mx-auto mt-8">
-      <CardContent className="text-center py-12">
-        <CloseCircleOutlined className="text-red-400 text-5xl mb-4 block" />
+      <CardContent className="py-12 text-center">
+        <CloseCircleOutlined className="block mb-4 text-5xl text-red-400" />
         <Typography.Title level={4}>Data FKR Tidak Ditemukan</Typography.Title>
-        <Typography.Text className="text-slate-400 block mb-6">
+        <Typography.Text className="block mb-6 text-slate-400">
           Dokumen FKR yang Anda cari tidak tersedia atau tidak dapat diakses.
         </Typography.Text>
         <Button type="primary" onClick={onBack}>
@@ -73,9 +66,9 @@ function ApprovalStatusBanner({ currentApprover, docStatus }) {
   const isRejected = docStatus?.toLowerCase().includes("reject");
 
   return (
-    <div className="bg-gradient-to-r from-emerald-50/60 via-teal-50/40 to-white border border-emerald-100 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-sm">
+    <div className="flex flex-col gap-4 p-5 border shadow-sm bg-gradient-to-r from-emerald-50/60 via-teal-50/40 to-white border-emerald-100 rounded-2xl sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-200 flex-shrink-0">
+        <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-white shadow-md rounded-xl bg-emerald-600 shadow-emerald-200">
           {isApproved ? (
             <CheckCircleOutlined className="text-xl" />
           ) : isRejected ? (
@@ -90,10 +83,10 @@ function ApprovalStatusBanner({ currentApprover, docStatus }) {
           </p>
           {currentApprover ? (
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="text-slate-800 text-sm font-semibold">
+              <p className="text-sm font-semibold text-slate-800">
                 Sedang menunggu persetujuan dari:
               </p>
-              <p className="text-emerald-700 text-sm font-extrabold">
+              <p className="text-sm font-extrabold text-emerald-700">
                 {currentApprover.nama || currentApprover.name}
               </p>
               <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[10px] font-extrabold uppercase border border-emerald-200">
@@ -106,9 +99,9 @@ function ApprovalStatusBanner({ currentApprover, docStatus }) {
               Persetujuan Selesai — seluruh tahapan telah disetujui.
             </p>
           ) : (
-            <p className="text-slate-800 text-sm font-semibold">
+            <p className="text-sm font-semibold text-slate-800">
               FKR dalam status:{" "}
-              <span className="font-extrabold text-slate-700 capitalize">
+              <span className="font-extrabold capitalize text-slate-700">
                 {docStatus || "Draft"}
               </span>
             </p>
@@ -117,7 +110,7 @@ function ApprovalStatusBanner({ currentApprover, docStatus }) {
       </div>
       {currentApprover && (
         <div className="self-start sm:self-auto inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-3 py-1 text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
-          <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping inline-block" />
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
           Siklus Aktif
         </div>
       )}
@@ -128,11 +121,18 @@ function ApprovalStatusBanner({ currentApprover, docStatus }) {
 function WorkflowStepCard({ step, idx, onDelegasi }) {
   const raw = (step.status || "").toLowerCase();
   const isApproved =
-    raw.includes("approve") || raw === "approved" || raw === "y" || raw === "success";
+    raw.includes("approve") ||
+    raw === "approved" ||
+    raw === "y" ||
+    raw === "success";
   const isCurrent =
-    raw.includes("proses") || raw.includes("wait") || raw.includes("menunggu") ||
-    raw.includes("belum") || raw === "pending";
-  const isRejected = raw.includes("reject") || raw === "rejected" || raw === "failed";
+    raw.includes("proses") ||
+    raw.includes("wait") ||
+    raw.includes("menunggu") ||
+    raw.includes("belum") ||
+    raw === "pending";
+  const isRejected =
+    raw.includes("reject") || raw === "rejected" || raw === "failed";
 
   let dotColor = "bg-slate-200 border-slate-300";
   let cardBg = "bg-slate-50/50 border-slate-100";
@@ -144,26 +144,37 @@ function WorkflowStepCard({ step, idx, onDelegasi }) {
     dotColor = "bg-rose-500 border-rose-600 ring-4 ring-rose-50";
     cardBg = "bg-rose-50/30 border-rose-100/80";
   } else if (isCurrent) {
-    dotColor = "bg-emerald-600 border-emerald-700 ring-4 ring-emerald-50 animate-pulse";
+    dotColor =
+      "bg-emerald-600 border-emerald-700 ring-4 ring-emerald-50 animate-pulse";
     cardBg = "bg-blue-50/40 border-blue-100/80 shadow-sm";
   }
 
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-2xl border transition-all ${cardBg}`}>
-      <div className="flex items-center gap-4 min-w-0 sm:w-1/4">
-        <span className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${dotColor}`} />
+    <div
+      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 rounded-2xl border transition-all ${cardBg}`}
+    >
+      <div className="flex items-center min-w-0 gap-4 sm:w-1/4">
+        <span
+          className={`w-3.5 h-3.5 rounded-full border flex-shrink-0 ${dotColor}`}
+        />
         <div className="flex flex-col min-w-0">
           <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
             Tahap {step.urutan || idx + 1}
           </span>
-          <span className="text-xs font-extrabold text-emerald-600 uppercase tracking-wide truncate" title={step.jabatan || "Executor"}>
+          <span
+            className="text-xs font-extrabold tracking-wide uppercase truncate text-emerald-600"
+            title={step.jabatan || "Executor"}
+          >
             {step.jabatan || "Executor"}
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col min-w-0 flex-1">
-        <span className="text-sm font-extrabold text-slate-800 truncate" title={step.nama}>
+      <div className="flex flex-col flex-1 min-w-0">
+        <span
+          className="text-sm font-extrabold truncate text-slate-800"
+          title={step.nama}
+        >
           {step.nama || "-"}
         </span>
         <span className="text-[11px] text-slate-400 font-mono mt-0.5">
@@ -171,7 +182,7 @@ function WorkflowStepCard({ step, idx, onDelegasi }) {
         </span>
       </div>
 
-      <div className="flex flex-col sm:items-end gap-2 flex-shrink-0">
+      <div className="flex flex-col flex-shrink-0 gap-2 sm:items-end">
         <div className="flex items-center gap-3">
           <StatusBadge status={step.status} />
           <Button
@@ -185,7 +196,8 @@ function WorkflowStepCard({ step, idx, onDelegasi }) {
         </div>
         {step.updated_date && (
           <span className="text-[10px] text-slate-400 font-medium">
-            Diverifikasi: {moment(step.updated_date).format("DD MMM YYYY, HH:mm")}
+            Diverifikasi:{" "}
+            {moment(step.updated_date).format("DD MMM YYYY, HH:mm")}
           </span>
         )}
       </div>
@@ -203,12 +215,15 @@ function buildDetailFields(fkrDetail) {
 
   return [
     { title: "Nomor FKR", value: fkrDetail.nomor_fkr },
-    { title: "Status Dokumen", value: <StatusBadge status={fkrDetail.status} /> },
+    {
+      title: "Status Dokumen",
+      value: <StatusBadge status={fkrDetail.status} />,
+    },
     { title: "Kode Status", value: fkrDetail.kode_status || "-" },
     {
       title: "Total Nilai FKR",
       value: (
-        <span className="text-emerald-700 font-extrabold text-base">
+        <span className="text-base font-extrabold text-emerald-700">
           {renderCurrency(nominal)}
         </span>
       ),
@@ -234,7 +249,10 @@ export default function FkrDetailPage({ params: paramsPromise }) {
   const router = useRouter();
 
   const [formFKR] = Form.useForm();
-  const [modal] = Modal.useModal();
+  const [modal, modalContextHolder] = Modal.useModal();
+
+  // Reaktif terhadap nilai form — pengganti state approvalValue
+  const watchedUserId = Form.useWatch("m_user_id", formFKR);
 
   const {
     fkrDetail,
@@ -252,12 +270,13 @@ export default function FkrDetailPage({ params: paramsPromise }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeRow, setActiveRow] = useState(null);
   const [selectedApprovalId, setSelectedApprovalId] = useState(null);
-  const [approvalValue, setApprovalValue] = useState(null);
 
   // ── Derived Data ──
   const sortedProgress = React.useMemo(() => {
     if (!fkrDetail?.progress) return [];
-    return [...fkrDetail.progress].sort((a, b) => (a.urutan || 0) - (b.urutan || 0));
+    return [...fkrDetail.progress].sort(
+      (a, b) => (a.urutan || 0) - (b.urutan || 0),
+    );
   }, [fkrDetail]);
 
   const currentApprover = React.useMemo(() => {
@@ -266,8 +285,11 @@ export default function FkrDetailPage({ params: paramsPromise }) {
       sortedProgress.find((item) => {
         const s = (item.status || "").toLowerCase();
         return (
-          s.includes("proses") || s.includes("wait") ||
-          s.includes("pending") || s.includes("menunggu") || s.includes("belum")
+          s.includes("proses") ||
+          s.includes("wait") ||
+          s.includes("pending") ||
+          s.includes("menunggu") ||
+          s.includes("belum")
         );
       }) || null
     );
@@ -287,14 +309,18 @@ export default function FkrDetailPage({ params: paramsPromise }) {
       dataIndex: "kode_produk",
       key: "kode_produk",
       width: 120,
-      render: (v) => <Typography.Text className="font-mono text-xs">{v}</Typography.Text>,
+      render: (v) => (
+        <Typography.Text className="font-mono text-xs">{v}</Typography.Text>
+      ),
     },
     {
       title: "Nama Barang",
       dataIndex: "nama_barang",
       key: "nama_barang",
       render: (text) => (
-        <Typography.Text className="font-semibold text-slate-800">{text}</Typography.Text>
+        <Typography.Text className="font-semibold text-slate-800">
+          {text}
+        </Typography.Text>
       ),
     },
     {
@@ -329,10 +355,18 @@ export default function FkrDetailPage({ params: paramsPromise }) {
   // ── Select Options Builder ──
   const userOptions = React.useMemo(() => {
     if (!activeRow) return [];
-    const opts = [{ value: activeRow.m_user_id, label: `${activeRow.nik} – ${activeRow.nama}` }];
+    const opts = [
+      {
+        value: activeRow.m_user_id,
+        label: `${activeRow.nik} – ${activeRow.nama}`,
+      },
+    ];
     (candidatesList || []).forEach((c) => {
       if (activeRow && c.m_user_id === activeRow.m_user_id) return;
-      opts.push({ value: c.m_user_id, label: `${c.nik || c.employee_id} – ${c.nama_user || c.name}` });
+      opts.push({
+        value: c.m_user_id,
+        label: `${c.nik || c.employee_id} – ${c.nama_user || c.name}`,
+      });
     });
     return opts;
   }, [activeRow, candidatesList]);
@@ -345,9 +379,9 @@ export default function FkrDetailPage({ params: paramsPromise }) {
   const openDelegasiModal = (row) => {
     setActiveRow(row);
     fetchCandidatesForJabatan(row.jabatan);
-    setSelectedApprovalId(row.fkr_approval_id);
-    setApprovalValue(row.m_user_id);
-    formFKR.setFieldsValue({ m_user_id: row.m_user_id });
+    setSelectedApprovalId(row.fkr_approval_id ?? null);
+    // Fallback ke null agar konsisten (bukan undefined)
+    formFKR.setFieldsValue({ m_user_id: row.m_user_id ?? null });
     setIsModalOpen(true);
   };
 
@@ -355,46 +389,53 @@ export default function FkrDetailPage({ params: paramsPromise }) {
     setIsModalOpen(false);
     setActiveRow(null);
     setSelectedApprovalId(null);
-    setApprovalValue(null);
     clearActiveCandidates();
     formFKR.resetFields();
   };
 
-  const handleDelegasiOk = () => {
-    formFKR.validateFields()
-      .then((values) => {
-        if (!selectedApprovalId) {
-          console.error("[Delegasi] selectedApprovalId is null/undefined — fkr_approval_id tidak ditemukan di step data.");
-          return;
-        }
-        modal.confirm({
-          title: "Simpan Perubahan?",
-          icon: <ExclamationCircleOutlined className="text-amber-500" />,
-          okText: "Ya, Simpan",
-          cancelText: "Batal",
-          okButtonProps: {
-            className: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg",
-            size: "large",
-          },
-          cancelButtonProps: { size: "large" },
-          onOk: async () => {
-            try {
-              await updateApprover({
-                fkr_approval_id: selectedApprovalId,
-                m_user_id: values.m_user_id,
-                m_user_id_aktor: getUserId(),
-              });
-              closeDelegasiModal();
-              refetchDetail();
-            } catch (err) {
-              console.error("[Delegasi] Mutation error:", err.message);
-            }
-          },
-        });
-      })
-      .catch((err) => {
-        console.error("[Delegasi] Validasi gagal:", err.errorFields || err.message || err);
+  const handleDelegasiOk = async () => {
+    try {
+      const values = await formFKR.validateFields();
+
+      if (!selectedApprovalId) {
+        message.error(
+          "ID approval tidak ditemukan. Muat ulang halaman lalu coba lagi.",
+        );
+        return;
+      }
+
+      modal.confirm({
+        title: "Simpan Perubahan?",
+        icon: <ExclamationCircleOutlined className="text-amber-500" />,
+        okText: "Ya, Simpan",
+        cancelText: "Batal",
+        okButtonProps: {
+          className:
+            "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg",
+          size: "large",
+        },
+        cancelButtonProps: { size: "large" },
+        onOk: async () => {
+          try {
+            await updateApprover({
+              fkr_approval_id: selectedApprovalId,
+              m_user_id: values.m_user_id,
+              m_user_id_aktor: getUserId(),
+            });
+            message.success("Approver berhasil diperbarui.");
+            closeDelegasiModal();
+            refetchDetail();
+          } catch (err) {
+            message.error(
+              err?.message || "Gagal menyimpan perubahan. Silakan coba lagi.",
+            );
+          }
+        },
       });
+    } catch (err) {
+      // Validasi gagal — Antd otomatis menandai field
+      console.warn("[Delegasi] Validasi gagal:", err?.errorFields);
+    }
   };
 
   // ── Render States ──
@@ -402,155 +443,166 @@ export default function FkrDetailPage({ params: paramsPromise }) {
   if (!fkrDetail) return <NotFoundState onBack={() => router.push("/fkr")} />;
 
   const detailFields = buildDetailFields(fkrDetail);
-  const hasProductLines = Array.isArray(fkrDetail.lines) && fkrDetail.lines.length > 0;
+  const hasProductLines =
+    Array.isArray(fkrDetail.lines) && fkrDetail.lines.length > 0;
 
   return (
-    <div className="space-y-6 max-w-full">
-      {/* Back Navigation */}
-      <div className="flex items-center justify-between">
-        <Button
-          type="link"
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.push("/fkr")}
-          className="text-emerald-600 hover:text-emerald-700 font-bold p-0 flex items-center gap-1 hover:translate-x-[-2px] transition-all"
-        >
-          Kembali ke Daftar FKR
-        </Button>
-      </div>
+    <>
+      {modalContextHolder}
+      <div className="max-w-full space-y-6">
+        {/* Back Navigation */}
+        <div className="flex items-center justify-between">
+          <Button
+            type="link"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => router.push("/fkr")}
+            className="text-emerald-600 hover:text-emerald-700 font-bold p-0 flex items-center gap-1 hover:translate-x-[-2px] transition-all"
+          >
+            Kembali ke Daftar FKR
+          </Button>
+        </div>
 
-      {/* Status Banner */}
-      <ApprovalStatusBanner
-        currentApprover={currentApprover}
-        docStatus={fkrDetail.status}
-      />
+        {/* Status Banner */}
+        <ApprovalStatusBanner
+          currentApprover={currentApprover}
+          docStatus={fkrDetail.status}
+        />
 
-      <div className="space-y-8">
-        {/* Detail Card */}
-        <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-6 px-7">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <ShoppingOutlined className="text-emerald-600 text-2xl" />
-                  Detail Dokumen FKR
-                </CardTitle>
-                <CardDescription className="text-slate-400 mt-1">
-                  Dokumen Number:{" "}
-                  <span className="font-semibold text-slate-700">{fkrDetail.nomor_fkr}</span>
-                </CardDescription>
+        <div className="space-y-8">
+          {/* Detail Card */}
+          <Card className="overflow-hidden shadow-sm border-slate-100 rounded-2xl">
+            <CardHeader className="py-6 border-b bg-slate-50/50 border-slate-100 px-7">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-1">
+                  <CardTitle className="flex items-center gap-2 text-xl font-bold text-slate-900">
+                    <ShoppingOutlined className="text-2xl text-emerald-600" />
+                    Detail Dokumen FKR
+                  </CardTitle>
+                  <CardDescription className="mt-1 text-slate-400">
+                    Dokumen Number:{" "}
+                    <span className="font-semibold text-slate-700">
+                      {fkrDetail.nomor_fkr}
+                    </span>
+                  </CardDescription>
+                </div>
+                <StatusBadge status={fkrDetail.status} />
               </div>
-              <StatusBadge status={fkrDetail.status} />
-            </div>
+            </CardHeader>
+            <CardContent className="p-7">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-12">
+                {detailFields.map((item, idx) => (
+                  <InfoField key={idx} label={item.title} value={item.value} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Product Lines */}
+          {hasProductLines && (
+            <Card className="overflow-hidden shadow-sm border-slate-100 rounded-2xl">
+              <CardHeader className="py-5 border-b bg-slate-50/50 border-slate-100 px-7">
+                <div className="flex items-center gap-3">
+                  <ShoppingOutlined className="text-2xl text-emerald-600" />
+                  <div>
+                    <CardTitle className="text-base font-bold text-slate-800">
+                      Daftar Barang Retur
+                    </CardTitle>
+                    <CardDescription className="mt-1 text-slate-400">
+                      Rincian item barang atau produk dalam pengajuan klaim
+                      ritel ini.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-7">
+                <Table
+                  columns={productLinesColumns}
+                  dataSource={fkrDetail.lines}
+                  rowKey="fkr_detail_id"
+                  pagination={{ pageSize: 10, size: "small" }}
+                  className="overflow-hidden border border-slate-100 rounded-xl"
+                />
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Workflow Stepper */}
+        <Card className="overflow-hidden shadow-sm border-slate-100 rounded-2xl">
+          <CardHeader className="py-6 bg-white border-b border-slate-100 px-7">
+            <CardTitle className="text-lg font-extrabold text-slate-800">
+              Alur Persetujuan
+            </CardTitle>
+            <CardDescription className="mt-1 text-slate-400">
+              Tahapan otorisasi berjenjang beserta opsi delegasi per langkah.
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-7">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-12">
-              {detailFields.map((item, idx) => (
-                <InfoField key={idx} label={item.title} value={item.value} />
+            <div className="flex flex-col gap-4">
+              {sortedProgress.map((step, idx) => (
+                <WorkflowStepCard
+                  key={step.fkr_approval_id || idx}
+                  step={step}
+                  idx={idx}
+                  onDelegasi={openDelegasiModal}
+                />
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Product Lines */}
-        {hasProductLines && (
-          <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-5 px-7">
-              <div className="flex items-center gap-3">
-                <ShoppingOutlined className="text-emerald-600 text-2xl" />
-                <div>
-                  <CardTitle className="text-base font-bold text-slate-800">
-                    Daftar Barang Retur
-                  </CardTitle>
-                  <CardDescription className="text-slate-400 mt-1">
-                    Rincian item barang atau produk dalam pengajuan klaim ritel ini.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-7">
-              <Table
-                columns={productLinesColumns}
-                dataSource={fkrDetail.lines}
-                rowKey="fkr_detail_id"
-                pagination={{ pageSize: 10, size: "small" }}
-                className="border border-slate-100 rounded-xl overflow-hidden"
-              />
-            </CardContent>
-          </Card>
-        )}
+        {/* Delegasi Modal */}
+        <Modal
+          title={
+            <div className="pb-3 text-lg font-bold border-b text-slate-800 border-slate-100">
+              Edit Approval
+            </div>
+          }
+          open={isModalOpen}
+          okButtonProps={{
+            disabled: !watchedUserId,
+            loading: isUpdatingApprover,
+            className:
+              "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg",
+            size: "large",
+          }}
+          cancelButtonProps={{ size: "large", className: "rounded-lg" }}
+          onOk={handleDelegasiOk}
+          onCancel={closeDelegasiModal}
+          confirmLoading={isUpdatingApprover}
+          className="overflow-hidden rounded-xl"
+        >
+          <div className="py-4">
+            <Typography.Text className="block mb-4 text-sm leading-relaxed text-slate-500">
+              Pilih user pengganti dengan jabatan yang sama untuk mendelegasikan
+              langkah approval ini.
+            </Typography.Text>
+
+            <Form form={formFKR} layout="vertical">
+              <Form.Item
+                label={
+                  <Typography.Text className="font-semibold text-slate-700">
+                    User
+                  </Typography.Text>
+                }
+                name="m_user_id"
+                rules={[{ required: true, message: "Pilih user pengganti!" }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Pilih User"
+                  optionFilterProp="label"
+                  filterOption={filterOption}
+                  options={userOptions}
+                  loading={isCandidatesLoading}
+                  size="large"
+                  className="w-full rounded-lg"
+                />
+              </Form.Item>
+            </Form>
+          </div>
+        </Modal>
       </div>
-
-      {/* Workflow Stepper */}
-      <Card className="shadow-sm border-slate-100 rounded-2xl overflow-hidden">
-        <CardHeader className="bg-white border-b border-slate-100 py-6 px-7">
-          <CardTitle className="text-lg font-extrabold text-slate-800">
-            Alur Persetujuan
-          </CardTitle>
-          <CardDescription className="text-slate-400 mt-1">
-            Tahapan otorisasi berjenjang beserta opsi delegasi per langkah.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-7">
-          <div className="flex flex-col gap-4">
-            {sortedProgress.map((step, idx) => (
-              <WorkflowStepCard
-                key={step.fkr_approval_id || idx}
-                step={step}
-                idx={idx}
-                onDelegasi={openDelegasiModal}
-              />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Delegasi Modal */}
-      <Modal
-        title={
-          <div className="text-slate-800 font-bold text-lg border-b border-slate-100 pb-3">
-            Edit Approval
-          </div>
-        }
-        open={isModalOpen}
-        okButtonProps={{
-          disabled: !approvalValue,
-          className: "bg-emerald-600 hover:bg-emerald-700 border-emerald-600 rounded-lg",
-          size: "large",
-        }}
-        cancelButtonProps={{ size: "large", className: "rounded-lg" }}
-        onOk={handleDelegasiOk}
-        onCancel={closeDelegasiModal}
-        confirmLoading={isUpdatingApprover}
-        className="rounded-xl overflow-hidden"
-      >
-        <div className="py-4">
-          <Typography.Text className="block text-slate-500 text-sm mb-4 leading-relaxed">
-            Pilih user pengganti dengan jabatan yang sama untuk mendelegasikan langkah approval ini.
-          </Typography.Text>
-          <Form form={formFKR} layout="vertical">
-            <Form.Item
-              label={<Typography.Text className="font-semibold text-slate-700">User</Typography.Text>}
-              name="m_user_id"
-              rules={[{ required: true, message: "Pilih user pengganti!" }]}
-            >
-              <Select
-                showSearch
-                placeholder="Pilih User"
-                optionFilterProp="label"
-                onChange={(val) => {
-                  setApprovalValue(val);
-                  formFKR.setFieldValue("m_user_id", val);
-                }}
-                filterOption={filterOption}
-                options={userOptions}
-                loading={isCandidatesLoading}
-                size="large"
-                className="w-full rounded-lg"
-              />
-            </Form.Item>
-          </Form>
-        </div>
-      </Modal>
-    </div>
+    </>
   );
 }
