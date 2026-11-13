@@ -39,7 +39,11 @@ const IS_ACTIVE_OPTIONS = [
 
 /** Template Excel untuk Update Brand Proposal From SAP (kolom A = WBS, kolom B = Brand) */
 const UPDATE_BRAND_TEMPLATE_URL =
-  "/templates/proposal/Template update brand proposal from by wbs.xlsx";
+  "/templates/proposal/proposal-from-sap/template_upload_update_brand.xlsx";
+
+/** Template Excel untuk Upload Update Klaim Detail Proposal From SAP */
+const UPDATE_KLAIM_DETAIL_TEMPLATE_URL =
+  "/templates/proposal/proposal-from-sap/template_upload_update_klaim_detail.xlsx";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Column Definitions
@@ -178,7 +182,7 @@ function buildColumns({ onViewDetail, onCheckBudget }) {
       align: "center",
       render: (text) =>
         text === "Y" ? (
-          <span className="text-emerald-600 font-semibold">Aktif</span>
+          <span className="font-semibold text-emerald-600">Aktif</span>
         ) : (
           <span className="text-slate-400">Non-Aktif</span>
         ),
@@ -295,7 +299,7 @@ export default function ProposalFromSapPage() {
   });
 
   const filterBar = (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex flex-wrap items-center gap-3">
       <Input
         placeholder="Brand"
         value={brandFilter}
@@ -303,16 +307,20 @@ export default function ProposalFromSapPage() {
         onBlur={() => handleFilterChange("brand", brandFilter.trim())}
         onPressEnter={() => handleFilterChange("brand", brandFilter.trim())}
         allowClear
-        className="w-48 rounded-xl border-slate-200 text-sm"
+        className="w-48 text-sm rounded-xl border-slate-200"
       />
       <Input
         placeholder="Budget Year"
         value={budgetYearFilter}
         onChange={(e) => setBudgetYearFilter(e.target.value)}
-        onBlur={() => handleFilterChange("budget_year", budgetYearFilter.trim())}
-        onPressEnter={() => handleFilterChange("budget_year", budgetYearFilter.trim())}
+        onBlur={() =>
+          handleFilterChange("budget_year", budgetYearFilter.trim())
+        }
+        onPressEnter={() =>
+          handleFilterChange("budget_year", budgetYearFilter.trim())
+        }
         allowClear
-        className="w-40 rounded-xl border-slate-200 text-sm"
+        className="w-40 text-sm rounded-xl border-slate-200"
       />
       <Select
         placeholder="Semua Status Aktif"
@@ -327,10 +335,14 @@ export default function ProposalFromSapPage() {
         placeholder="Kode Proses"
         value={kodeProsesFilter}
         onChange={(e) => setKodeProsesFilter(e.target.value)}
-        onBlur={() => handleFilterChange("kode_proses", kodeProsesFilter.trim())}
-        onPressEnter={() => handleFilterChange("kode_proses", kodeProsesFilter.trim())}
+        onBlur={() =>
+          handleFilterChange("kode_proses", kodeProsesFilter.trim())
+        }
+        onPressEnter={() =>
+          handleFilterChange("kode_proses", kodeProsesFilter.trim())
+        }
         allowClear
-        className="w-56 rounded-xl border-slate-200 text-sm"
+        className="w-56 text-sm rounded-xl border-slate-200"
       />
     </div>
   );
@@ -352,13 +364,14 @@ export default function ProposalFromSapPage() {
           onChange: handlePaginationChange,
         }}
         searchProps={{
-          placeholder: "Cari nomor WBS, kode e-prop SAP, brand, atau customer...",
+          placeholder:
+            "Cari nomor WBS, kode e-prop SAP, brand, atau customer...",
           value: searchValue,
           onChange: setSearchValue,
         }}
         filterBar={filterBar}
         extraHeaderActions={
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               icon={<CloudUploadOutlined />}
               onClick={() => setSapKlaimModalOpen(true)}
@@ -394,17 +407,7 @@ export default function ProposalFromSapPage() {
             >
               Update Brand
             </Button>
-
-            <Button
-              href={UPDATE_BRAND_TEMPLATE_URL}
-              download
-              icon={<FileExcelOutlined />}
-              className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-violet-600 hover:border-violet-400 hover:bg-violet-50 font-medium text-sm flex items-center gap-1.5 transition-all"
-            >
-              Template Update Brand
-            </Button>
-
-            <span className="w-px h-5 bg-slate-200 self-center mx-1" />
+            <span className="self-center w-px h-5 mx-1 bg-slate-200" />
 
             <Button
               icon={<SearchOutlined />}
@@ -419,7 +422,11 @@ export default function ProposalFromSapPage() {
 
             <Button
               shape="circle"
-              icon={<ReloadOutlined className={isListFetching ? "animate-spin" : ""} />}
+              icon={
+                <ReloadOutlined
+                  className={isListFetching ? "animate-spin" : ""}
+                />
+              }
               onClick={refetchList}
               className="h-9 w-9 border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300"
             />
@@ -435,6 +442,7 @@ export default function ProposalFromSapPage() {
         onUpload={uploadProposalSapKlaimDetail}
         isUploading={isUploadingProposalSapKlaim}
         result={uploadProposalSapKlaimResult}
+        templateUrl={UPDATE_KLAIM_DETAIL_TEMPLATE_URL}
       />
 
       {/* Upload Proposal SAP — Import */}
