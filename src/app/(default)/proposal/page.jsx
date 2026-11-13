@@ -12,10 +12,6 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   FileExcelOutlined,
-  SyncOutlined,
-  CloudUploadOutlined,
-  DatabaseOutlined,
-  DollarOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useProposal, useDebounce } from "@/hooks";
@@ -28,8 +24,6 @@ import {
   renderMedium,
   renderTruncated,
 } from "@/components/ui";
-import { CekProposalFromSapModal } from "@/components/features/proposal/CekProposalFromSapModal";
-import { UploadProposalSapModal } from "@/components/features/proposal/UploadProposalSapModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Upload Result Display Sub-component
@@ -446,15 +440,6 @@ export default function ProposalSupportPage() {
     uploadReversalInternasional,
     isUploadingReversal,
     uploadReversalResult,
-    uploadProposalSapKlaimDetail,
-    isUploadingProposalSapKlaim,
-    uploadProposalSapKlaimResult,
-    uploadProposalSapImport,
-    isUploadingProposalSapImport,
-    uploadProposalSapImportResult,
-    uploadProposalSapAmount,
-    isUploadingProposalSapAmount,
-    uploadProposalSapAmountResult,
   } = useProposal();
 
   // ── Search State ──
@@ -468,10 +453,6 @@ export default function ProposalSupportPage() {
   // ── Upload Modal State ──
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [reversalModalOpen, setReversalModalOpen] = useState(false);
-  const [cekSapModalOpen, setCekSapModalOpen] = useState(false);
-  const [sapKlaimModalOpen, setSapKlaimModalOpen] = useState(false);
-  const [sapImportModalOpen, setSapImportModalOpen] = useState(false);
-  const [sapAmountModalOpen, setSapAmountModalOpen] = useState(false);
 
   // ── Column Definitions ──
   const columnsConfig = buildColumns({
@@ -520,36 +501,6 @@ export default function ProposalSupportPage() {
 
             <span className="w-px h-5 bg-slate-200 self-center mx-1" />
 
-            {/* Upload SAP Actions */}
-            <Button
-              icon={<CloudUploadOutlined />}
-              onClick={() => setSapKlaimModalOpen(true)}
-              loading={isUploadingProposalSapKlaim}
-              className="h-9 px-4 rounded-lg border-orange-200 text-orange-600 hover:text-white hover:border-orange-500 hover:bg-orange-500 font-medium text-sm flex items-center gap-1.5 transition-all"
-            >
-              Klaim &amp; Budget ID
-            </Button>
-
-            <Button
-              icon={<DatabaseOutlined />}
-              onClick={() => setSapImportModalOpen(true)}
-              loading={isUploadingProposalSapImport}
-              className="h-9 px-4 rounded-lg border-blue-200 text-blue-600 hover:text-white hover:border-blue-500 hover:bg-blue-500 font-medium text-sm flex items-center gap-1.5 transition-all"
-            >
-              Import
-            </Button>
-
-            <Button
-              icon={<DollarOutlined />}
-              onClick={() => setSapAmountModalOpen(true)}
-              loading={isUploadingProposalSapAmount}
-              className="h-9 px-4 rounded-lg border-emerald-200 text-emerald-600 hover:text-white hover:border-emerald-500 hover:bg-emerald-500 font-medium text-sm flex items-center gap-1.5 transition-all"
-            >
-              Amount
-            </Button>
-
-            <span className="w-px h-5 bg-slate-200 self-center mx-1" />
-
             {/* Upload Actions */}
             <Button
               icon={<MailOutlined />}
@@ -567,14 +518,6 @@ export default function ProposalSupportPage() {
               className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-purple-600 hover:border-purple-400 hover:bg-purple-50 font-medium text-sm flex items-center gap-1.5 transition-all"
             >
               Reversal Internasional
-            </Button>
-
-            <Button
-              icon={<SyncOutlined />}
-              onClick={() => setCekSapModalOpen(true)}
-              className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-400 hover:bg-emerald-50 font-medium text-sm flex items-center gap-1.5 transition-all"
-            >
-              Cek Proposal From SAP
             </Button>
 
             {/* Reload */}
@@ -614,42 +557,6 @@ export default function ProposalSupportPage() {
         isUploading={isUploadingReversal}
         result={uploadReversalResult}
         templateUrl="/templates/proposal/Template Reverse Internasional.xlsx"
-      />
-
-      {/* Cek Proposal From SAP Modal */}
-      <CekProposalFromSapModal
-        open={cekSapModalOpen}
-        onClose={() => setCekSapModalOpen(false)}
-      />
-
-      {/* Upload Proposal SAP — Klaim Detail & Budget ID */}
-      <UploadProposalSapModal
-        open={sapKlaimModalOpen}
-        onClose={() => setSapKlaimModalOpen(false)}
-        variant="klaim"
-        onUpload={uploadProposalSapKlaimDetail}
-        isUploading={isUploadingProposalSapKlaim}
-        result={uploadProposalSapKlaimResult}
-      />
-
-      {/* Upload Proposal SAP — Import */}
-      <UploadProposalSapModal
-        open={sapImportModalOpen}
-        onClose={() => setSapImportModalOpen(false)}
-        variant="import"
-        onUpload={uploadProposalSapImport}
-        isUploading={isUploadingProposalSapImport}
-        result={uploadProposalSapImportResult}
-      />
-
-      {/* Upload Proposal SAP — Amount */}
-      <UploadProposalSapModal
-        open={sapAmountModalOpen}
-        onClose={() => setSapAmountModalOpen(false)}
-        variant="amount"
-        onUpload={uploadProposalSapAmount}
-        isUploading={isUploadingProposalSapAmount}
-        result={uploadProposalSapAmountResult}
       />
     </>
   );

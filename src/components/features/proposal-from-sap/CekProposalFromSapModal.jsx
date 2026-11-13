@@ -6,7 +6,6 @@ import {
   Button,
   Typography,
   Input,
-  Space,
   Spin,
   Alert,
 } from "antd";
@@ -18,7 +17,7 @@ import {
   CalculatorOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import { proposalService } from "@/services/proposal.service";
+import { useProposalFromSapBudget } from "@/hooks/queries/useProposalFromSap";
 
 const { Text } = Typography;
 
@@ -86,59 +85,43 @@ function KpiTile({ label, value, icon, variant = "neutral" }) {
 }
 
 /**
- * CekProposalFromSapModal — Modal for viewing Proposal Budget summary from SAP.
+ * CekProposalFromSapModal — Modal untuk melihat ringkasan budget proposal dari SAP.
  *
- * Flow:
- * 1. User enters kodeEpropSap (e.g. "L/007109/MT/11/26")
- * 2. Clicks "Cek" button
- * 3. API is called → KPI tiles shown
+ * Dua cara pemanggilan:
+ * 1. Dari toolbar — user mengetik Kode E-Prop SAP manual lalu klik "Cek".
+ * 2. Dari baris tabel — `initialKodeEpropSap` diisi dari baris terpilih sehingga
+ *    ringkasan budget langsung diambil tanpa perlu mengetik manual.
  *
  * @param {Object}   props
  * @param {boolean}  props.open
  * @param {Function} props.onClose
+ * @param {string}   [props.initialKodeEpropSap] - Kode e-proposal SAP dari baris tabel
  */
-export function CekProposalFromSapModal({ open, onClose }) {
+export function CekProposalFromSapModal({ open, onClose, initialKodeEpropSap = "" }) {
   const [kodeEpropSap, setKodeEpropSap] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [submittedKode, setSubmittedKode] = useState("");
 
-  // Reset on close
+  // Isi otomatis dari baris tabel (atau reset saat modal ditutup)
   useEffect(() => {
-    if (!open) {
+    if (open) {
+      setKodeEpropSap(initialKodeEpropSap || "");
+      setSubmittedKode(initialKodeEpropSap || "");
+    } else {
       setKodeEpropSap("");
-      setData(null);
-      setError(null);
-      setHasSearched(false);
+      setSubmittedKode("");
     }
-  }, [open]);
+  }, [open, initialKodeEpropSap]);
 
-  const handleCek = async () => {
+  const {
+    budgetData: data,
+    isBudgetFetching: loading,
+    budgetError: error,
+  } = useProposalFromSapBudget(submittedKode, open);
+
+  const handleCek = () => {
     const kode = kodeEpropSap.trim();
     if (!kode) return;
-
-    setLoading(true);
-    setError(null);
-    setData(null);
-    setHasSearched(true);
-
-    try {
-      const response = await proposalService.getProposalFromSapBudget({
-        kodeEpropSap: kode,
-      });
-
-      if (response.ok) {
-        // API returns { status, error, message, data: { budget_fields... } }
-        setData(response.data?.data ?? null);
-      } else {
-        setError(response.data?.message || "Gagal mengambil data budget proposal.");
-      }
-    } catch {
-      setError("Terjadi kesalahan koneksi saat mengambil data.");
-    } finally {
-      setLoading(false);
-    }
+    setSubmittedKode(kode);
   };
 
   const tiles = data
@@ -257,7 +240,7 @@ export function CekProposalFromSapModal({ open, onClose }) {
             <Alert
               type="info"
               message="Data Budget Proposal dari SAP"
-              description={`Kode: ${kodeEpropSap}`}
+              description={`Kode: ${submittedKode}`}
               showIcon
               className="rounded-xl [&_.ant-alert-info]:bg-blue-50/70 [&_.ant-alert-info]:border-blue-100"
             />
@@ -284,7 +267,7 @@ export function CekProposalFromSapModal({ open, onClose }) {
         )}
 
         {/* ── Empty state (before first search) ── */}
-        {!hasSearched && !loading && (
+        {!submittedKode && !loading && (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
               <SearchOutlined className="text-slate-300 text-2xl" />

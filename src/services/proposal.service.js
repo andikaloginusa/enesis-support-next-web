@@ -54,7 +54,9 @@ export const ProposalSupportServices = (apiInstance) => {
   const uploadSendEmailUlang = async (file) => {
     const formData = new FormData();
     formData.append("excel", file);
-    return authFetch("POST", "support/proposal/upload/send-ulang-email", { body: formData });
+    return authFetch("POST", "support/proposal/upload/send-ulang-email", {
+      body: formData,
+    });
   };
 
   /**
@@ -64,7 +66,9 @@ export const ProposalSupportServices = (apiInstance) => {
   const uploadReversalInternasional = async (file) => {
     const formData = new FormData();
     formData.append("excel", file);
-    return authFetch("POST", "support/proposal/upload/reversal-internasional", { body: formData });
+    return authFetch("POST", "support/proposal/upload/reversal-internasional", {
+      body: formData,
+    });
   };
 
   /**
@@ -79,7 +83,11 @@ export const ProposalSupportServices = (apiInstance) => {
     formData.append("reason", meta.reason);
     formData.append("update_type", meta.update_type);
     formData.append("parameter_where_type", meta.parameter_where_type);
-    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap", { body: formData });
+    return authFetch(
+      "PUT",
+      "support/proposal/upload/update-proposal-from-sap",
+      { body: formData },
+    );
   };
 
   /**
@@ -105,7 +113,11 @@ export const ProposalSupportServices = (apiInstance) => {
     formData.append("m_user_id", m_user_id);
     formData.append("kode_proses", kode_proses);
     formData.append("excel", excel);
-    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id", { body: formData });
+    return authFetch(
+      "PUT",
+      "support/proposal/upload/update-proposal-from-sap/klaim-detail-and-budget-id",
+      { body: formData },
+    );
   };
 
   /**
@@ -119,7 +131,11 @@ export const ProposalSupportServices = (apiInstance) => {
     formData.append("m_user_id", m_user_id);
     formData.append("excel", excel);
     formData.append("kode_proses", kode_proses);
-    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/import", { body: formData });
+    return authFetch(
+      "PUT",
+      "support/proposal/upload/update-proposal-from-sap/import",
+      { body: formData },
+    );
   };
 
   /**
@@ -133,7 +149,40 @@ export const ProposalSupportServices = (apiInstance) => {
     formData.append("m_user_id", m_user_id);
     formData.append("kode_proses", kode_proses);
     formData.append("excel", excel);
-    return authFetch("PUT", "support/proposal/upload/update-proposal-from-sap/amount", { body: formData });
+    return authFetch(
+      "PUT",
+      "support/proposal/upload/update-proposal-from-sap/amount",
+      { body: formData },
+    );
+  };
+
+  /**
+   * Fetch paginated list of Proposal From SAP rows (tabel `proposal_from_sap`).
+   * GET /support/proposal/get/proposal-from-sap/
+   *
+   * @param {Object} params - { page, limit, search, brand, budget_year, isactive, kode_proses }
+   *   - `search` mencocokkan reference_no_wbs_number / kode_eprop_sap / brand / customer_name
+   *   - `kode_proses` difilter ke kolom `keterangan_perubahan`
+   */
+  const getListProposalFromSap = (params) =>
+    apiInstance.get("support/proposal/get/proposal-from-sap", params);
+
+  /**
+   * Upload Update Brand Proposal From SAP — kolom A = Nomor WBS, kolom B = Brand.
+   * PUT /support/proposal/upload/update-proposal-from-sap/brand/by-wbs
+   *
+   * @param {Object} payload - { m_user_id, excel: File, kode_proses }
+   */
+  const updateBrandProposalFromSap = ({ m_user_id, excel, kode_proses }) => {
+    const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
+    formData.append("kode_proses", kode_proses);
+    formData.append("excel", excel);
+    return authFetch(
+      "PUT",
+      "support/proposal/upload/update-proposal-from-sap/brand/by-wbs",
+      { body: formData },
+    );
   };
 
   return {
@@ -149,6 +198,8 @@ export const ProposalSupportServices = (apiInstance) => {
     uploadProposalSapKlaimDetail,
     uploadProposalSapImport,
     uploadProposalSapAmount,
+    getListProposalFromSap,
+    updateBrandProposalFromSap,
   };
 };
 

@@ -10,7 +10,10 @@ import {
   CloseCircleFilled,
   ReloadOutlined,
 } from "@ant-design/icons";
-import { generateReasonCode } from "@/hooks/queries/useProposal";
+import {
+  generateReasonCode,
+  generateBrandReasonCode,
+} from "@/hooks/queries/useProposalFromSap";
 import { useConfirm } from "@/hooks/useConfirm";
 
 const { Text } = Typography;
@@ -67,6 +70,24 @@ const VARIANT_CONFIG = {
     fileBorder: "border-emerald-200",
     fileHoverBorder: "hover:border-emerald-400",
     fileBg: "bg-emerald-50/40",
+  },
+  brand: {
+    title: "Upload Update Brand Proposal From SAP",
+    subtitle: "Update Brand",
+    description:
+      "Upload file Excel untuk mengupdate brand proposal dari SAP. Kolom A = Nomor WBS, kolom B = Brand.",
+    reasonPrefix: "UPD-BRAND",
+    reasonGenerator: generateBrandReasonCode,
+    reasonExample: "UPD-BRAND-20261112-0130",
+    headerBg: "from-violet-600 to-violet-700",
+    btnType: "primary",
+    btnColor: "#7c3aed",
+    badgeBg: "bg-violet-50",
+    badgeBorder: "border-violet-200",
+    badgeText: "text-violet-600",
+    fileBorder: "border-violet-200",
+    fileHoverBorder: "hover:border-violet-400",
+    fileBg: "bg-violet-50/40",
   },
 };
 
@@ -190,20 +211,22 @@ function UploadResultPanel({ result, variant }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * UploadProposalSapModal — Upload modal for Proposal SAP actions.
+ * UploadProposalSapModal — Upload modal untuk aksi Proposal From SAP.
  *
  * Variants:
  * - "klaim"  : Upload Update Proposal From SAP — Klaim Detail & Budget ID
  * - "import" : Upload Proposal From SAP — Import
  * - "amount" : Upload Proposal From SAP — Amount
+ * - "brand"  : Upload Update Brand Proposal From SAP
  *
  * @param {Object}   props
  * @param {boolean}  props.open
  * @param {Function} props.onClose
- * @param {"klaim"|"import"|"amount"} props.variant
+ * @param {"klaim"|"import"|"amount"|"brand"} props.variant
  * @param {Function} props.onUpload   - Mutation: ({ excel, kode_proses }) => Promise
  * @param {boolean}  props.isUploading
  * @param {Object}   [props.result]    - Mutation result data
+ * @param {string}   [props.templateUrl] - URL template Excel untuk diunduh
  */
 export function UploadProposalSapModal({
   open,
@@ -212,6 +235,7 @@ export function UploadProposalSapModal({
   onUpload,
   isUploading = false,
   result,
+  templateUrl,
 }) {
   const fileInputRef = useRef(null);
   const { confirmAction } = useConfirm();
@@ -252,7 +276,9 @@ export function UploadProposalSapModal({
   };
 
   const handleGenerateReason = () => {
-    const code = generateReasonCode(cfg.reasonPrefix);
+    const code = cfg.reasonGenerator
+      ? cfg.reasonGenerator()
+      : generateReasonCode(cfg.reasonPrefix);
     setReason(code);
   };
 
@@ -299,7 +325,7 @@ export function UploadProposalSapModal({
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-white font-bold text-base leading-tight">{cfg.title}</h2>
-          <p className="text-white/70 text-xs mt-0.5">{cfg.subtitle}</p>
+          <p className="text-white/70 text-xs">{cfg.subtitle}</p>
         </div>
         <span className={`${cfg.badgeBg} ${cfg.badgeBorder} ${cfg.badgeText} text-xs font-bold px-2.5 py-1 rounded-lg border`}>
           SAP
@@ -338,7 +364,10 @@ export function UploadProposalSapModal({
                 </Button>
               </div>
               <Input
-                placeholder={`Contoh: ${cfg.reasonPrefix}-${new Date().getFullYear()}01011230`}
+                placeholder={
+                  cfg.reasonExample ??
+                  `Contoh: ${cfg.reasonPrefix}-${new Date().getFullYear()}01011230`
+                }
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 size="large"
@@ -401,6 +430,21 @@ export function UploadProposalSapModal({
                 </div>
               )}
             </div>
+
+            {/* Download Template */}
+            {templateUrl && (
+              <div className="flex items-center justify-center">
+                <a
+                  href={templateUrl}
+                  download
+                  onClick={(e) => e.stopPropagation()}
+                  className={`inline-flex items-center gap-1.5 text-xs font-semibold ${cfg.badgeText} hover:underline`}
+                >
+                  <FileExcelOutlined />
+                  Download Template Excel
+                </a>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-2">

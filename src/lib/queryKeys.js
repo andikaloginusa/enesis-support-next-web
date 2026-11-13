@@ -70,6 +70,18 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Proposal From SAP (proposal_from_sap)
+  // ─────────────────────────────────────────────
+  proposalFromSap: {
+    /** Matches ALL proposal-from-sap queries */
+    all: () => ["proposal-from-sap"],
+    /** Matches the proposal_from_sap list with pagination/search/filter params */
+    list: (params) => ["proposal-from-sap", "list", params],
+    /** Matches the budget summary of a single kode e-prop SAP */
+    budget: (kodeEpropSap) => ["proposal-from-sap", "budget", kodeEpropSap],
+  },
+
+  // ─────────────────────────────────────────────
   // Delivery Order (DO)
   // ─────────────────────────────────────────────
   deliveryOrder: {

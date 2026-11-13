@@ -146,8 +146,12 @@ export const NOTIF_MESSAGES = {
   UPLOAD_PROPOSAL_SAP_IMPORT_ERROR: "Gagal Upload Proposal SAP Import",
   UPLOAD_PROPOSAL_SAP_AMOUNT_SUCCESS: "Upload Proposal SAP Amount Berhasil",
   UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR: "Gagal Upload Proposal SAP Amount",
+  UPLOAD_PROPOSAL_SAP_BRAND_SUCCESS: "Update Brand Proposal From SAP Berhasil",
+  UPLOAD_PROPOSAL_SAP_BRAND_ERROR: "Gagal Update Brand Proposal From SAP",
   FETCH_PROPOSAL_ERROR: "Gagal mengambil daftar proposal",
   FETCH_PROPOSAL_DETAIL_ERROR: "Gagal mengambil detail proposal",
+  FETCH_PROPOSAL_FROM_SAP_ERROR: "Gagal mengambil daftar proposal from SAP",
+  FETCH_PROPOSAL_FROM_SAP_BUDGET_ERROR: "Gagal mengambil data budget proposal from SAP",
 
   // Proposal SAP Mass Upload
   SAP_MASS_UPDATE_SUCCESS: "Mass Update Proposal dari SAP Berhasil",
@@ -177,6 +181,7 @@ export const API_LABELS = {
   FKR: "[useFkr]",
   KLAIM: "[useKlaim]",
   PROPOSAL: "[useProposal]",
+  PROPOSAL_FROM_SAP: "[useProposalFromSap]",
   CMO: "[useCmo]",
   PARTNER_BANK: "[usePartnerBank]",
   DELIVERY_ORDER: "[useDeliveryOrder]",

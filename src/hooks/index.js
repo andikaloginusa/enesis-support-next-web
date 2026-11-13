@@ -7,6 +7,7 @@ export * from "./queries/useKlaim";
 export * from "./queries/useKlaimInternasional";
 export * from "./queries/useFkr";
 export * from "./queries/useProposal";
+export * from "./queries/useProposalFromSap";
 export * from "./queries/useCmo";
 export * from "./queries/useCmoSapWaitingList";
 export * from "./queries/useCmoSapCOrderWaitingList";

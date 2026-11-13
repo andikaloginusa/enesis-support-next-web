@@ -46,6 +46,11 @@ export const useMenuItems = () => {
           key: "list-proposal",
           icon: <FileText className="w-5 h-5 text-blue-600" />,
         },
+        {
+          label: <Link href="/proposal-from-sap">Proposal From SAP</Link>,
+          key: "proposal-from-sap",
+          icon: <FileText className="w-5 h-5 text-cyan-600" />,
+        },
       ],
     },
     {
