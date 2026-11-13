@@ -70,7 +70,7 @@ export const useConfirm = () => {
       cancelButtonProps: { size: "middle" },
       onOk: onConfirm,
       // Prevent accidental close by clicking outside
-      maskClosable: false,
+      mask: { closable: false },
     });
   };
 
