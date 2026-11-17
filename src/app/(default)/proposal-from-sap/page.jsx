@@ -45,6 +45,10 @@ const UPDATE_BRAND_TEMPLATE_URL =
 const UPDATE_KLAIM_DETAIL_TEMPLATE_URL =
   "/templates/proposal/proposal-from-sap/template_upload_update_klaim_detail.xlsx";
 
+/** Template Excel untuk Upload Mentah (Import) Proposal From SAP */
+const UPLOAD_MENTAH_TEMPLATE_URL =
+  "/templates/proposal/proposal-from-sap/template_upload_mentah_proposal_from_sap.xlsx";
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  Column Definitions
 // ─────────────────────────────────────────────────────────────────────────────
@@ -391,6 +395,15 @@ export default function ProposalFromSapPage() {
             </Button>
 
             <Button
+              href={UPLOAD_MENTAH_TEMPLATE_URL}
+              download
+              icon={<FileExcelOutlined />}
+              className="h-9 px-4 rounded-lg border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Template Mentah
+            </Button>
+
+            <Button
               icon={<DollarOutlined />}
               onClick={() => setSapAmountModalOpen(true)}
               loading={isUploadingProposalSapAmount}
@@ -445,7 +458,7 @@ export default function ProposalFromSapPage() {
         templateUrl={UPDATE_KLAIM_DETAIL_TEMPLATE_URL}
       />
 
-      {/* Upload Proposal SAP — Import */}
+      {/* Upload Proposal SAP — Import (Mentah) */}
       <UploadProposalSapModal
         open={sapImportModalOpen}
         onClose={() => setSapImportModalOpen(false)}
@@ -453,6 +466,7 @@ export default function ProposalFromSapPage() {
         onUpload={uploadProposalSapImport}
         isUploading={isUploadingProposalSapImport}
         result={uploadProposalSapImportResult}
+        templateUrl={UPLOAD_MENTAH_TEMPLATE_URL}
       />
 
       {/* Upload Proposal SAP — Amount */}
