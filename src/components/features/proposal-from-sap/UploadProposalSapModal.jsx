@@ -89,6 +89,24 @@ const VARIANT_CONFIG = {
     fileHoverBorder: "hover:border-violet-400",
     fileBg: "bg-violet-50/40",
   },
+  gl_account: {
+    title: "Upload Update GL Account Proposal From SAP",
+    subtitle: "Update GL Account",
+    description:
+      "Upload file Excel untuk mengupdate GL Account pada data proposal dari SAP.",
+    reasonPrefix: "UPD-GL",
+    reasonGenerator: () => generateReasonCode("UPD-GL"),
+    reasonExample: "UPD-GL-202611170930",
+    headerBg: "from-cyan-600 to-cyan-700",
+    btnType: "primary",
+    btnColor: "#0891b2",
+    badgeBg: "bg-cyan-50",
+    badgeBorder: "border-cyan-200",
+    badgeText: "text-cyan-600",
+    fileBorder: "border-cyan-200",
+    fileHoverBorder: "hover:border-cyan-400",
+    fileBg: "bg-cyan-50/40",
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -214,15 +232,16 @@ function UploadResultPanel({ result, variant }) {
  * UploadProposalSapModal — Upload modal untuk aksi Proposal From SAP.
  *
  * Variants:
- * - "klaim"  : Upload Update Proposal From SAP — Klaim Detail & Budget ID
- * - "import" : Upload Proposal From SAP — Import
- * - "amount" : Upload Proposal From SAP — Amount
- * - "brand"  : Upload Update Brand Proposal From SAP
+ * - "klaim"      : Upload Update Proposal From SAP — Klaim Detail & Budget ID
+ * - "import"     : Upload Proposal From SAP — Import
+ * - "amount"     : Upload Proposal From SAP — Amount
+ * - "brand"      : Upload Update Brand Proposal From SAP
+ * - "gl_account" : Upload Update GL Account Proposal From SAP
  *
  * @param {Object}   props
  * @param {boolean}  props.open
  * @param {Function} props.onClose
- * @param {"klaim"|"import"|"amount"|"brand"} props.variant
+ * @param {"klaim"|"import"|"amount"|"brand"|"gl_account"} props.variant
  * @param {Function} props.onUpload   - Mutation: ({ excel, kode_proses }) => Promise
  * @param {boolean}  props.isUploading
  * @param {Object}   [props.result]    - Mutation result data

@@ -220,6 +220,34 @@ export const useProposalFromSap = () => {
     },
   });
 
+  // Mutation: Upload Update GL Account Proposal From SAP
+  const uploadProposalSapGlAccountMutation = useMutation({
+    mutationFn: async ({ excel, kode_proses }) => {
+      const response = await proposalService.uploadProposalSapGlAccount({
+        m_user_id: getUserId(),
+        excel,
+        kode_proses,
+      });
+      assertApiSuccess(response, NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_ERROR);
+      return response.data;
+    },
+    onSuccess: (res) => {
+      notifySuccess(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_SUCCESS,
+        res?.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_SUCCESS,
+        NOTIF_DURATION_LONG,
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.proposalFromSap.all() });
+    },
+    onError: (err) => {
+      notifyError(
+        NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_ERROR,
+        err.message || NOTIF_MESSAGES.UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_ERROR,
+        NOTIF_DURATION_LONG,
+      );
+    },
+  });
+
   return {
     // List Query
     sapList: listData?.rows || [],
@@ -252,6 +280,11 @@ export const useProposalFromSap = () => {
     uploadProposalSapBrand: uploadProposalSapBrandMutation.mutateAsync,
     isUploadingProposalSapBrand: uploadProposalSapBrandMutation.isPending,
     uploadProposalSapBrandResult: uploadProposalSapBrandMutation.data,
+
+    // Mutation: Upload Update GL Account Proposal From SAP
+    uploadProposalSapGlAccount: uploadProposalSapGlAccountMutation.mutateAsync,
+    isUploadingProposalSapGlAccount: uploadProposalSapGlAccountMutation.isPending,
+    uploadProposalSapGlAccountResult: uploadProposalSapGlAccountMutation.data,
   };
 };
 

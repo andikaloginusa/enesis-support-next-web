@@ -11,6 +11,7 @@ import {
   SearchOutlined,
   TagsOutlined,
   FileExcelOutlined,
+  AccountBookOutlined,
 } from "@ant-design/icons";
 import { useProposalFromSap, useDebounce } from "@/hooks";
 import {
@@ -48,6 +49,10 @@ const UPDATE_KLAIM_DETAIL_TEMPLATE_URL =
 /** Template Excel untuk Upload Mentah (Import) Proposal From SAP */
 const UPLOAD_MENTAH_TEMPLATE_URL =
   "/templates/proposal/proposal-from-sap/template_upload_mentah_proposal_from_sap.xlsx";
+
+/** Template Excel untuk Upload Update GL Account Proposal From SAP */
+const UPDATE_GL_ACCOUNT_TEMPLATE_URL =
+  "/templates/proposal/proposal-from-sap/template_update_gl_account.xlsx";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Column Definitions
@@ -286,6 +291,7 @@ export default function ProposalFromSapPage() {
   const [sapImportModalOpen, setSapImportModalOpen] = useState(false);
   const [sapAmountModalOpen, setSapAmountModalOpen] = useState(false);
   const [sapBrandModalOpen, setSapBrandModalOpen] = useState(false);
+  const [sapGlAccountModalOpen, setSapGlAccountModalOpen] = useState(false);
   const [cekSapModalOpen, setCekSapModalOpen] = useState(false);
   const [cekSapKode, setCekSapKode] = useState("");
   const [detailOpen, setDetailOpen] = useState(false);
@@ -420,6 +426,15 @@ export default function ProposalFromSapPage() {
             >
               Update Brand
             </Button>
+
+            <Button
+              icon={<AccountBookOutlined />}
+              onClick={() => setSapGlAccountModalOpen(true)}
+              loading={isUploadingProposalSapGlAccount}
+              className="h-9 px-4 rounded-lg border-cyan-200 text-cyan-600 hover:text-white hover:border-cyan-500 hover:bg-cyan-500 font-medium text-sm flex items-center gap-1.5 transition-all"
+            >
+              Update GL Account
+            </Button>
             <span className="self-center w-px h-5 mx-1 bg-slate-200" />
 
             <Button
@@ -488,6 +503,17 @@ export default function ProposalFromSapPage() {
         isUploading={isUploadingProposalSapBrand}
         result={uploadProposalSapBrandResult}
         templateUrl={UPDATE_BRAND_TEMPLATE_URL}
+      />
+
+      {/* Upload Update GL Account Proposal From SAP */}
+      <UploadProposalSapModal
+        open={sapGlAccountModalOpen}
+        onClose={() => setSapGlAccountModalOpen(false)}
+        variant="gl_account"
+        onUpload={uploadProposalSapGlAccount}
+        isUploading={isUploadingProposalSapGlAccount}
+        result={uploadProposalSapGlAccountResult}
+        templateUrl={UPDATE_GL_ACCOUNT_TEMPLATE_URL}
       />
 
       {/* Cek Budget Proposal — dari toolbar */}

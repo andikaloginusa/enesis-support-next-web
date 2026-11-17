@@ -185,6 +185,24 @@ export const ProposalSupportServices = (apiInstance) => {
     );
   };
 
+  /**
+   * Upload Update GL Account Proposal From SAP.
+   * PUT /support/proposal/upload/update-proposal-from-sap/gl_account
+   *
+   * @param {Object} payload - { m_user_id, excel: File, kode_proses }
+   */
+  const uploadProposalSapGlAccount = ({ m_user_id, excel, kode_proses }) => {
+    const formData = new FormData();
+    formData.append("m_user_id", m_user_id);
+    formData.append("kode_proses", kode_proses);
+    formData.append("excel", excel);
+    return authFetch(
+      "PUT",
+      "support/proposal/upload/update-proposal-from-sap/gl_account",
+      { body: formData },
+    );
+  };
+
   return {
     getListProposal,
     getDetailProposal,
@@ -200,6 +218,7 @@ export const ProposalSupportServices = (apiInstance) => {
     uploadProposalSapAmount,
     getListProposalFromSap,
     updateBrandProposalFromSap,
+    uploadProposalSapGlAccount,
   };
 };
 

@@ -148,6 +148,8 @@ export const NOTIF_MESSAGES = {
   UPLOAD_PROPOSAL_SAP_AMOUNT_ERROR: "Gagal Upload Proposal SAP Amount",
   UPLOAD_PROPOSAL_SAP_BRAND_SUCCESS: "Update Brand Proposal From SAP Berhasil",
   UPLOAD_PROPOSAL_SAP_BRAND_ERROR: "Gagal Update Brand Proposal From SAP",
+  UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_SUCCESS: "Update GL Account Proposal From SAP Berhasil",
+  UPLOAD_PROPOSAL_SAP_GL_ACCOUNT_ERROR: "Gagal Update GL Account Proposal From SAP",
   FETCH_PROPOSAL_ERROR: "Gagal mengambil daftar proposal",
   FETCH_PROPOSAL_DETAIL_ERROR: "Gagal mengambil detail proposal",
   FETCH_PROPOSAL_FROM_SAP_ERROR: "Gagal mengambil daftar proposal from SAP",
