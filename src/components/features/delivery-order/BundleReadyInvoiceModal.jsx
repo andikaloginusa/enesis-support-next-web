@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -14,10 +14,38 @@ import {
 } from "antd";
 import { SearchOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { useBundleReadyInvoice } from "@/hooks/queries/useBundleReadyInvoice";
-import { renderCurrency, renderDateTime } from "@/components/ui/ColumnRenderers";
+import {
+  renderCurrency,
+  renderDateTime,
+} from "@/components/ui/ColumnRenderers";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
 const { Text } = Typography;
+
+// Kolom yang dicari oleh kotak pencarian (per tab).
+const SUCCESS_SEARCH_FIELDS = ["nomor_id", "bundle_id", "nomor_po", "nomor_gr"];
+const ERROR_SEARCH_FIELDS = [
+  "nomor_id",
+  "bundle_id",
+  "console_number",
+  "pesan",
+];
+
+/**
+ * Filter baris di sisi client. Cocok bila keyword (tidak case-sensitive)
+ * ada di salah satu kolom pada `fields`. Keyword kosong = semua baris.
+ */
+function filterRows(rows, keyword, fields) {
+  const q = keyword.trim().toLowerCase();
+  if (!q) return rows;
+  return rows.filter((row) =>
+    fields.some((field) =>
+      String(row?.[field] ?? "")
+        .toLowerCase()
+        .includes(q),
+    ),
+  );
+}
 
 /**
  * BundleReadyInvoiceModal — Daftar bundle yang siap di-invoice untuk sebuah user.
@@ -25,7 +53,8 @@ const { Text } = Typography;
  * Endpoint ini mewajibkan `m_user_id` sebagai input user (berbeda dengan
  * `m_user_id` logged-in pada endpoint update). Setelah user mengisi ID dan
  * menekan "Tampilkan", ringkasan serta tab Sukses/Error tampil di modal yang
- * sama.
+ * sama. Data yang sudah tampil bisa dicari lewat kotak pencarian (nomor ID,
+ * bundle, nomor PO, nomor GR) tanpa memanggil API lagi.
  *
  * @param {Object}   props
  * @param {boolean}  props.open
@@ -34,22 +63,44 @@ const { Text } = Typography;
 export function BundleReadyInvoiceModal({ open, onClose }) {
   const [form] = Form.useForm();
   const [submittedUserId, setSubmittedUserId] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [successPage, setSuccessPage] = useState(1);
+  const [errorPage, setErrorPage] = useState(1);
 
-  const {
-    summary,
-    successRows,
-    errorRows,
-    isLoading,
-    isFetching,
-    error,
-  } = useBundleReadyInvoice({
-    mUserId: submittedUserId,
-    enabled: open && Boolean(submittedUserId),
-  });
+  const { summary, successRows, errorRows, isLoading, isFetching, error } =
+    useBundleReadyInvoice({
+      mUserId: submittedUserId,
+      enabled: open && Boolean(submittedUserId),
+    });
+
+  const isSearching = searchText.trim() !== "";
+
+  const filteredSuccessRows = useMemo(
+    () => filterRows(successRows, searchText, SUCCESS_SEARCH_FIELDS),
+    [successRows, searchText],
+  );
+  const filteredErrorRows = useMemo(
+    () => filterRows(errorRows, searchText, ERROR_SEARCH_FIELDS),
+    [errorRows, searchText],
+  );
+
+  const resetSearch = () => {
+    setSearchText("");
+    setSuccessPage(1);
+    setErrorPage(1);
+  };
+
+  const handleSearchTextChange = (e) => {
+    setSearchText(e.target.value);
+    // Hasil filter bisa lebih sedikit dari jumlah halaman saat ini → balik ke halaman 1.
+    setSuccessPage(1);
+    setErrorPage(1);
+  };
 
   const handleSearch = async () => {
     try {
       const values = await form.validateFields();
+      resetSearch(); // data baru → pencarian lama tidak relevan
       setSubmittedUserId(values.m_user_id.trim());
     } catch {
       /* validation errors surfaced inline by Ant Design */
@@ -59,6 +110,7 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
   const handleClose = () => {
     form.resetFields();
     setSubmittedUserId("");
+    resetSearch();
     onClose?.();
   };
 
@@ -68,28 +120,36 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       dataIndex: "nomor_id",
       key: "nomor_id",
       width: 140,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Bundle",
       dataIndex: "bundle_id",
       key: "bundle_id",
       width: 120,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Nomor PO",
       dataIndex: "nomor_po",
       key: "nomor_po",
       width: 140,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Nomor GR",
       dataIndex: "nomor_gr",
       key: "nomor_gr",
       width: 140,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Biaya Tambahan",
@@ -127,7 +187,12 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       dataIndex: "pesan",
       key: "pesan",
       width: 200,
-      render: (text) => (text ? <span className="text-xs">{text}</span> : <span className="text-slate-400">—</span>),
+      render: (text) =>
+        text ? (
+          <span className="text-xs">{text}</span>
+        ) : (
+          <span className="text-slate-400">—</span>
+        ),
     },
   ];
 
@@ -137,21 +202,27 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       dataIndex: "nomor_id",
       key: "nomor_id",
       width: 140,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Bundle",
       dataIndex: "bundle_id",
       key: "bundle_id",
       width: 120,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Console Number",
       dataIndex: "console_number",
       key: "console_number",
       width: 150,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Pesan",
@@ -183,26 +254,36 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       dataIndex: "nomor_gr",
       key: "nomor_gr",
       width: 130,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Kode Item",
       dataIndex: "kode_item",
       key: "kode_item",
       width: 120,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
     {
       title: "Nomor PO",
       dataIndex: "nomor_po",
       key: "nomor_po",
       width: 140,
-      render: (text) => <span className="font-mono text-xs">{text || "-"}</span>,
+      render: (text) => (
+        <span className="font-mono text-xs">{text || "-"}</span>
+      ),
     },
   ];
 
   const summaryCards = [
-    { label: "Total Data", value: summary?.total_data ?? 0, tone: "text-slate-800" },
+    {
+      label: "Total Data",
+      value: summary?.total_data ?? 0,
+      tone: "text-slate-800",
+    },
     {
       label: "Sukses",
       value: summary?.total_success ?? 0,
@@ -212,6 +293,10 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
   ];
 
   const hasResult = Boolean(summary);
+
+  // Label tab: saat mencari tampil "cocok dari total", mis. "Sukses (3 dari 199)".
+  const countLabel = (filtered, total) =>
+    isSearching ? `${filtered} dari ${total}` : `${total}`;
 
   return (
     <Modal
@@ -243,7 +328,9 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
         >
           <Form.Item
             name="m_user_id"
-            label={<Text className="font-semibold text-slate-700">User Id</Text>}
+            label={
+              <Text className="font-semibold text-slate-700">User Id</Text>
+            }
             rules={[
               { required: true, message: "User Id wajib diisi." },
               {
@@ -318,19 +405,35 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
               ))}
             </div>
 
+            {/* Pencarian di data yang sudah dimuat (tanpa memanggil API lagi) */}
+            <Input
+              allowClear
+              size="large"
+              prefix={<SearchOutlined className="text-slate-400" />}
+              placeholder="Cari nomor ID, bundle, nomor PO, atau nomor GR..."
+              value={searchText}
+              onChange={handleSearchTextChange}
+              className="rounded-lg"
+            />
+
             <Tabs
               defaultActiveKey="success"
               items={[
                 {
                   key: "success",
-                  label: `Sukses (${successRows.length})`,
+                  label: `Sukses (${countLabel(filteredSuccessRows.length, successRows.length)})`,
                   children: (
                     <Table
                       size="small"
                       rowKey={(row) => row.nomor_id ?? row.bundle_id}
-                      dataSource={successRows}
+                      dataSource={filteredSuccessRows}
                       columns={successColumns}
-                      pagination={{ pageSize: 10, size: "small" }}
+                      pagination={{
+                        current: successPage,
+                        onChange: (page) => setSuccessPage(page),
+                        pageSize: 10,
+                        size: "small",
+                      }}
                       scroll={{ x: 1400 }}
                       expandable={{
                         expandedRowRender: (row) =>
@@ -354,22 +457,35 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
                           Array.isArray(row.rincian_biaya) &&
                           row.rincian_biaya.length > 0,
                       }}
-                      locale={{ emptyText: "Tidak ada bundle yang siap di-invoice." }}
+                      locale={{
+                        emptyText: isSearching
+                          ? "Tidak ada data yang cocok dengan pencarian."
+                          : "Tidak ada bundle yang siap di-invoice.",
+                      }}
                     />
                   ),
                 },
                 {
                   key: "error",
-                  label: `Error (${errorRows.length})`,
+                  label: `Error (${countLabel(filteredErrorRows.length, errorRows.length)})`,
                   children: (
                     <Table
                       size="small"
                       rowKey={(row) => row.nomor_id ?? row.bundle_id}
-                      dataSource={errorRows}
+                      dataSource={filteredErrorRows}
                       columns={errorColumns}
-                      pagination={{ pageSize: 10, size: "small" }}
+                      pagination={{
+                        current: errorPage,
+                        onChange: (page) => setErrorPage(page),
+                        pageSize: 10,
+                        size: "small",
+                      }}
                       scroll={{ x: 800 }}
-                      locale={{ emptyText: "Tidak ada bundle bermasalah." }}
+                      locale={{
+                        emptyText: isSearching
+                          ? "Tidak ada data yang cocok dengan pencarian."
+                          : "Tidak ada bundle bermasalah.",
+                      }}
                     />
                   ),
                 },
