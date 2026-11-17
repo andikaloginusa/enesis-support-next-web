@@ -271,6 +271,9 @@ export default function ProposalFromSapPage() {
     uploadProposalSapBrand,
     isUploadingProposalSapBrand,
     uploadProposalSapBrandResult,
+    uploadProposalSapGlAccount,
+    isUploadingProposalSapGlAccount,
+    uploadProposalSapGlAccountResult,
   } = useProposalFromSap();
 
   // ── Search State ──
