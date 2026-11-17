@@ -7,7 +7,6 @@ import {
   DownloadOutlined,
   EditOutlined,
   EyeOutlined,
-  FileExcelOutlined,
   ReloadOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
@@ -23,7 +22,6 @@ import { renderDateTime } from "@/components/ui/ColumnRenderers";
 import { DeliveryOrderDetailModal } from "@/components/features/delivery-order/DeliveryOrderDetailModal";
 import { UpdateDeliveryOrderStatusModal } from "@/components/features/delivery-order/UpdateDeliveryOrderStatusModal";
 import { UploadDeliveryOrderStatusModal } from "@/components/features/delivery-order/UploadDeliveryOrderStatusModal";
-import { BundleReadyInvoiceModal } from "@/components/features/delivery-order/BundleReadyInvoiceModal";
 import { useDeliveryOrderExcelUpload } from "@/hooks/queries/useDeliveryOrderExcelUpload";
 import {
   DELIVERY_ORDER_BUNDLE_FIELD,
@@ -185,7 +183,6 @@ export default function DeliveryOrderPage() {
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isBundleReadyOpen, setIsBundleReadyOpen] = useState(false);
 
   // ── Action Handlers ──
 
@@ -232,9 +229,7 @@ export default function DeliveryOrderPage() {
         `"${activeRow?.[DELIVERY_ORDER_BUNDLE_FIELD] ?? "-"}" menjadi ` +
         `"${option?.label ?? kode_status} (${kode_status})"? ` +
         `Perubahan akan langsung tercatat ke dalam sistem.` +
-        (keterangan_perubahan
-          ? ` Keterangan: "${keterangan_perubahan}".`
-          : ""),
+        (keterangan_perubahan ? ` Keterangan: "${keterangan_perubahan}".` : ""),
       okText: "Ya, Perbarui Status",
       onConfirm: async () => {
         try {
@@ -269,9 +264,7 @@ export default function DeliveryOrderPage() {
         `memperbarui status Delivery Order secara massal? ` +
         `Seluruh baris dalam file akan diproses — bila ada satu baris tidak ` +
         `valid, tidak ada data yang diperbarui.` +
-        (keterangan_perubahan
-          ? ` Keterangan: "${keterangan_perubahan}".`
-          : ""),
+        (keterangan_perubahan ? ` Keterangan: "${keterangan_perubahan}".` : ""),
       okText: "Ya, Upload",
       onConfirm: async () => {
         try {
@@ -313,20 +306,6 @@ export default function DeliveryOrderPage() {
         }}
         extraHeaderActions={
           <Space size="middle" wrap>
-            <Tooltip title="Tampilkan daftar bundle yang siap di-invoice">
-              <Button
-                type="primary"
-                size="large"
-                icon={<FileExcelOutlined />}
-                onClick={() => setIsBundleReadyOpen(true)}
-                style={{
-                  backgroundColor: BRAND_FOCUS_COLOR,
-                  borderColor: BRAND_FOCUS_COLOR,
-                }}
-              >
-                Get List Bundle Ready Invoice
-              </Button>
-            </Tooltip>
             <Tooltip title="Unduh template Excel update status Delivery Order">
               <a
                 href={DELIVERY_ORDER_TEMPLATE_URL}
@@ -350,7 +329,7 @@ export default function DeliveryOrderPage() {
                 size="large"
                 icon={<UploadOutlined />}
                 onClick={openUploadModal}
-                className="border-blue-500 text-blue-600 hover:bg-blue-50 hover:border-blue-600"
+                className="text-blue-600 border-blue-500 hover:bg-blue-50 hover:border-blue-600"
               >
                 Upload Update Status DO
               </Button>
@@ -397,12 +376,6 @@ export default function DeliveryOrderPage() {
         onSubmit={handleUploadSubmit}
         confirmLoading={isUploading}
         errorDetails={errorDetails}
-      />
-
-      {/* Bundle Ready Invoice Modal */}
-      <BundleReadyInvoiceModal
-        open={isBundleReadyOpen}
-        onClose={() => setIsBundleReadyOpen(false)}
       />
     </>
   );

@@ -75,6 +75,13 @@ export const useMenuItems = () => {
           key: "delivery-order",
           icon: <FileText className="w-5 h-5 text-cyan-600" />,
         },
+        {
+          label: (
+            <Link href="/delivery-order/bundle-ready">Bundle Ready Invoice</Link>
+          ),
+          key: "bundle-ready",
+          icon: <FileText className="w-5 h-5 text-emerald-600" />,
+        },
       ],
     },
     {

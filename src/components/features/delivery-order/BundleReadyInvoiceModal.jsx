@@ -4,57 +4,29 @@ import React, { useMemo, useState } from "react";
 import {
   Alert,
   Button,
+  Descriptions,
   Form,
   Input,
   Modal,
   Spin,
   Table,
-  Tabs,
+  Tag,
   Typography,
 } from "antd";
 import { SearchOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { useBundleReadyInvoice } from "@/hooks/queries/useBundleReadyInvoice";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   renderCurrency,
   renderDateTime,
 } from "@/components/ui/ColumnRenderers";
+import { renderMono } from "@/components/ui";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
 const { Text } = Typography;
 
-// Kolom yang dicari oleh kotak pencarian (per tab).
-const SUCCESS_SEARCH_FIELDS = ["nomor_id", "bundle_id", "nomor_po", "nomor_gr"];
-const ERROR_SEARCH_FIELDS = [
-  "nomor_id",
-  "bundle_id",
-  "console_number",
-  "pesan",
-];
-
 /**
- * Filter baris di sisi client. Cocok bila keyword (tidak case-sensitive)
- * ada di salah satu kolom pada `fields`. Keyword kosong = semua baris.
- */
-function filterRows(rows, keyword, fields) {
-  const q = keyword.trim().toLowerCase();
-  if (!q) return rows;
-  return rows.filter((row) =>
-    fields.some((field) =>
-      String(row?.[field] ?? "")
-        .toLowerCase()
-        .includes(q),
-    ),
-  );
-}
-
-/**
- * BundleReadyInvoiceModal — Daftar bundle yang siap di-invoice untuk sebuah user.
- *
- * Endpoint ini mewajibkan `m_user_id` sebagai input user (berbeda dengan
- * `m_user_id` logged-in pada endpoint update). Setelah user mengisi ID dan
- * menekan "Tampilkan", ringkasan serta tab Sukses/Error tampil di modal yang
- * sama. Data yang sudah tampil bisa dicari lewat kotak pencarian (nomor ID,
- * bundle, nomor PO, nomor GR) tanpa memanggil API lagi.
+ * BundleReadyInvoiceModal — Modal daftar bundle ready invoice (error-only response).
  *
  * @param {Object}   props
  * @param {boolean}  props.open
@@ -64,73 +36,87 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
   const [form] = Form.useForm();
   const [submittedUserId, setSubmittedUserId] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [successPage, setSuccessPage] = useState(1);
-  const [errorPage, setErrorPage] = useState(1);
+  const [page, setPage] = useState(1);
 
-  const { summary, successRows, errorRows, isLoading, isFetching, error } =
+  const debouncedSearch = useDebounce(searchText, 400);
+
+  const { errorRows, message, total, isLoading, isFetching, error } =
     useBundleReadyInvoice({
       mUserId: submittedUserId,
+      searchText: debouncedSearch,
       enabled: open && Boolean(submittedUserId),
     });
 
-  const isSearching = searchText.trim() !== "";
-
-  const filteredSuccessRows = useMemo(
-    () => filterRows(successRows, searchText, SUCCESS_SEARCH_FIELDS),
-    [successRows, searchText],
-  );
-  const filteredErrorRows = useMemo(
-    () => filterRows(errorRows, searchText, ERROR_SEARCH_FIELDS),
-    [errorRows, searchText],
-  );
-
-  const resetSearch = () => {
+  const handleClose = () => {
+    form.resetFields();
+    setSubmittedUserId("");
     setSearchText("");
-    setSuccessPage(1);
-    setErrorPage(1);
-  };
-
-  const handleSearchTextChange = (e) => {
-    setSearchText(e.target.value);
-    // Hasil filter bisa lebih sedikit dari jumlah halaman saat ini → balik ke halaman 1.
-    setSuccessPage(1);
-    setErrorPage(1);
+    setPage(1);
+    onClose?.();
   };
 
   const handleSearch = async () => {
     try {
       const values = await form.validateFields();
-      resetSearch(); // data baru → pencarian lama tidak relevan
+      setSearchText("");
+      setPage(1);
       setSubmittedUserId(values.m_user_id.trim());
     } catch {
       /* validation errors surfaced inline by Ant Design */
     }
   };
 
-  const handleClose = () => {
-    form.resetFields();
-    setSubmittedUserId("");
-    resetSearch();
-    onClose?.();
-  };
-
-  const successColumns = [
+  const errorColumns = [
     {
       title: "Nomor ID",
       dataIndex: "nomor_id",
       key: "nomor_id",
       width: 140,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
+      fixed: "left",
+      render: (text) => renderMono(text || "-"),
+    },
+    {
+      title: "Console Number",
+      dataIndex: "console_number",
+      key: "console_number",
+      width: 150,
+      render: (text) => renderMono(text || "-"),
+    },
+    {
+      title: "Sumber",
+      dataIndex: "sumber",
+      key: "sumber",
+      width: 110,
+      render: (text) => {
+        const isSap = String(text).toUpperCase() === "SAP";
+        return (
+          <Tag color={isSap ? "blue" : "purple"} className="font-semibold">
+            {text || "-"}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: "Kategori Validasi",
+      dataIndex: "kategori_label",
+      key: "kategori_label",
+      width: 200,
+      render: (text, row) => (
+        <Tag
+          color={String(row.sumber).toUpperCase() === "SAP" ? "error" : "warning"}
+          className="whitespace-normal"
+        >
+          {text || row.kategori || "-"}
+        </Tag>
       ),
     },
     {
-      title: "Bundle",
-      dataIndex: "bundle_id",
-      key: "bundle_id",
-      width: 120,
+      title: "Pesan Kesalahan",
+      dataIndex: "pesan",
+      key: "pesan",
+      width: 320,
       render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
+        <span className="text-xs text-rose-600 font-medium">{text || "-"}</span>
       ),
     },
     {
@@ -138,42 +124,26 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       dataIndex: "nomor_po",
       key: "nomor_po",
       width: 140,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
+      render: (text) => renderMono(text || "-"),
     },
     {
       title: "Nomor GR",
       dataIndex: "nomor_gr",
       key: "nomor_gr",
       width: 140,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
+      render: (text) => renderMono(text || "-"),
     },
     {
-      title: "Biaya Tambahan",
-      dataIndex: "additional_cost",
-      key: "additional_cost",
-      align: "right",
-      width: 150,
-      render: (text) => renderCurrency(text),
-    },
-    {
-      title: "Onkos Kirim",
-      dataIndex: "cost_shipment",
-      key: "cost_shipment",
-      align: "right",
-      width: 150,
-      render: (text) => renderCurrency(text),
-    },
-    {
-      title: "Total",
-      dataIndex: "total",
-      key: "total",
-      align: "right",
-      width: 150,
-      render: (text) => renderCurrency(text, "blue"),
+      title: "Kendaraan",
+      key: "kendaraan",
+      width: 140,
+      render: (_, row) => {
+        const parts = [
+          row.jenis_kendaraan,
+          row.kode_kendaraan ? `(${row.kode_kendaraan})` : null,
+        ].filter(Boolean);
+        return <span className="text-xs">{parts.join(" ") || "-"}</span>;
+      },
     },
     {
       title: "Tgl POD Transporter",
@@ -183,120 +153,71 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       render: (text) => renderDateTime(text),
     },
     {
-      title: "Pesan",
-      dataIndex: "pesan",
-      key: "pesan",
-      width: 200,
-      render: (text) =>
-        text ? (
-          <span className="text-xs">{text}</span>
-        ) : (
-          <span className="text-slate-400">—</span>
-        ),
-    },
-  ];
-
-  const errorColumns = [
-    {
-      title: "Nomor ID",
-      dataIndex: "nomor_id",
-      key: "nomor_id",
+      title: "Total",
+      dataIndex: "total",
+      key: "total",
       width: 140,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
-    },
-    {
-      title: "Bundle",
-      dataIndex: "bundle_id",
-      key: "bundle_id",
-      width: 120,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
-    },
-    {
-      title: "Console Number",
-      dataIndex: "console_number",
-      key: "console_number",
-      width: 150,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
-    },
-    {
-      title: "Pesan",
-      dataIndex: "pesan",
-      key: "pesan",
-      render: (text) => (
-        <span className="text-xs text-red-600">{text || "-"}</span>
-      ),
-    },
-  ];
-
-  const rincianBiayaColumns = [
-    {
-      title: "Keterangan",
-      dataIndex: "keterangan",
-      key: "keterangan",
-      render: (text) => <span className="text-xs">{text || "-"}</span>,
-    },
-    {
-      title: "Nominal",
-      dataIndex: "nominal",
-      key: "nominal",
       align: "right",
-      width: 140,
-      render: (text) => renderCurrency(text),
-    },
-    {
-      title: "Nomor GR",
-      dataIndex: "nomor_gr",
-      key: "nomor_gr",
-      width: 130,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
-    },
-    {
-      title: "Kode Item",
-      dataIndex: "kode_item",
-      key: "kode_item",
-      width: 120,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
-    },
-    {
-      title: "Nomor PO",
-      dataIndex: "nomor_po",
-      key: "nomor_po",
-      width: 140,
-      render: (text) => (
-        <span className="font-mono text-xs">{text || "-"}</span>
-      ),
+      render: (text) => renderCurrency(text, "blue"),
     },
   ];
 
-  const summaryCards = [
-    {
-      label: "Total Data",
-      value: summary?.total_data ?? 0,
-      tone: "text-slate-800",
-    },
-    {
-      label: "Sukses",
-      value: summary?.total_success ?? 0,
-      tone: "text-emerald-600",
-    },
-    { label: "Error", value: summary?.total_error ?? 0, tone: "text-red-500" },
-  ];
+  const renderDetail = (record) => {
+    const detail = record.detail;
+    if (!detail || typeof detail !== "object" || Object.keys(detail).length === 0) {
+      return (
+        <Text className="text-slate-400 text-xs italic">
+          Tidak ada detail tambahan.
+        </Text>
+      );
+    }
 
-  const hasResult = Boolean(summary);
+    if (Array.isArray(detail.status_do) && detail.status_do.length > 0) {
+      return (
+        <div className="p-3 bg-slate-50 rounded-lg space-y-2">
+          <Text className="block text-xs font-bold text-slate-700">
+            Status DO:
+          </Text>
+          <div className="flex gap-2 flex-wrap">
+            {detail.status_do.map((item, idx) => (
+              <Tag key={idx} color="orange">
+                {item.kode_status}: {item.total} DO
+              </Tag>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
-  // Label tab: saat mencari tampil "cocok dari total", mis. "Sukses (3 dari 199)".
-  const countLabel = (filtered, total) =>
-    isSearching ? `${filtered} dari ${total}` : `${total}`;
+    if (detail.EBELN !== undefined || detail.MBLNR !== undefined) {
+      return (
+        <div className="p-3 bg-slate-50 rounded-lg space-y-2">
+          <Text className="block text-xs font-bold text-slate-700">
+            Detail SAP:
+          </Text>
+          <Descriptions
+            size="small"
+            bordered
+            items={[
+              { key: "ebeln", label: "Nomor PO", children: renderMono(detail.EBELN || "-") },
+              { key: "itemr", label: "Item", children: renderMono(detail.ITEMR || "-") },
+              { key: "gjahr", label: "Tahun", children: renderMono(detail.GJAHR || "-") },
+              { key: "mblnr", label: "Doc GR", children: renderMono(detail.MBLNR || "-") },
+              { key: "netwr", label: "Net Amount", children: renderCurrency(detail.NETWR) },
+            ]}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <pre className="text-xs bg-slate-50 p-2 rounded overflow-x-auto text-slate-600">
+        {JSON.stringify(detail, null, 2)}
+      </pre>
+    );
+  };
+
+  const hasSubmitted = Boolean(submittedUserId);
 
   return (
     <Modal
@@ -315,11 +236,11 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
           </Button>
         </div>
       }
-      width={1080}
+      width={1100}
       destroyOnHidden
       className="[&_.ant-modal-content]:rounded-xl"
     >
-      <div className="py-4 space-y-5">
+      <div className="py-4 space-y-4">
         <Form
           form={form}
           layout="inline"
@@ -329,14 +250,14 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
           <Form.Item
             name="m_user_id"
             label={
-              <Text className="font-semibold text-slate-700">User Id</Text>
+              <Text className="font-semibold text-slate-700">User ID</Text>
             }
             rules={[
-              { required: true, message: "User Id wajib diisi." },
+              { required: true, message: "User ID wajib diisi." },
               {
                 validator: (_, value) =>
                   value && !value.trim()
-                    ? Promise.reject(new Error("User Id wajib diisi."))
+                    ? Promise.reject(new Error("User ID wajib diisi."))
                     : Promise.resolve(),
               },
             ]}
@@ -344,7 +265,7 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
           >
             <Input
               size="large"
-              placeholder="Masukkan User Id..."
+              placeholder="Masukkan User ID..."
               className="rounded-lg w-full"
             />
           </Form.Item>
@@ -376,6 +297,20 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
           />
         )}
 
+        {hasSubmitted && !error && message && (
+          <Alert
+            type={total > 0 ? "warning" : "success"}
+            showIcon
+            message={message}
+            description={
+              total > 0
+                ? `Ditemukan ${total} data error pada bundle ready invoice.`
+                : "Tidak ada data error ditemukan."
+            }
+            className="rounded-xl"
+          />
+        )}
+
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <Spin size="large" />
@@ -385,119 +320,49 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
           </div>
         )}
 
-        {!isLoading && hasResult && (
+        {!isLoading && hasSubmitted && (
           <>
-            <div className="grid grid-cols-3 gap-4">
-              {summaryCards.map((card) => (
-                <div
-                  key={card.label}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
-                >
-                  <Text className="block text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    {card.label}
-                  </Text>
-                  <Text
-                    className={`block text-2xl font-extrabold mt-1 ${card.tone}`}
-                  >
-                    {card.value}
-                  </Text>
-                </div>
-              ))}
-            </div>
-
-            {/* Pencarian di data yang sudah dimuat (tanpa memanggil API lagi) */}
             <Input
               allowClear
               size="large"
               prefix={<SearchOutlined className="text-slate-400" />}
-              placeholder="Cari nomor ID, bundle, nomor PO, atau nomor GR..."
+              placeholder="Cari nomor ID, console number, atau nomor PO..."
               value={searchText}
-              onChange={handleSearchTextChange}
+              onChange={(e) => setSearchText(e.target.value)}
               className="rounded-lg"
             />
 
-            <Tabs
-              defaultActiveKey="success"
-              items={[
-                {
-                  key: "success",
-                  label: `Sukses (${countLabel(filteredSuccessRows.length, successRows.length)})`,
-                  children: (
-                    <Table
-                      size="small"
-                      rowKey={(row) => row.nomor_id ?? row.bundle_id}
-                      dataSource={filteredSuccessRows}
-                      columns={successColumns}
-                      pagination={{
-                        current: successPage,
-                        onChange: (page) => setSuccessPage(page),
-                        pageSize: 10,
-                        size: "small",
-                      }}
-                      scroll={{ x: 1400 }}
-                      expandable={{
-                        expandedRowRender: (row) =>
-                          Array.isArray(row.rincian_biaya) &&
-                          row.rincian_biaya.length > 0 ? (
-                            <Table
-                              size="small"
-                              rowKey={(item, index) =>
-                                `${item.nomor_gr ?? "row"}-${index}`
-                              }
-                              dataSource={row.rincian_biaya}
-                              columns={rincianBiayaColumns}
-                              pagination={false}
-                            />
-                          ) : (
-                            <Text className="text-slate-400 text-xs">
-                              Tidak ada rincian biaya untuk bundle ini.
-                            </Text>
-                          ),
-                        rowExpandable: (row) =>
-                          Array.isArray(row.rincian_biaya) &&
-                          row.rincian_biaya.length > 0,
-                      }}
-                      locale={{
-                        emptyText: isSearching
-                          ? "Tidak ada data yang cocok dengan pencarian."
-                          : "Tidak ada bundle yang siap di-invoice.",
-                      }}
-                    />
-                  ),
-                },
-                {
-                  key: "error",
-                  label: `Error (${countLabel(filteredErrorRows.length, errorRows.length)})`,
-                  children: (
-                    <Table
-                      size="small"
-                      rowKey={(row) => row.nomor_id ?? row.bundle_id}
-                      dataSource={filteredErrorRows}
-                      columns={errorColumns}
-                      pagination={{
-                        current: errorPage,
-                        onChange: (page) => setErrorPage(page),
-                        pageSize: 10,
-                        size: "small",
-                      }}
-                      scroll={{ x: 800 }}
-                      locale={{
-                        emptyText: isSearching
-                          ? "Tidak ada data yang cocok dengan pencarian."
-                          : "Tidak ada bundle bermasalah.",
-                      }}
-                    />
-                  ),
-                },
-              ]}
+            <Table
+              size="small"
+              rowKey={(row, idx) => row.nomor_id ?? row.console_number ?? idx}
+              dataSource={errorRows}
+              columns={errorColumns}
+              pagination={{
+                current: page,
+                onChange: (p) => setPage(p),
+                pageSize: 10,
+                size: "small",
+                total: errorRows.length,
+              }}
+              scroll={{ x: 1300 }}
+              expandable={{
+                expandedRowRender: renderDetail,
+                rowExpandable: (row) =>
+                  Boolean(row.detail && Object.keys(row.detail).length > 0),
+              }}
+              locale={{
+                emptyText: searchText.trim()
+                  ? "Tidak ada data yang cocok dengan pencarian."
+                  : "Tidak ada data error bundle ready invoice.",
+              }}
             />
           </>
         )}
 
-        {!isLoading && !hasResult && !error && (
+        {!isLoading && !hasSubmitted && !error && (
           <div className="rounded-xl border border-dashed border-slate-200 py-12 text-center">
             <Text className="block text-slate-400 text-sm">
-              Masukkan User Id lalu klik &quot;Tampilkan&quot; untuk melihat
+              Masukkan User ID lalu klik &quot;Tampilkan&quot; untuk melihat
               daftar bundle ready invoice.
             </Text>
           </div>
