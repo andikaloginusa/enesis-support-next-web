@@ -226,7 +226,7 @@ export function CekProposalFromSapModal({ open, onClose, initialKodeEpropSap = "
         {error && !loading && (
           <Alert
             type="error"
-            message="Gagal Memuat Data"
+            title="Gagal Memuat Data"
             description={error}
             showIcon
             className="rounded-xl"
@@ -239,7 +239,7 @@ export function CekProposalFromSapModal({ open, onClose, initialKodeEpropSap = "
             {/* Header info */}
             <Alert
               type="info"
-              message="Data Budget Proposal dari SAP"
+              title="Data Budget Proposal dari SAP"
               description={`Kode: ${submittedKode}`}
               showIcon
               className="rounded-xl [&_.ant-alert-info]:bg-blue-50/70 [&_.ant-alert-info]:border-blue-100"
@@ -257,7 +257,7 @@ export function CekProposalFromSapModal({ open, onClose, initialKodeEpropSap = "
               <Alert
                 type="warning"
                 icon={<WarningOutlined />}
-                message="Budget Minus"
+                title="Budget Minus"
                 description={`Sisa budget menunjukkan nilai negatif sebesar ${formatRupiah(data.sisa_budget)}. Klaim e-proposal melebihi total nominal budget yang tersedia.`}
                 showIcon
                 className="rounded-xl [&_.ant-alert-warning]:bg-amber-50/80 [&_.ant-alert-warning]:border-amber-200"
