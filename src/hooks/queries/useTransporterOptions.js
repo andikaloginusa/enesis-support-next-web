@@ -14,15 +14,20 @@ import { useDebounce } from "@/hooks/useDebounce";
  *
  * @param {Object}   [options]
  * @param {string}   [options.searchText] - Pencarian `nama` atau `kode` transporter
+ * @param {number}   [options.pageSize]  - Jumlah opsi per request (default 20)
  * @param {boolean}  [options.enabled]    - Aktif/nonaktifkan query
  */
-export const useTransporterOptions = ({ searchText = "", enabled = true } = {}) => {
+export const useTransporterOptions = ({
+  searchText = "",
+  pageSize = 20,
+  enabled = true,
+} = {}) => {
   // Debounce di dalam hook supaya semua pemakai mendapat perilaku yang sama.
   const debouncedSearch = useDebounce(searchText, 300);
   const cleanSearch = debouncedSearch?.trim() || "";
   const params = {
     currentPage: 1,
-    pageSize: 20,
+    pageSize,
     ...(cleanSearch ? { searchText: cleanSearch } : {}),
   };
 

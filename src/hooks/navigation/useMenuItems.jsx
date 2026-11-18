@@ -102,6 +102,18 @@ export const useMenuItems = () => {
       ],
     },
     {
+      label: "Driver Support",
+      key: "driver-support",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/driver">Driver</Link>,
+          key: "driver",
+          icon: <FileText className="w-5 h-5 text-sky-600" />,
+        },
+      ],
+    },
+    {
       label: "Master Data",
       key: "master-data",
       theme: subMenuTheme,

@@ -171,6 +171,11 @@ export const NOTIF_MESSAGES = {
   FETCH_BUNDLE_READY_ERROR: "Gagal mengambil daftar Bundle Ready Invoice",
   FETCH_TRANSPORTER_ERROR: "Gagal mengambil daftar transporter",
 
+  // Driver
+  FETCH_DRIVER_ERROR: "Gagal mengambil daftar driver",
+  UPDATE_DRIVER_TRANSPORTER_SUCCESS: "Transporter Driver Berhasil Diperbarui",
+  UPDATE_DRIVER_TRANSPORTER_ERROR: "Gagal Memperbarui Transporter Driver",
+
   // Generic fallbacks
   GENERIC_SUCCESS: "Operasi berhasil",
   GENERIC_ERROR: "Terjadi kesalahan. Silakan coba lagi.",

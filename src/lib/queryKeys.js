@@ -106,6 +106,16 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Driver (master)
+  // ─────────────────────────────────────────────
+  driver: {
+    /** Matches ALL driver queries */
+    all: () => ["driver"],
+    /** Matches the driver list with search params */
+    list: (params) => ["driver", "list", params],
+  },
+
+  // ─────────────────────────────────────────────
   // User Profile
   // ─────────────────────────────────────────────
   user: {
