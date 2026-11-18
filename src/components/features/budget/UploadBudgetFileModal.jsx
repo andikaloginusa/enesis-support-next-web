@@ -45,7 +45,6 @@ export function UploadBudgetFileModal({
   accentColor = "emerald",
 }) {
   const { confirmAction } = useConfirm();
-  const { notification } = App.useApp();
   const [selectedFile, setSelectedFile] = React.useState(null);
   const [fileError, setFileError] = React.useState("");
 
