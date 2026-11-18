@@ -18,4 +18,5 @@ export * from "./queries/usePartnerBankDetail";
 export * from "./queries/useDeliveryOrder";
 export * from "./queries/useDeliveryOrderDetail";
 export * from "./queries/useBundleReadyInvoice";
+export * from "./queries/useTransporterOptions";
 export * from "./queries/useDeliveryOrderExcelUpload";

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  AutoComplete,
   Button,
   Card,
   Descriptions,
@@ -18,19 +19,44 @@ import {
   SearchOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
 import { useBundleReadyInvoice } from "@/hooks/queries/useBundleReadyInvoice";
-import { useDebounce } from "@/hooks/useDebounce";
-import { getUserId } from "@/utils/storage";
-import {
-  DataTablePanel,
-  renderCurrency,
-  renderMono,
-} from "@/components/ui";
+import { useTransporterOptions } from "@/hooks/queries/useTransporterOptions";
+import { DataTablePanel, renderCurrency, renderMono } from "@/components/ui";
 import { renderDateTime } from "@/components/ui/ColumnRenderers";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
+import {
+  buildBundleReadyCacheKey,
+  getLastTransporterCode,
+  readBundleReadyCache,
+  setLastTransporterCode,
+  writeBundleReadyCache,
+} from "@/utils/bundleReadyCache";
 
 const { Text } = Typography;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CATEGORY_COLOR = {
+  VALIDASI_LOKAL: "warning",
+  SAP_BISNIS: "error",
+  SAP_FAULT: "purple",
+  SAP_HTTP: "volcano",
+  SAP_PARSE: "magenta",
+  SAP_FORMAT: "geekblue",
+  JARINGAN: "cyan",
+};
+
+const formatTimestamp = (value) =>
+  value
+    ? new Date(value).toLocaleString("id-ID", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : "-";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Column Definitions
@@ -222,48 +248,159 @@ const renderDetail = (record) => {
 
 export default function BundleReadyInvoicePage() {
   const [form] = Form.useForm();
-  const [submittedUserId, setSubmittedUserId] = useState("");
-  const [searchValue, setSearchValue] = useState("");
+
+  // Kode transporter yang sedang aktif (dikirim ke server)
+  const [submittedTransporter, setSubmittedTransporter] = useState("");
+  // Teks yang diketik pada input transporter (mencari opsi)
+  const [transporterInput, setTransporterInput] = useState("");
+  const [selectedTransporter, setSelectedTransporter] = useState(null);
+
+  // Pencarian server (nomor ID) — dikirim ke backend agar SAP tidak memeriksa semua baris
+  const [serverSearchInput, setServerSearchInput] = useState("");
+  const [serverSearch, setServerSearch] = useState("");
+  // Pencarian lokal — instan, hanya menyaring baris yang sudah dimuat
+  const [localSearch, setLocalSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Debounce kata kunci pencarian agar API tidak dipanggil setiap ketikan
-  const debouncedSearch = useDebounce(searchValue, 400);
+  const { options: transporterOptions } = useTransporterOptions({
+    searchText: transporterInput,
+  });
 
-  // Inisialisasi User ID dari login storage saat render di client
-  useEffect(() => {
-    const defaultUserId = getUserId();
-    if (defaultUserId) {
-      form.setFieldsValue({ m_user_id: defaultUserId });
-    }
-  }, [form]);
-
-  // Hook query dengan mUserId dan searchText
   const {
-    errorRows,
-    message,
-    total,
+    errorRows: liveRows,
+    message: liveMessage,
+    total: liveTotal,
+    hasLiveData,
+    dataUpdatedAt,
     isLoading,
     isFetching,
     error,
     refetch,
   } = useBundleReadyInvoice({
-    mUserId: submittedUserId,
-    searchText: debouncedSearch,
-    enabled: Boolean(submittedUserId),
+    kodeTransporter: submittedTransporter,
+    searchText: serverSearch,
+    enabled: Boolean(submittedTransporter),
   });
 
-  // Saat searchText berubah, kembali ke halaman pertama
+  // ── Cache lokal: hasil terakhir disimpan agar halaman terisi instan ──
+  const cacheKey = useMemo(
+    () => buildBundleReadyCacheKey(submittedTransporter, serverSearch),
+    [submittedTransporter, serverSearch]
+  );
+  const snapshot = useMemo(() => readBundleReadyCache(cacheKey), [cacheKey]);
+
+  useEffect(() => {
+    if (!hasLiveData) return;
+    writeBundleReadyCache(cacheKey, {
+      rows: liveRows,
+      message: liveMessage,
+      total: liveTotal,
+    });
+  }, [hasLiveData, cacheKey, liveRows, liveMessage, liveTotal]);
+
+  // Kode transporter terakhir yang dipakai dipulihkan saat halaman dibuka
+  useEffect(() => {
+    const lastCode = getLastTransporterCode();
+    if (!lastCode) return;
+    form.setFieldsValue({ kode_transporter: lastCode });
+    setTransporterInput(lastCode);
+    setSubmittedTransporter(lastCode);
+  }, [form]);
+
+  const isSnapshotMode = !hasLiveData && Boolean(snapshot);
+  const rows = useMemo(
+    () => (hasLiveData ? liveRows : (snapshot?.rows ?? [])),
+    [hasLiveData, liveRows, snapshot]
+  );
+  const total = hasLiveData ? liveTotal : (snapshot?.total ?? rows.length);
+  const message = hasLiveData ? liveMessage : (snapshot?.message ?? "");
+  const lastUpdatedAt = hasLiveData ? dataUpdatedAt : (snapshot?.savedAt ?? null);
+
+  // ── Opsi transporter (memoized agar dropdown tidak berkedip) ──
+  const transporterChoices = useMemo(
+    () =>
+      transporterOptions.map((item) => ({
+        value: String(item.kode ?? ""),
+        label: (
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-mono font-semibold text-slate-700">
+              {item.kode}
+            </span>
+            <span className="text-xs text-slate-500 truncate">{item.nama}</span>
+          </div>
+        ),
+      })),
+    [transporterOptions]
+  );
+
+  // ── Statistik per kategori (memoized) ──
+  const categoryStats = useMemo(() => {
+    const map = new Map();
+    rows.forEach((row) => {
+      const key = row.kategori || "LAINNYA";
+      const current = map.get(key);
+      if (current) {
+        current.count += 1;
+      } else {
+        map.set(key, {
+          kategori: key,
+          label: row.kategori_label || key,
+          count: 1,
+        });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [rows]);
+
+  // ── Penyaringan lokal (memoized, instan tanpa memanggil server) ──
+  const visibleRows = useMemo(() => {
+    const keyword = localSearch.trim().toLowerCase();
+    return rows.filter((row) => {
+      if (activeCategory && row.kategori !== activeCategory) return false;
+      if (!keyword) return true;
+      return [
+        row.nomor_id,
+        row.console_number,
+        row.nomor_po,
+        row.nomor_gr,
+        row.pesan,
+        row.kategori_label,
+        row.kategori,
+        row.sumber,
+      ].some((value) =>
+        String(value ?? "").toLowerCase().includes(keyword)
+      );
+    });
+  }, [rows, localSearch, activeCategory]);
+
+  // ── Effect: reset pagination saat filter berubah ──
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch]);
+  }, [serverSearch, localSearch, activeCategory]);
 
-  const handleSubmitUserId = (values) => {
-    const rawId = values?.m_user_id?.trim();
-    if (rawId) {
-      setSubmittedUserId(rawId);
-      setCurrentPage(1);
-    }
+  const handleSubmit = (values) => {
+    const kode = String(values?.kode_transporter ?? "").trim();
+    if (!kode) return;
+    setLastTransporterCode(kode);
+    setSubmittedTransporter(kode);
+    setSelectedTransporter(null);
+    setActiveCategory(null);
+    setLocalSearch("");
+    setCurrentPage(1);
+  };
+
+  const applyServerSearch = () => {
+    setServerSearch(serverSearchInput.trim());
+    setCurrentPage(1);
+  };
+
+  const clearServerSearch = () => {
+    setServerSearchInput("");
+    setServerSearch("");
+    setCurrentPage(1);
   };
 
   const handlePaginationChange = (page, newPageSize) => {
@@ -271,11 +408,83 @@ export default function BundleReadyInvoicePage() {
     setPageSize(newPageSize);
   };
 
-  const hasSubmitted = Boolean(submittedUserId);
+  const hasSubmitted = Boolean(submittedTransporter);
+
+  const filterBar = (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-end gap-3 flex-wrap">
+        <div className="flex flex-col gap-1 max-w-md">
+          <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+            Persempit pemeriksaan di server
+          </Text>
+          <Text className="text-xs text-slate-400">
+            Dikirim ke backend (mencocokkan nomor ID) supaya SAP hanya memeriksa
+            baris yang relevan. Tekan Enter untuk menerapkan.
+          </Text>
+        </div>
+        <Input
+          allowClear
+          value={serverSearchInput}
+          onChange={(e) => setServerSearchInput(e.target.value)}
+          onPressEnter={applyServerSearch}
+          placeholder="Nomor ID, misal: 81789"
+          prefix={<SearchOutlined className="text-slate-400" />}
+          className="w-72 max-w-full rounded-xl border-slate-200"
+          size="middle"
+        />
+        <Button onClick={applyServerSearch} disabled={!serverSearchInput.trim()}>
+          Terapkan
+        </Button>
+        {serverSearch && (
+          <Tag
+            closable
+            color="blue"
+            onClose={clearServerSearch}
+            className="mb-0"
+          >
+            Nomor ID: {serverSearch}
+          </Tag>
+        )}
+      </div>
+
+      {categoryStats.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mr-1">
+            Filter kategori
+          </Text>
+          <Tag
+            color={activeCategory === null ? "blue" : "default"}
+            className="cursor-pointer"
+            onClick={() => setActiveCategory(null)}
+          >
+            Semua ({rows.length})
+          </Tag>
+          {categoryStats.map((stat) => (
+            <Tag
+              key={stat.kategori}
+              color={
+                activeCategory === stat.kategori
+                  ? CATEGORY_COLOR[stat.kategori] ?? "blue"
+                  : "default"
+              }
+              className="cursor-pointer"
+              onClick={() =>
+                setActiveCategory((prev) =>
+                  prev === stat.kategori ? null : stat.kategori
+                )
+              }
+            >
+              {stat.label} ({stat.count})
+            </Tag>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-5">
-      {/* ── Form Input User ID ── */}
+      {/* ── Form Input Kode Transporter ── */}
       <Card
         variant="bordered"
         className="shadow-sm border-slate-200 rounded-2xl"
@@ -284,30 +493,45 @@ export default function BundleReadyInvoicePage() {
         <Form
           form={form}
           layout="inline"
-          onFinish={handleSubmitUserId}
+          onFinish={handleSubmit}
           className="flex items-center gap-3 flex-wrap w-full"
         >
           <Form.Item
-            name="m_user_id"
+            name="kode_transporter"
             label={
-              <Text className="font-semibold text-slate-700">User ID</Text>
+              <Text className="font-semibold text-slate-700">
+                Kode Transporter
+              </Text>
             }
             rules={[
-              { required: true, message: "User ID wajib diisi." },
-              {
-                validator: (_, value) =>
-                  value && !value.trim()
-                    ? Promise.reject(new Error("User ID tidak boleh kosong."))
-                    : Promise.resolve(),
-              },
+              { required: true, message: "Kode Transporter wajib diisi." },
             ]}
-            className="flex-1 min-w-[280px] mb-0"
+            className="flex-1 min-w-[320px] mb-0"
           >
-            <Input
+            <AutoComplete
               allowClear
-              placeholder="Masukkan User ID (UUID transporter / user)..."
-              className="rounded-xl border-slate-200"
+              options={transporterChoices}
+              filterOption={false}
+              onChange={(value) => {
+                setTransporterInput(value);
+                setSelectedTransporter(null);
+              }}
+              onSelect={(value) => {
+                const found = transporterOptions.find(
+                  (item) => String(item.kode) === String(value)
+                );
+                setSelectedTransporter(
+                  found ? { kode: found.kode, nama: found.nama } : null
+                );
+              }}
+              placeholder="Ketik kode atau nama transporter..."
+              className="w-full rounded-xl border-slate-200"
               size="middle"
+              notFoundContent={
+                <span className="text-xs text-slate-400">
+                  Transporter tidak ditemukan — kode tetap bisa diketik manual.
+                </span>
+              }
             />
           </Form.Item>
 
@@ -328,6 +552,18 @@ export default function BundleReadyInvoicePage() {
             </Button>
           </Form.Item>
         </Form>
+
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <Text className="text-xs text-slate-400">
+            Kode user ber-role TRANSPORTER (contoh: 3000026). Bundle yang
+            ditanyakan hanya milik transporter tersebut.
+          </Text>
+          {selectedTransporter?.nama && (
+            <Tag color="blue" className="m-0">
+              {selectedTransporter.nama}
+            </Tag>
+          )}
+        </div>
       </Card>
 
       {/* ── Notification / Status Alert ── */}
@@ -337,12 +573,32 @@ export default function BundleReadyInvoicePage() {
           showIcon
           icon={<ExclamationCircleOutlined />}
           message="Gagal Mengambil Data Bundle Ready Invoice"
-          description={error.message || "Terjadi kendala saat memuat data dari server."}
+          description={
+            error.message || "Terjadi kendala saat memuat data dari server."
+          }
           className="rounded-xl"
         />
       )}
 
-      {hasSubmitted && !error && message && (
+      {hasSubmitted && !error && isSnapshotMode && (
+        <Alert
+          type="info"
+          showIcon
+          icon={<ClockCircleOutlined />}
+          message="Menampilkan data tersimpan"
+          description={
+            <>
+              {message || "Data bundle ready invoice dari pemeriksaan sebelumnya."}
+              <br />
+              Diperiksa terakhir pada {formatTimestamp(lastUpdatedAt)}. Tekan
+              &quot;Muat Ulang&quot; untuk memeriksa ulang ke SAP.
+            </>
+          }
+          className="rounded-xl"
+        />
+      )}
+
+      {hasSubmitted && !error && !isSnapshotMode && message && (
         <Alert
           type={total > 0 ? "warning" : "success"}
           showIcon
@@ -364,21 +620,22 @@ export default function BundleReadyInvoicePage() {
         subtitle={hasSubmitted ? total : undefined}
         subtitleVariant="error"
         columns={columns}
-        dataSource={hasSubmitted ? errorRows : []}
+        dataSource={visibleRows}
         loading={isLoading || isFetching}
         rowKey={(record, index) =>
           record.nomor_id || record.console_number || `row-${index}`
         }
         scrollX={1700}
+        filterBar={hasSubmitted ? filterBar : null}
         searchProps={{
-          placeholder: "Cari nomor ID, console number, nomor PO...",
-          value: searchValue,
-          onChange: setSearchValue,
+          placeholder: "Cari di data yang dimuat (nomor ID, console number, PO, pesan)...",
+          value: localSearch,
+          onChange: setLocalSearch,
         }}
         pagination={
           hasSubmitted
             ? {
-                total: errorRows.length,
+                total: visibleRows.length,
                 current: currentPage,
                 pageSize: pageSize,
                 onChange: handlePaginationChange,
@@ -387,7 +644,14 @@ export default function BundleReadyInvoicePage() {
         }
         extraHeaderActions={
           <Space size="middle">
-            <Tooltip title="Muat Ulang Data">
+            {lastUpdatedAt && (
+              <Tooltip title="Waktu data terakhir diterima dari server">
+                <Text className="text-xs text-slate-400">
+                  Diperbarui: {formatTimestamp(lastUpdatedAt)}
+                </Text>
+              </Tooltip>
+            )}
+            <Tooltip title="Muat Ulang Data (memeriksa ulang ke SAP)">
               <Button
                 type="default"
                 shape="circle"
@@ -405,10 +669,10 @@ export default function BundleReadyInvoicePage() {
         }
         emptyText={
           hasSubmitted
-            ? searchValue.trim()
-              ? "Tidak ada data error yang cocok dengan kata kunci pencarian."
-              : "Tidak ada data error bundle ready invoice."
-            : "Masukkan User ID di atas lalu klik \"Tampilkan Data\" untuk melihat daftar bundle."
+            ? rows.length === 0
+              ? "Tidak ada data error bundle ready invoice."
+              : "Tidak ada baris yang cocok dengan filter kata kunci / kategori."
+            : "Masukkan Kode Transporter di atas lalu klik \"Tampilkan Data\" untuk melihat daftar bundle."
         }
         expandable={{
           expandedRowRender: renderDetail,

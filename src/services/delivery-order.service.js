@@ -32,10 +32,13 @@ export const DeliveryOrderServices = (apiInstance) => {
    * Fetch bundles that are ready to be invoiced.
    * GET /support/do/get/list-bundle-ready
    *
-   * `m_user_id` is required — the backend maps it to an m_transporter_id.
-   * The response is nested: `result.data.{summary,success,error}`.
+   * `kode_transporter` wajib diisi — nilainya adalah username user ber-role
+   * TRANSPORTER (bukan `m_user_id`).
+   * `searchText` (opsional) mempersempit pemeriksaan ke `nomor_id` tertentu.
    *
-   * @param {Object} params - { m_user_id, searchText, currentPage, pageSize, limit, getAll }
+   * Response: `result.data.{summary,success,error}`.
+   *
+   * @param {Object} params - { kode_transporter, searchText }
    */
   const getBundleReady = (params) =>
     apiInstance.get("support/do/get/list-bundle-ready", params);

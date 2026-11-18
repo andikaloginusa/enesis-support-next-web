@@ -7,3 +7,4 @@ export * from "./cmo.service";
 export * from "./budget.service";
 export * from "./partner-bank.service";
 export * from "./delivery-order.service";
+export * from "./transporter.service";

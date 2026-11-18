@@ -169,6 +169,7 @@ export const NOTIF_MESSAGES = {
   FETCH_DO_ERROR: "Gagal mengambil daftar Delivery Order",
   FETCH_DO_DETAIL_ERROR: "Gagal mengambil detail Delivery Order",
   FETCH_BUNDLE_READY_ERROR: "Gagal mengambil daftar Bundle Ready Invoice",
+  FETCH_TRANSPORTER_ERROR: "Gagal mengambil daftar transporter",
 
   // Generic fallbacks
   GENERIC_SUCCESS: "Operasi berhasil",

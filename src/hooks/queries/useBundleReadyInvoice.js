@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { deliveryOrderService } from "@services/delivery-order.service";
 import { queryKeys } from "@/lib/queryKeys";
@@ -7,8 +8,9 @@ import { NOTIF_MESSAGES } from "@/utils/constants";
 /**
  * useBundleReadyInvoice — Query daftar bundle yang siap di-invoice / error validation.
  *
- * Endpoint ini mewajibkan `m_user_id` (ID user yang dicari bundle-nya),
- * dan mendukung `searchText` untuk pencarian bundle/PO/ID.
+ * Endpoint ini mewajibkan `kode_transporter` (username user ber-role TRANSPORTER),
+ * bukan `m_user_id`. Parameter `searchText` mempersempit pemeriksaan di server
+ * (hanya mencocokkan `nomor_id`) sehingga scan SAP jauh lebih cepat.
  *
  * Backend response:
  * {
@@ -23,23 +25,32 @@ import { NOTIF_MESSAGES } from "@/utils/constants";
  *   "meta": { "total": 3 }
  * }
  *
+ * Cache di sini sengaja dibuat panjang karena setiap request memicu panggilan
+ * SOAP ke SAP (bisa memakan waktu puluhan detik):
+ * - `staleTime` 5 menit  → pindah halaman / buka ulang tidak langsung memanggil SAP
+ * - `gcTime` 30 menit   → data tetap tersedia walau sempat tidak dipakai
+ * - `refetchOnWindowFocus` dimatikan → berpindah tab tidak memicu scan ulang
+ *
+ * Catatan: `placeholderData` sengaja TIDAK dipakai. Data dari transporter
+ * sebelumnya tidak boleh tampil di bawah label transporter yang lain.
+ *
  * @param {Object}   [options]
- * @param {string}   [options.mUserId]    - ID user yang dicari bundle ready-nya
- * @param {string}   [options.searchText] - Kata kunci pencarian (nomor ID, PO, console number, dll.)
- * @param {boolean}  [options.enabled]    - Aktif/nonaktifkan query
+ * @param {string}   [options.kodeTransporter] - Kode transporter (username user transporter)
+ * @param {string}   [options.searchText]      - Kata kunci nomor ID untuk mempersempit pemeriksaan
+ * @param {boolean}  [options.enabled]         - Aktif/nonaktifkan query
  */
 export const useBundleReadyInvoice = ({
-  mUserId = "",
+  kodeTransporter = "",
   searchText = "",
   enabled = false,
 } = {}) => {
   const cleanSearch = searchText?.trim() || "";
   const params = {
-    m_user_id: mUserId,
+    kode_transporter: kodeTransporter,
     ...(cleanSearch ? { searchText: cleanSearch } : {}),
   };
 
-  const { data, isLoading, isFetching, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch, dataUpdatedAt } = useQuery({
     queryKey: queryKeys.deliveryOrder.bundleReady(params),
     queryFn: async () => {
       const response = await deliveryOrderService.getBundleReady(params);
@@ -52,11 +63,13 @@ export const useBundleReadyInvoice = ({
       }
       return response.data;
     },
-    enabled: enabled && Boolean(mUserId),
-    placeholderData: (prev) => prev,
+    enabled: enabled && Boolean(kodeTransporter),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  const errorRows = data?.result?.data?.error ?? [];
+  const errorRows = useMemo(() => data?.result?.data?.error ?? [], [data]);
   const message = data?.message ?? "";
   const total = data?.meta?.total ?? errorRows.length;
 
@@ -67,6 +80,10 @@ export const useBundleReadyInvoice = ({
     // Menjaga kompatibilitas jika ada yang membaca summary / successRows
     summary: null,
     successRows: [],
+    /** true ketika respons server sudah diterima (berbeda dari masih loading) */
+    hasLiveData: data !== undefined,
+    /** timestamp (ms) respons server terakhir diterima */
+    dataUpdatedAt,
     isLoading,
     isFetching,
     error,

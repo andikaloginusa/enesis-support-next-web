@@ -91,8 +91,18 @@ export const queryKeys = {
     list: (params) => ["delivery-order", "list", params],
     /** Matches a single delivery order detail by ID */
     detail: (id) => ["delivery-order", "detail", id],
-    /** Matches the bundle-ready-to-invoice list for a given user */
+    /** Matches the bundle-ready-to-invoice list for a given transporter */
     bundleReady: (params) => ["delivery-order", "bundle-ready", params],
+  },
+
+  // ─────────────────────────────────────────────
+  // Transporter (master)
+  // ─────────────────────────────────────────────
+  transporter: {
+    /** Matches ALL transporter queries */
+    all: () => ["transporter"],
+    /** Matches the transporter list with pagination/search params */
+    list: (params) => ["transporter", "list", params],
   },
 
   // ─────────────────────────────────────────────

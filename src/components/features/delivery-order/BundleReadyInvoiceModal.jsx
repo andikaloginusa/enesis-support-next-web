@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import {
   Alert,
+  AutoComplete,
   Button,
   Descriptions,
   Form,
@@ -15,7 +16,7 @@ import {
 } from "antd";
 import { SearchOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { useBundleReadyInvoice } from "@/hooks/queries/useBundleReadyInvoice";
-import { useDebounce } from "@/hooks/useDebounce";
+import { useTransporterOptions } from "@/hooks/queries/useTransporterOptions";
 import {
   renderCurrency,
   renderDateTime,
@@ -34,22 +35,51 @@ const { Text } = Typography;
  */
 export function BundleReadyInvoiceModal({ open, onClose }) {
   const [form] = Form.useForm();
-  const [submittedUserId, setSubmittedUserId] = useState("");
+  const [submittedTransporter, setSubmittedTransporter] = useState("");
+  const [transporterInput, setTransporterInput] = useState("");
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
 
-  const debouncedSearch = useDebounce(searchText, 400);
+  const { options: transporterOptions } = useTransporterOptions({
+    searchText: transporterInput,
+  });
 
   const { errorRows, message, total, isLoading, isFetching, error } =
     useBundleReadyInvoice({
-      mUserId: submittedUserId,
-      searchText: debouncedSearch,
-      enabled: open && Boolean(submittedUserId),
+      kodeTransporter: submittedTransporter,
+      enabled: open && Boolean(submittedTransporter),
     });
+
+  const transporterChoices = useMemo(
+    () =>
+      transporterOptions.map((item) => ({
+        value: String(item.kode ?? ""),
+        label: (
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-mono font-semibold text-slate-700">
+              {item.kode}
+            </span>
+            <span className="text-xs text-slate-500 truncate">{item.nama}</span>
+          </div>
+        ),
+      })),
+    [transporterOptions]
+  );
+
+  // Penyaringan lokal — instan, tidak memanggil server (scan SAP terlalu mahal)
+  const visibleRows = useMemo(() => {
+    const keyword = searchText.trim().toLowerCase();
+    if (!keyword) return errorRows;
+    return errorRows.filter((row) =>
+      [row.nomor_id, row.console_number, row.nomor_po, row.pesan]
+        .some((value) => String(value ?? "").toLowerCase().includes(keyword))
+    );
+  }, [errorRows, searchText]);
 
   const handleClose = () => {
     form.resetFields();
-    setSubmittedUserId("");
+    setSubmittedTransporter("");
+    setTransporterInput("");
     setSearchText("");
     setPage(1);
     onClose?.();
@@ -60,7 +90,7 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
       const values = await form.validateFields();
       setSearchText("");
       setPage(1);
-      setSubmittedUserId(values.m_user_id.trim());
+      setSubmittedTransporter(values.kode_transporter.trim());
     } catch {
       /* validation errors surfaced inline by Ant Design */
     }
@@ -217,7 +247,7 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
     );
   };
 
-  const hasSubmitted = Boolean(submittedUserId);
+  const hasSubmitted = Boolean(submittedTransporter);
 
   return (
     <Modal
@@ -248,24 +278,30 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
           className="w-full"
         >
           <Form.Item
-            name="m_user_id"
+            name="kode_transporter"
             label={
-              <Text className="font-semibold text-slate-700">User ID</Text>
+              <Text className="font-semibold text-slate-700">
+                Kode Transporter
+              </Text>
             }
             rules={[
-              { required: true, message: "User ID wajib diisi." },
+              { required: true, message: "Kode Transporter wajib diisi." },
               {
                 validator: (_, value) =>
                   value && !value.trim()
-                    ? Promise.reject(new Error("User ID wajib diisi."))
+                    ? Promise.reject(new Error("Kode Transporter wajib diisi."))
                     : Promise.resolve(),
               },
             ]}
             className="flex-1 min-w-[280px]"
           >
-            <Input
+            <AutoComplete
               size="large"
-              placeholder="Masukkan User ID..."
+              allowClear
+              options={transporterChoices}
+              filterOption={false}
+              onChange={setTransporterInput}
+              placeholder="Ketik kode atau nama transporter..."
               className="rounded-lg w-full"
             />
           </Form.Item>
@@ -335,14 +371,14 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
             <Table
               size="small"
               rowKey={(row, idx) => row.nomor_id ?? row.console_number ?? idx}
-              dataSource={errorRows}
+              dataSource={visibleRows}
               columns={errorColumns}
               pagination={{
                 current: page,
                 onChange: (p) => setPage(p),
                 pageSize: 10,
                 size: "small",
-                total: errorRows.length,
+                total: visibleRows.length,
               }}
               scroll={{ x: 1300 }}
               expandable={{
@@ -362,8 +398,8 @@ export function BundleReadyInvoiceModal({ open, onClose }) {
         {!isLoading && !hasSubmitted && !error && (
           <div className="rounded-xl border border-dashed border-slate-200 py-12 text-center">
             <Text className="block text-slate-400 text-sm">
-              Masukkan User ID lalu klik &quot;Tampilkan&quot; untuk melihat
-              daftar bundle ready invoice.
+              Masukkan Kode Transporter lalu klik &quot;Tampilkan&quot; untuk
+              melihat daftar bundle ready invoice.
             </Text>
           </div>
         )}
