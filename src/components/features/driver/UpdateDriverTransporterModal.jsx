@@ -69,7 +69,8 @@ export function UpdateDriverTransporterModal({
 
     const next = {
       value: match.m_transporter_id,
-      label: match.nama,
+      label: `${match.kode} - ${match.nama}`,
+      nama: match.nama,
       kode: match.kode,
     };
     setSelected(next);
@@ -80,7 +81,8 @@ export function UpdateDriverTransporterModal({
     () =>
       transporterOptions.map((item) => ({
         value: item.m_transporter_id,
-        label: item.nama,
+        label: `${item.kode} - ${item.nama}`,
+        nama: item.nama,
         kode: item.kode,
       })),
     [transporterOptions]
@@ -126,17 +128,18 @@ export function UpdateDriverTransporterModal({
       className="[&_.ant-modal-content]:rounded-xl"
     >
       <div className="py-4 space-y-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4 rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
           <InfoField label="Kode Driver" value={row.kode} mono />
           <InfoField label="Nama Driver" value={row.nama} />
+          <InfoField label="No. HP" value={row.nomor_hp} mono />
           <InfoField
             label="Transporter Saat Ini"
             value={
-              row.nama_transporter
-                ? `${row.nama_transporter} (${row.kode_transporter ?? "-"})`
+              row.kode_transporter
+                ? `${row.kode_transporter} - ${row.nama_transporter ?? "-"}`
                 : "-"
             }
-            className="sm:col-span-2"
+            className="sm:col-span-3"
           />
         </div>
 
@@ -171,14 +174,9 @@ export function UpdateDriverTransporterModal({
               className="rounded-lg"
               options={transporterChoices}
               optionRender={(option) => (
-                <div className="flex items-center justify-between gap-4">
-                  <span className="font-semibold text-slate-700">
-                    {option.data.label}
-                  </span>
-                  <span className="text-xs text-slate-400 font-mono">
-                    {option.data.kode}
-                  </span>
-                </div>
+                <span className="font-semibold text-slate-700">
+                  {option.data.label}
+                </span>
               )}
             />
           </Form.Item>
