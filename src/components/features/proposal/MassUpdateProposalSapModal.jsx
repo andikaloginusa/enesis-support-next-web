@@ -400,14 +400,15 @@ export function MassUpdateProposalSapModal({
 
   // Reset on close — always fresh state when reopened
   useEffect(() => {
-    if (!open) {
-      form.resetFields();
-      selectedFileRef.current = null;
-      setSelectedFile(null);
-      setFileError("");
-      setResultData(null);
-    }
-  }, [open, form]);
+    // Form hanya terhubung saat modal terbuka (`destroyOnHidden`), jadi form
+    // tidak boleh disentuh saat modal tertutup.
+    if (open) return;
+
+    selectedFileRef.current = null;
+    setSelectedFile(null);
+    setFileError("");
+    setResultData(null);
+  }, [open]);
 
   // ── File selection (uses ref to avoid stale closure) ──────────────────────
   const handleFileChange = useCallback((file) => {

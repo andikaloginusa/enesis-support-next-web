@@ -34,6 +34,10 @@ export const extractErrorDetail = (response) => {
  * Extract a human-readable error message from an API response object.
  * Tries multiple known response shapes before falling back to the provided default.
  *
+ * Backend Sails yang memanggil `res.error({ message })` (1 argumen) membungkus
+ * payload-nya di `meta`, sehingga pesan yang informatif ada di `meta.message`
+ * sedangkan `message` teratas berisi teks generik ("Oops.. Your request failed!").
+ *
  * @param {Object|null|undefined} response - The API response object
  * @param {string} [fallback="Terjadi kesalahan. Silakan coba lagi."] - Fallback message
  * @returns {string}
@@ -44,8 +48,10 @@ export const extractErrorDetail = (response) => {
  */
 export const extractApiError = (response, fallback = "Terjadi kesalahan. Silakan coba lagi.") => {
   return (
+    response?.data?.meta?.message ||
     response?.data?.message ||
-    response?.data?.error ||
+    // `error` pada envelope Sails bernilai boolean `true`, bukan string pesan.
+    (typeof response?.data?.error === "string" ? response.data.error : undefined) ||
     response?.problem ||
     response?.error ||
     fallback

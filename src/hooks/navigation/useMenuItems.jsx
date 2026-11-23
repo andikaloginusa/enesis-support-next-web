@@ -114,6 +114,18 @@ export const useMenuItems = () => {
       ],
     },
     {
+      label: "Submit Faktur",
+      key: "submit-faktur-support",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/submit-faktur">Submit Faktur Support</Link>,
+          key: "submit-faktur",
+          icon: <FileText className="w-5 h-5 text-rose-600" />,
+        },
+      ],
+    },
+    {
       label: "Master Data",
       key: "master-data",
       theme: subMenuTheme,

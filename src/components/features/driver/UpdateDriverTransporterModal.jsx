@@ -49,14 +49,15 @@ export function UpdateDriverTransporterModal({
   });
 
   useEffect(() => {
-    if (open) {
-      // Cari transporter saat ini lebih dulu agar bisa terpilih otomatis.
-      setSearchText(row.kode_transporter || "");
-      setSelected(null);
-      form.setFieldsValue({ m_transporter_id: undefined });
-    } else {
-      form.resetFields();
-    }
+    // Form hanya terhubung saat modal terbuka (`destroyOnHidden`), jadi form
+    // tidak boleh disentuh saat modal tertutup.
+    if (!open) return;
+
+    // Cari transporter saat ini lebih dulu agar bisa terpilih otomatis.
+    setSearchText(row.kode_transporter || "");
+    setSelected(null);
+    form.resetFields();
+    form.setFieldsValue({ m_transporter_id: undefined });
   }, [open, form, row.kode_transporter]);
 
   // Preselect transporter saat ini begitu master transporter termuat.
@@ -69,7 +70,7 @@ export function UpdateDriverTransporterModal({
 
     const next = {
       value: match.m_transporter_id,
-      label: `${match.kode} - ${match.nama}`,
+      label: match.nama,
       nama: match.nama,
       kode: match.kode,
     };
@@ -81,7 +82,7 @@ export function UpdateDriverTransporterModal({
     () =>
       transporterOptions.map((item) => ({
         value: item.m_transporter_id,
-        label: `${item.kode} - ${item.nama}`,
+        label: item.nama,
         nama: item.nama,
         kode: item.kode,
       })),
@@ -135,8 +136,8 @@ export function UpdateDriverTransporterModal({
           <InfoField
             label="Transporter Saat Ini"
             value={
-              row.kode_transporter
-                ? `${row.kode_transporter} - ${row.nama_transporter ?? "-"}`
+              row.nama_transporter
+                ? `${row.nama_transporter} (${row.kode_transporter ?? "-"})`
                 : "-"
             }
             className="sm:col-span-3"
@@ -174,9 +175,14 @@ export function UpdateDriverTransporterModal({
               className="rounded-lg"
               options={transporterChoices}
               optionRender={(option) => (
-                <span className="font-semibold text-slate-700">
-                  {option.data.label}
-                </span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="font-semibold text-slate-700">
+                    {option.data.label}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {option.data.kode}
+                  </span>
+                </div>
               )}
             />
           </Form.Item>

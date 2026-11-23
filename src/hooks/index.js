@@ -20,4 +20,6 @@ export * from "./queries/useDeliveryOrderDetail";
 export * from "./queries/useBundleReadyInvoice";
 export * from "./queries/useTransporterOptions";
 export * from "./queries/useDriver";
+export * from "./queries/useSubmitFaktur";
+export * from "./queries/useSubmitFakturDetail";
 export * from "./queries/useDeliveryOrderExcelUpload";

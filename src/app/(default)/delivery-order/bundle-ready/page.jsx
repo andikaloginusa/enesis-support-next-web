@@ -622,8 +622,8 @@ export default function BundleReadyInvoicePage() {
         columns={columns}
         dataSource={visibleRows}
         loading={isLoading || isFetching}
-        rowKey={(record, index) =>
-          record.nomor_id || record.console_number || `row-${index}`
+        rowKey={(record) =>
+          record.nomor_id || record.console_number || record.nomor_po
         }
         scrollX={1700}
         filterBar={hasSubmitted ? filterBar : null}

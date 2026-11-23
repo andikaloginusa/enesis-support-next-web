@@ -434,19 +434,20 @@ function SingleFieldEditModal({
 }) {
   const [form] = Form.useForm();
 
-  // Initialize field value & reset reason_change whenever modal opens/closes
+  // Initialize field value & reset reason_change whenever modal opens
   React.useEffect(() => {
-    if (open && fieldContext) {
-      const rawVal = proposalDetail?.[fieldContext.fieldKey];
-      form.setFieldsValue({
-        value: fieldContext.type === "date"
-          ? (rawVal ? dayjs(rawVal) : null)
-          : (rawVal ?? ""),
-        reason_change: "",  // always start empty so user must type fresh
-      });
-    } else {
-      form.resetFields();
-    }
+    // Form hanya terhubung saat modal terbuka (`destroyOnHidden`), jadi form
+    // tidak boleh disentuh saat modal tertutup.
+    if (!open || !fieldContext) return;
+
+    const rawVal = proposalDetail?.[fieldContext.fieldKey];
+    form.resetFields();
+    form.setFieldsValue({
+      value: fieldContext.type === "date"
+        ? (rawVal ? dayjs(rawVal) : null)
+        : (rawVal ?? ""),
+      reason_change: "",  // always start empty so user must type fresh
+    });
   }, [open, fieldContext, proposalDetail, form]);
 
   const handleFinish = (values) => {

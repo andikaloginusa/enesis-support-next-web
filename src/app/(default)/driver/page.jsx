@@ -145,7 +145,7 @@ export default function DriverPage() {
         columns={columns}
         dataSource={driverList}
         loading={isListFetching}
-        rowKey={(row, index) => row.m_driver_id || `row-${index}`}
+        rowKey={(row) => row.m_driver_id}
         scrollX={1500}
         searchProps={{
           placeholder: "Cari kode/nama driver, KTP, SIM, HP, atau transporter...",

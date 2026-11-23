@@ -116,6 +116,18 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Submit Faktur (Support)
+  // ─────────────────────────────────────────────
+  submitFaktur: {
+    /** Matches ALL submit faktur queries */
+    all: () => ["submit-faktur"],
+    /** Matches the submit faktur list with pagination/search/filter params */
+    list: (params) => ["submit-faktur", "list", params],
+    /** Matches a single submit faktur detail by id */
+    detail: (id) => ["submit-faktur", "detail", id],
+  },
+
+  // ─────────────────────────────────────────────
   // User Profile
   // ─────────────────────────────────────────────
   user: {

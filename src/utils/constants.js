@@ -117,6 +117,11 @@ export const NOTIF_MESSAGES = {
   PROCESS_SAP_C_ORDER_ERROR: "Gagal Sinkronisasi SAP C-Order",
   FETCH_SAP_CMO_ERROR: "Gagal Mengambil Daftar CMO SAP",
 
+  // Submit Faktur
+  FETCH_SUBMIT_FAKTUR_ERROR: "Gagal mengambil daftar Submit Faktur",
+  UPDATE_SUBMIT_FAKTUR_SUCCESS: "Data Invoice Berhasil Diperbarui",
+  UPDATE_SUBMIT_FAKTUR_ERROR: "Gagal Memperbarui Data Invoice",
+
   // Partner Bank
   CREATE_PARTNER_BANK_SUCCESS: "Partner Bank Berhasil Ditambahkan",
   CREATE_PARTNER_BANK_ERROR: "Gagal Menambahkan Partner Bank",

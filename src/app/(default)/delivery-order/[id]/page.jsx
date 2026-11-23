@@ -261,7 +261,9 @@ export default function DeliveryOrderDetailPage({ params: paramsPromise }) {
 
   const statusMeta = getDeliveryOrderStatusMeta(detail.kode_status);
   const details = Array.isArray(detail.details) ? detail.details : [];
-  const tracking = Array.isArray(detail.tracking) ? detail.tracking : [];
+  const tracking = Array.isArray(detail.tracking)
+    ? detail.tracking.map((row, index) => ({ ...row, _rowKey: `tracking-${index}` }))
+    : [];
   const auditTracking = Array.isArray(detail.audit_tracking)
     ? detail.audit_tracking
     : [];
@@ -396,7 +398,7 @@ export default function DeliveryOrderDetailPage({ params: paramsPromise }) {
                     <Table
                       columns={trackingColumns}
                       dataSource={tracking}
-                      rowKey={(_, index) => `tracking-${index}`}
+                      rowKey="_rowKey"
                       pagination={{ pageSize: 10, size: "small" }}
                       scroll={{ x: 600 }}
                       className="border border-slate-100 rounded-xl overflow-hidden"

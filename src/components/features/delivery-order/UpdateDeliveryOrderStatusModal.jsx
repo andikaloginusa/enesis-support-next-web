@@ -42,11 +42,12 @@ export function UpdateDeliveryOrderStatusModal({
   const row = deliveryOrder || {};
 
   useEffect(() => {
-    if (open) {
-      form.setFieldsValue({ kode_status: row.kode_status || undefined });
-    } else {
-      form.resetFields();
-    }
+    // Form hanya terhubung saat modal terbuka (`destroyOnHidden`), jadi form
+    // tidak boleh disentuh saat modal tertutup.
+    if (!open) return;
+
+    form.resetFields();
+    form.setFieldsValue({ kode_status: row.kode_status || undefined });
   }, [open, row.kode_status, form]);
 
   const handleOk = async () => {
