@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { dataApprovalDirectOutletService } from "@services/data-approval-direct-outlet.service";
+import {
+  dataApprovalDirectOutletService,
+  extractOutletRows,
+  extractOutletTotal,
+} from "@services/data-approval-direct-outlet.service";
 import { queryKeys } from "@/lib/queryKeys";
 import { NOTIF_MESSAGES } from "@/utils/constants";
 import { useNotify, NOTIF_DURATION_MEDIUM } from "@/utils/notify";
@@ -97,14 +101,15 @@ export const useDataApprovalDirectOutlet = () => {
     },
   });
 
-  // Backend membungkus baris di `result` dan paginasi di `meta.count`.
-  const rows = listData?.result ?? listData?.data?.result ?? [];
-  const meta = listData?.meta ?? {};
+  // Baris & total dibaca lewat extractor karena envelope response endpoint ini
+  // berbeda dari modul lain di repo ini.
+  const rows = extractOutletRows(listData);
+  const totalCount = extractOutletTotal(listData);
 
   return {
     // List Query
     outletList: Array.isArray(rows) ? rows : [],
-    totalCount: meta.count ?? 0,
+    totalCount,
     isListFetching: isListLoading || isListFetching,
     refetchList,
 

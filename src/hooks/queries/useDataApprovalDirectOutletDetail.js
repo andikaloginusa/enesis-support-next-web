@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { dataApprovalDirectOutletService } from "@services/data-approval-direct-outlet.service";
+import {
+  dataApprovalDirectOutletService,
+  extractOutletDetail,
+} from "@services/data-approval-direct-outlet.service";
 import { queryKeys } from "@/lib/queryKeys";
 import { NOTIF_MESSAGES } from "@/utils/constants";
 import { extractApiError } from "@/utils/errorHelpers";
@@ -35,7 +38,7 @@ export const useDataApprovalDirectOutletDetail = ({
         );
       }
 
-      return response.data?.data ?? response.data?.result ?? null;
+      return extractOutletDetail(response.data);
     },
     enabled: Boolean(dataApprovalDirectOutletId),
     placeholderData: (prev) => prev,
