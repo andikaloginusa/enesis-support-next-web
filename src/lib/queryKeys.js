@@ -128,6 +128,18 @@ export const queryKeys = {
   },
 
   // ─────────────────────────────────────────────
+  // Data Approval Direct Outlet (Support)
+  // ─────────────────────────────────────────────
+  dataApprovalDirectOutlet: {
+    /** Matches ALL data approval direct outlet queries */
+    all: () => ["data-approval-direct-outlet"],
+    /** Matches the direct outlet list with pagination/search params */
+    list: (params) => ["data-approval-direct-outlet", "list", params],
+    /** Matches a single direct outlet detail by ID */
+    detail: (id) => ["data-approval-direct-outlet", "detail", id],
+  },
+
+  // ─────────────────────────────────────────────
   // User Profile
   // ─────────────────────────────────────────────
   user: {

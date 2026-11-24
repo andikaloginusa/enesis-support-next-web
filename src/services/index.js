@@ -10,3 +10,4 @@ export * from "./delivery-order.service";
 export * from "./transporter.service";
 export * from "./driver.service";
 export * from "./submit-faktur.service";
+export * from "./data-approval-direct-outlet.service";

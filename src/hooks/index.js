@@ -22,4 +22,6 @@ export * from "./queries/useTransporterOptions";
 export * from "./queries/useDriver";
 export * from "./queries/useSubmitFaktur";
 export * from "./queries/useSubmitFakturDetail";
+export * from "./queries/useDataApprovalDirectOutlet";
+export * from "./queries/useDataApprovalDirectOutletDetail";
 export * from "./queries/useDeliveryOrderExcelUpload";

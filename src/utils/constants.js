@@ -122,6 +122,14 @@ export const NOTIF_MESSAGES = {
   UPDATE_SUBMIT_FAKTUR_SUCCESS: "Data Invoice Berhasil Diperbarui",
   UPDATE_SUBMIT_FAKTUR_ERROR: "Gagal Memperbarui Data Invoice",
 
+  // Data Approval Direct Outlet
+  FETCH_DATA_APPROVAL_DIRECT_OUTLET_ERROR:
+    "Gagal mengambil daftar Data Approval Direct Outlet",
+  FETCH_DATA_APPROVAL_DIRECT_OUTLET_DETAIL_ERROR:
+    "Gagal mengambil detail Data Approval Direct Outlet",
+  UPDATE_DATA_APPROVAL_DIRECT_OUTLET_SUCCESS: "NIK KAM Berhasil Diperbarui",
+  UPDATE_DATA_APPROVAL_DIRECT_OUTLET_ERROR: "Gagal Memperbarui NIK KAM",
+
   // Partner Bank
   CREATE_PARTNER_BANK_SUCCESS: "Partner Bank Berhasil Ditambahkan",
   CREATE_PARTNER_BANK_ERROR: "Gagal Menambahkan Partner Bank",
@@ -197,5 +205,6 @@ export const API_LABELS = {
   PROPOSAL_FROM_SAP: "[useProposalFromSap]",
   CMO: "[useCmo]",
   PARTNER_BANK: "[usePartnerBank]",
+  DATA_APPROVAL_DIRECT_OUTLET: "[useDataApprovalDirectOutlet]",
   DELIVERY_ORDER: "[useDeliveryOrder]",
 };

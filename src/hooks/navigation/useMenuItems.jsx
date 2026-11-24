@@ -126,6 +126,18 @@ export const useMenuItems = () => {
       ],
     },
     {
+      label: "Data Approval Support",
+      key: "data-approval-support",
+      theme: subMenuTheme,
+      children: [
+        {
+          label: <Link href="/data-approval-direct-outlet">Direct Outlet</Link>,
+          key: "list-data-approval-direct-outlet",
+          icon: <FileText className="w-5 h-5 text-orange-600" />,
+        },
+      ],
+    },
+    {
       label: "Master Data",
       key: "master-data",
       theme: subMenuTheme,
