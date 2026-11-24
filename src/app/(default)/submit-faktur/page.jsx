@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
 import { Button, DatePicker, Select, Space, Tag, Tooltip } from "antd";
 import {
   EditOutlined,
@@ -301,13 +302,12 @@ export default function SubmitFakturPage() {
         </label>
         <DatePicker
           picker="month"
-          valueFormat="YYYY-MM"
           format="YYYY-MM"
           placeholder="Semua Periode"
           className="w-full"
-          value={params.periode ? params.periode : null}
+          value={params.periode ? dayjs(params.periode) : null}
           onChange={(value) =>
-            handleFilterChange("periode", value ? value : "")
+            handleFilterChange("periode", value ? value.format("YYYY-MM") : "")
           }
         />
       </div>

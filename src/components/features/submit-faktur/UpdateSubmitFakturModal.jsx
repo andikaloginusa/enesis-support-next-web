@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
 import { Alert, DatePicker, Form, Input, Modal, Select, Typography } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import { InfoField } from "@/components/ui";
@@ -13,15 +14,31 @@ import {
 
 const { Text } = Typography;
 
+const DATE_FORMAT = "YYYY-MM-DD";
+
 /**
  * Normalisasi nilai tanggal dari backend (ISO string / Date) menjadi
- * "YYYY-MM-DD" supaya cocok dengan `valueFormat` milik DatePicker.
+ * "YYYY-MM-DD" supaya bisa dibandingkan dengan hasil DatePicker.
  */
 const toDateString = (value) => {
-  if (!value) return undefined;
+  if (!value) return "";
+  if (dayjs.isDayjs(value)) return value.format(DATE_FORMAT);
   if (typeof value === "string") return value.slice(0, 10);
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  return undefined;
+  if (value instanceof Date) return dayjs(value).format(DATE_FORMAT);
+  return "";
+};
+
+/**
+ * Ubah nilai tanggal backend menjadi objek dayjs untuk DatePicker.
+ *
+ * antd v6 sudah menghapus `valueFormat`, jadi DatePicker hanya menerima
+ * objek dayjs — string akan membuat picker gagal saat memvalidasi tanggal.
+ */
+const toDayjs = (value) => {
+  const text = toDateString(value);
+  if (!text) return null;
+  const parsed = dayjs(text);
+  return parsed.isValid() ? parsed : null;
 };
 
 /**
@@ -67,8 +84,8 @@ export function UpdateSubmitFakturModal({
     form.setFieldsValue({
       status: currentStatus,
       reason_reject: row.reason || undefined,
-      tanggal_invoice: toDateString(row.tanggal_invoice),
-      tanggal_faktur: toDateString(row.tanggal_faktur),
+      tanggal_invoice: toDayjs(row.tanggal_invoice),
+      tanggal_faktur: toDayjs(row.tanggal_faktur),
       payment_term: row.payment_term || undefined,
     });
   }, [open, form, row]);
@@ -96,8 +113,8 @@ export function UpdateSubmitFakturModal({
   const initialValues = useMemo(
     () => ({
       kode_status: row.kode_status || "",
-      tanggal_invoice: toDateString(row.tanggal_invoice) || "",
-      tanggal_faktur: toDateString(row.tanggal_faktur) || "",
+      tanggal_invoice: toDateString(row.tanggal_invoice),
+      tanggal_faktur: toDateString(row.tanggal_faktur),
       payment_term: row.payment_term || "",
     }),
     [row]
@@ -126,18 +143,14 @@ export function UpdateSubmitFakturModal({
         }
       }
 
-      if (
-        values.tanggal_invoice &&
-        values.tanggal_invoice !== initialValues.tanggal_invoice
-      ) {
-        payload.tanggal_invoice = values.tanggal_invoice;
+      const invoiceDate = toDateString(values.tanggal_invoice);
+      if (invoiceDate && invoiceDate !== initialValues.tanggal_invoice) {
+        payload.tanggal_invoice = invoiceDate;
       }
 
-      if (
-        values.tanggal_faktur &&
-        values.tanggal_faktur !== initialValues.tanggal_faktur
-      ) {
-        payload.tanggal_faktur = values.tanggal_faktur;
+      const fakturDate = toDateString(values.tanggal_faktur);
+      if (fakturDate && fakturDate !== initialValues.tanggal_faktur) {
+        payload.tanggal_faktur = fakturDate;
       }
 
       if (
@@ -281,8 +294,7 @@ export function UpdateSubmitFakturModal({
             >
               <DatePicker
                 size="large"
-                valueFormat="YYYY-MM-DD"
-                format="YYYY-MM-DD"
+                format={DATE_FORMAT}
                 placeholder="YYYY-MM-DD"
                 className="w-full rounded-lg"
               />
@@ -298,8 +310,7 @@ export function UpdateSubmitFakturModal({
             >
               <DatePicker
                 size="large"
-                valueFormat="YYYY-MM-DD"
-                format="YYYY-MM-DD"
+                format={DATE_FORMAT}
                 placeholder="YYYY-MM-DD"
                 className="w-full rounded-lg"
               />
