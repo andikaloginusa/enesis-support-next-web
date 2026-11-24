@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { Alert, DatePicker, Form, Input, Modal, Select, Typography } from "antd";
 import { EditOutlined } from "@ant-design/icons";
 import { InfoField } from "@/components/ui";
+import { formatDate } from "@/utils/formatters";
 import {
   SUBMIT_FAKTUR_ALL_STATUS_OPTIONS,
   SUBMIT_FAKTUR_PAYMENT_TERM_OPTIONS,
@@ -228,6 +229,10 @@ export function UpdateSubmitFakturModal({
                 : "-"
             }
             mono
+          />
+          <InfoField
+            label="Est. Tanggal Bayar"
+            value={row.estimated_date ? formatDate(row.estimated_date) : "-"}
           />
         </div>
 
