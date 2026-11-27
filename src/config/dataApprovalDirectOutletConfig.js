@@ -3,9 +3,9 @@
  *
  * Field names dan label untuk modul Data Approval Support > Direct Outlet.
  *
- * Backend (`support/data-approval-direct-outlet`) mengembalikan baris pada key
- * `result` dan total pada `meta.count`, jadi pemetaan response dilakukan di
- * `useDataApprovalDirectOutlet`, bukan di layer ini.
+ * Backend (`support/data-approval-direct-outlet`) memakai envelope yang
+ * berbeda dari modul lain di repo ini, sehingga pemetaan response dilakukan di
+ * `data-approval-direct-outlet.service.js`, bukan di layer ini.
  */
 
 /** Primary key column returned by the list/detail endpoints. */
@@ -14,6 +14,15 @@ export const DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD =
 
 /** Kolom kode vendor. */
 export const DIRECT_OUTLET_KODE_VENDOR_FIELD = "kode_vendor";
+
+/** Kolom nama outlet. */
+export const DIRECT_OUTLET_NAMA_OUTLET_FIELD = "nama_outlet";
+
+/** Kolom nama perusahaan. */
+export const DIRECT_OUTLET_NAMA_PT_FIELD = "nama_pt";
+
+/** Kolom payment. */
+export const DIRECT_OUTLET_PAYMENT_FIELD = "payment";
 
 /** Kolom NIK KAM — satu-satunya field yang bisa di-update. */
 export const DIRECT_OUTLET_NIK_KAM_FIELD = "nik_kam";
@@ -28,6 +37,9 @@ export const DIRECT_OUTLET_NAMA_KAM_FIELD = "nama_kam";
  */
 export const DIRECT_OUTLET_DISPLAY_FIELDS = [
   DIRECT_OUTLET_KODE_VENDOR_FIELD,
+  DIRECT_OUTLET_NAMA_OUTLET_FIELD,
+  DIRECT_OUTLET_NAMA_PT_FIELD,
+  DIRECT_OUTLET_PAYMENT_FIELD,
   DIRECT_OUTLET_NIK_KAM_FIELD,
   DIRECT_OUTLET_NAMA_KAM_FIELD,
 ];
@@ -39,6 +51,9 @@ export const DIRECT_OUTLET_DISPLAY_FIELDS = [
 export const DIRECT_OUTLET_FIELD_LABELS = {
   [DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD]: "ID Data Approval Direct Outlet",
   [DIRECT_OUTLET_KODE_VENDOR_FIELD]: "Kode Vendor",
+  [DIRECT_OUTLET_NAMA_OUTLET_FIELD]: "Nama Outlet",
+  [DIRECT_OUTLET_NAMA_PT_FIELD]: "Nama PT",
+  [DIRECT_OUTLET_PAYMENT_FIELD]: "Payment",
   [DIRECT_OUTLET_NIK_KAM_FIELD]: "NIK KAM",
   [DIRECT_OUTLET_NAMA_KAM_FIELD]: "Nama KAM",
 };

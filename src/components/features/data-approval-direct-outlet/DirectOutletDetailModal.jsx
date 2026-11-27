@@ -8,7 +8,10 @@ import {
   DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD,
   DIRECT_OUTLET_KODE_VENDOR_FIELD,
   DIRECT_OUTLET_NAMA_KAM_FIELD,
+  DIRECT_OUTLET_NAMA_OUTLET_FIELD,
+  DIRECT_OUTLET_NAMA_PT_FIELD,
   DIRECT_OUTLET_NIK_KAM_FIELD,
+  DIRECT_OUTLET_PAYMENT_FIELD,
 } from "@/config/dataApprovalDirectOutletConfig";
 
 const { Text } = Typography;
@@ -76,6 +79,18 @@ export function DirectOutletDetailModal({
           mono
         />
         <InfoField
+          label="Nama Outlet"
+          value={row[DIRECT_OUTLET_NAMA_OUTLET_FIELD]}
+        />
+        <InfoField
+          label="Nama PT"
+          value={row[DIRECT_OUTLET_NAMA_PT_FIELD]}
+        />
+        <InfoField
+          label="Payment"
+          value={row[DIRECT_OUTLET_PAYMENT_FIELD]}
+        />
+        <InfoField
           label="NIK KAM"
           value={row[DIRECT_OUTLET_NIK_KAM_FIELD]}
           mono
@@ -83,7 +98,6 @@ export function DirectOutletDetailModal({
         <InfoField
           label="Nama KAM"
           value={row[DIRECT_OUTLET_NAMA_KAM_FIELD]}
-          className="sm:col-span-2"
         />
         <InfoField
           label="ID"

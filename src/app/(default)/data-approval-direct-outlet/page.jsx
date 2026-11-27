@@ -16,6 +16,7 @@ import {
   renderBold,
   renderMedium,
   renderMono,
+  renderTruncated,
 } from "@/components/ui";
 import { DirectOutletDetailModal } from "@/components/features/data-approval-direct-outlet/DirectOutletDetailModal";
 import { UpdateNikKamModal } from "@/components/features/data-approval-direct-outlet/UpdateNikKamModal";
@@ -23,7 +24,10 @@ import {
   DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD,
   DIRECT_OUTLET_KODE_VENDOR_FIELD,
   DIRECT_OUTLET_NAMA_KAM_FIELD,
+  DIRECT_OUTLET_NAMA_OUTLET_FIELD,
+  DIRECT_OUTLET_NAMA_PT_FIELD,
   DIRECT_OUTLET_NIK_KAM_FIELD,
+  DIRECT_OUTLET_PAYMENT_FIELD,
 } from "@/config/dataApprovalDirectOutletConfig";
 import { BRAND_FOCUS_COLOR } from "@/utils/constants";
 
@@ -41,6 +45,28 @@ const buildColumns = ({ onView, onOpenDetailPage, onUpdate }) => [
     fixed: "left",
     width: 200,
     render: (text) => renderBold(text),
+  },
+
+  {
+    title: "Nama Outlet",
+    dataIndex: DIRECT_OUTLET_NAMA_OUTLET_FIELD,
+    key: DIRECT_OUTLET_NAMA_OUTLET_FIELD,
+    width: 200,
+    render: (text) => renderBold(text),
+  },
+  {
+    title: "Nama PT",
+    dataIndex: DIRECT_OUTLET_NAMA_PT_FIELD,
+    key: DIRECT_OUTLET_NAMA_PT_FIELD,
+    width: 240,
+    render: (text) => renderMedium(text),
+  },
+  {
+    title: "Payment",
+    dataIndex: DIRECT_OUTLET_PAYMENT_FIELD,
+    key: DIRECT_OUTLET_PAYMENT_FIELD,
+    width: 280,
+    render: (text) => renderTruncated(text, 220),
   },
   {
     title: "NIK KAM",
@@ -156,9 +182,7 @@ export default function DataApprovalDirectOutletPage() {
   };
 
   const goToDetailPage = (row) => {
-    router.push(
-      `${LIST_ROUTE}/${row[DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD]}`,
-    );
+    router.push(`${LIST_ROUTE}/${row[DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD]}`);
   };
 
   const handleUpdateSubmit = async (payload) => {
@@ -200,7 +224,7 @@ export default function DataApprovalDirectOutletPage() {
         dataSource={outletList}
         loading={isListFetching}
         rowKey={DATA_APPROVAL_DIRECT_OUTLET_ID_FIELD}
-        scrollX={900}
+        scrollX={1600}
         pagination={{
           total: totalCount,
           pageSize: params.pageSize,
@@ -208,7 +232,8 @@ export default function DataApprovalDirectOutletPage() {
           onChange: handlePaginationChange,
         }}
         searchProps={{
-          placeholder: "Cari kode vendor, NIK KAM, atau nama KAM...",
+          placeholder:
+            "Cari kode vendor, nama outlet, nama PT, NIK KAM, atau nama KAM...",
           value: searchValue,
           onChange: setSearchValue,
         }}
@@ -219,7 +244,9 @@ export default function DataApprovalDirectOutletPage() {
                 type="default"
                 shape="circle"
                 icon={
-                  <ReloadOutlined className={isListFetching ? "animate-spin" : ""} />
+                  <ReloadOutlined
+                    className={isListFetching ? "animate-spin" : ""}
+                  />
                 }
                 onClick={() => refetchList()}
               />
